@@ -27,6 +27,8 @@ export interface PoznanApi {
     session(): Promise<{ userId: string } | null>;
     signIn(email: string, password: string): Promise<void>;
     signOut(): Promise<void>;
+    /** Javlja prijavu i odjavu (i istek sesije). Vraća funkciju za odjavu slušaoca. */
+    onChange(cb: (session: { userId: string } | null) => void): () => void;
   };
   profile: { me(): Promise<Profile>; all(): Promise<Profile[]>; update(patch: Partial<Omit<Profile, 'userId' | 'slug'>>): Promise<void> };
   settings: { get(): Promise<Settings>; update(patch: Partial<Settings>): Promise<void> };

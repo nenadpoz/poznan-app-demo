@@ -70,6 +70,10 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
         if (error) throw new ApiError('Pogrešan email ili lozinka', 'auth');
       },
       async signOut() { await sb.auth.signOut(); },
+      onChange(cb) {
+        const { data } = sb.auth.onAuthStateChange((_e, s) => cb(s ? { userId: s.user.id } : null));
+        return () => data.subscription.unsubscribe();
+      },
     },
 
     profile: {
