@@ -61,7 +61,15 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:
 .top-right{display:flex;gap:8px;align-items:center}
 .cur-tg{border:1px solid var(--line);background:var(--surface-2);color:var(--fg);border-radius:999px;padding:5px 10px;font-weight:700;font-size:13px;min-width:46px}
 .cur-tg:hover{background:var(--accent-soft)}
-.card.bal{display:flex;flex-direction:column;gap:6px;text-align:left;width:100%;color:inherit;font:inherit;cursor:pointer}
+.card.bal{display:flex;flex-direction:column;gap:6px;text-align:left;width:100%}
+.cur-seg{min-height:46px}.cur-seg label{display:flex;align-items:center;justify-content:center}
+.apick{position:relative}
+.apick-btn,.apick-opt{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:6px 12px 6px 6px;cursor:pointer;min-height:46px}
+.apick-btn[aria-expanded="true"]{border-color:var(--accent)}
+.apick-t{display:flex;flex-direction:column;flex:1;min-width:0;line-height:1.25}.apick-t b{font-size:14.5px}.apick-t small{font-size:12.5px;color:var(--muted)}
+.apick-list{position:absolute;z-index:5;left:0;right:0;top:calc(100% + 4px);display:flex;flex-direction:column;gap:2px;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.apick-list[hidden]{display:none}
+.apick-opt{border:0;background:none;border-radius:10px}.apick-opt:hover{background:var(--surface-2)}.apick-opt[aria-selected="true"]{background:var(--accent-soft)}.apick-opt svg{color:var(--accent)}
 .bal .kv{align-items:center}.bal-n{display:flex;align-items:center;gap:8px}.bal-n .co-ic{transform:scale(.8)}
 .bal .neg{color:var(--bad)}.bal-tot{border-top:1px solid var(--line);padding-top:8px;margin-top:2px;font-weight:700;font-size:16px}
 .row-amt.tr{color:var(--accent)}
@@ -530,6 +538,7 @@ const I={
  plus:'<path d="M12 5v14M5 12h14"/>',
  back:'<path d="M15 18l-6-6 6-6"/>',
  x:'<path d="M6 6l12 12M18 6L6 18"/>',
+ down:'<path d="M6 9l6 6 6-6"/>',
  camera:'<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>',
  alert:'<path d="M12 3l10 18H2zM12 10v5M12 18h.01"/>',
  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/>',
@@ -777,31 +786,29 @@ function balanceOf(id){const from=S.openDate||'0000';let b=(S.opening||{})[id]||
 function lastMove(){const all=[...S.tx.filter(t=>t.ts).map(t=>({ts:t.ts,by:t.by,txt:`${t.type==='prihod'?'Prihod':'Trošak'} ${rsd(t.amount)} · ${acctName(t.companyId||'kes')}`})),...(S.transfers||[]).map(x=>({ts:x.ts,by:x.by,txt:`${acctName(x.from)} → ${acctName(x.to)} · ${rsd(x.amount)}`}))].sort((a,b)=>b.ts-a.ts)[0];
   return all?`<p class="small muted" style="margin:6px 0 0">Poslednja promena: <b>${esc(userName(all.by))}</b>, ${dayLabel(all.ts).toLowerCase()} u ${fmtTime(all.ts)} · ${esc(all.txt)}</p>`:'';}
 function balanceCard(){const a=accounts(),tot=a.reduce((s,x)=>s+balanceOf(x.id),0);
-  return `<button class="card bal" data-act="openBalances" aria-label="Stanje novca, otvori detalje"><div class="sec-h"><h2>Stanje novca</h2><span class="small muted">${dispCur()==='EUR'?'kurs '+fxRate().toFixed(4).replace('.',','):'u dinarima'}</span></div>
+  return `<section class="card bal" aria-label="Stanje novca"><div class="sec-h"><h2>Stanje novca</h2><span class="small muted">${dispCur()==='EUR'?'kurs '+fxRate().toFixed(4).replace('.',','):'u dinarima'}</span></div>
   ${a.map(x=>{const b=balanceOf(x.id);return `<div class="kv"><span class="bal-n">${coIcon(x.c)}${esc(x.name)}</span><b class="${b<0?'neg':''}">${rsd(b)}</b></div>`;}).join('')}
-  <div class="kv bal-tot"><span>Ukupno</span><b>${rsd(tot)}</b></div>${lastMove()}</button>`;}
+  <div class="kv bal-tot"><span>Ukupno</span><b>${rsd(tot)}</b></div>${lastMove()}</section>`;}
 function transferRow(x){return `<button class="row" data-act="delTransfer" data-id="${x.id}"><div class="row-main"><b>${esc(acctName(x.from))} → ${esc(acctName(x.to))}</b><small>${fmtDate(x.date)} <span class="tag">prenos</span> · ${esc(userName(x.by))}${x.note?' · '+esc(x.note):''}</small></div>
   <div class="row-amt tr">${amt(x.amount)}${x.currency!==dispCur()?`<small>uneto ${curAmt(x.amountOriginal,x.currency)}</small>`:'<small>prenos</small>'}</div></button>`;}
-function acctOpts(name,sel,exclude){return accounts().filter(a=>a.id!==exclude).map(a=>`<label class="co-opt"><input type="radio" name="${name}" value="${a.id}" ${sel===a.id?'checked':''}>${coIcon(a.c)}<b>${esc(a.name)}</b><small>${rsd(balanceOf(a.id))}</small></label>`).join('');}
-function curSeg(sel){return `<div class="seg" role="radiogroup" aria-label="Valuta">${['EUR','RSD'].map(c=>`<label><input type="radio" name="currency" value="${c}" ${sel===c?'checked':''}>${c}</label>`).join('')}</div>`;}
+const acctItem=a=>`${coIcon(a.c)}<span class="apick-t"><b>${esc(a.name)}</b><small>${rsd(balanceOf(a.id))}</small></span>`;
+function acctPick(name,label,sel,exclude){const list=accounts().filter(a=>a.id!==exclude),cur=list.find(a=>a.id===sel)||list[0];
+  return `<div class="fld"><span id="ap-${name}">${label}</span><div class="apick" data-name="${name}"><input type="hidden" name="${name}" value="${cur.id}">
+  <button type="button" class="apick-btn" data-act="apickToggle" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="ap-${name}">${acctItem(cur)}${ic('down',18)}</button>
+  <div class="apick-list" role="listbox" aria-labelledby="ap-${name}" hidden>${list.map(a=>`<button type="button" role="option" class="apick-opt" data-act="apickSet" data-v="${a.id}" aria-selected="${a.id===cur.id}">${acctItem(a)}${a.id===cur.id?ic('check',18):''}</button>`).join('')}</div></div></div>`;}
+// "Na račun" nikad ne nudi račun sa kog se podiže.
+function trPicks(from,to){const ok=accounts().filter(a=>a.id!==from);if(!ok.some(a=>a.id===to))to=(ok.find(a=>a.id==='kes')||ok[0])?.id;return acctPick('from','Sa računa',from)+acctPick('to','Na račun',to,from);}
+function curSeg(sel){return `<div class="seg cur-seg" role="radiogroup" aria-label="Valuta">${['EUR','RSD'].map(c=>`<label><input type="radio" name="currency" value="${c}" ${sel===c?'checked':''}>${c}</label>`).join('')}</div>`;}
 function fxHint(f){const h=f.querySelector('.fx-hint');if(!h)return;const c=f.elements.currency.value,v=parseNum(f.elements.amount.value);
   h.textContent=c==='EUR'?(v>0?`≈ ${rsdFix(v*fxRate())} · srednji kurs NBS ${rateTxt()}`:`Srednji kurs NBS: ${rateTxt()}`):(v>0?`≈ ${eur2(v/fxRate())} EUR`:'');}
 function transferForm(){const f0=S.companies.find(c=>c.phase!=='zatvorena')?.id||'kes';
   openSheet('Podigni ili položi keš',`<form class="form" data-form="transfer" id="trForm"><p class="small muted" style="margin:0">Prenos između računa nije prihod ni trošak: ne ulazi u limite ni u profit.</p>
-  <fieldset class="fld"><legend>Sa računa</legend><div class="co-opts" role="radiogroup" aria-label="Sa računa">${acctOpts('from',f0)}</div></fieldset>
-  <fieldset class="fld"><legend>Na račun</legend><div class="co-opts" role="radiogroup" aria-label="Na račun">${acctOpts('to',f0==='kes'?S.companies[0]?.id:'kes')}</div></fieldset>
+  <div id="trPicks" class="form" style="gap:14px">${trPicks(f0,'kes')}</div>
   <div class="grid2"><label class="fld"><span>Iznos</span><input name="amount" inputmode="decimal" placeholder="0" required></label><fieldset class="fld"><legend>Valuta</legend>${curSeg(dispCur())}</fieldset></div>
   <p class="small muted fx-hint" style="margin:0"></p>
-  <div class="grid2"><label class="fld"><span>Datum</span><input type="date" name="date" value="${TODAY_ISO}" required></label><label class="fld"><span>Napomena</span><input name="note" placeholder="Opciono"></label></div>
+  <label class="fld"><span>Datum</span><input type="date" name="date" value="${TODAY_ISO}" required></label>
+  <label class="fld"><span>Komentar</span><textarea name="note" rows="2" placeholder="npr. Za plate radnicima"></textarea><small>Nije obavezno. Vidi se uz prenos u Prometu.</small></label>
   <div class="form-actions"><button type="button" class="btn" data-act="closeSheet">Otkaži</button><button class="btn primary" type="submit">Sačuvaj prenos</button></div></form>`);fxHint($('#trForm'));}
-function balancesSheet(){const a=accounts();
-  openSheet('Stanje novca',`<form class="form" data-form="balances">
-  ${a.map(x=>`<div class="settings-sec" style="gap:6px"><div class="kv"><span class="bal-n">${coIcon(x.c)}<b>${esc(x.name)}</b></span><b>${rsd(balanceOf(x.id))}</b></div>
-  <label class="fld"><span>Početno stanje (RSD)</span><input name="open_${x.id}" inputmode="decimal" value="${money((S.opening||{})[x.id]||0)}"></label></div>`).join('')}
-  <label class="fld"><span>Početno stanje važi od</span><input type="date" name="openDate" value="${S.openDate||TODAY_ISO}"></label>
-  <p class="small muted" style="margin:0">Stanje = početno stanje + prihodi − troškovi ± podizanja i polaganja keša od tog datuma. ${rateTxt()} (srednji kurs NBS, ${fmtDate(S.fx?.date||EUR_DEF.date)}).</p>
-  <button type="button" class="btn block" data-act="newTransfer">${ic('swap',18)} Podigni ili položi keš</button>
-  <div class="form-actions"><button type="button" class="btn" data-act="closeSheet">Zatvori</button><button class="btn primary" type="submit">Sačuvaj početno stanje</button></div></form>`);}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast('Pregledač nema više mesta za čuvanje. Slike možda nisu sačuvane.');}}
 const ui={view:'dashboard',param:null,pm:'godina',pmon:TODAY.getMonth(),pyear:TODAY.getFullYear(),pfrom:TODAY_ISO.slice(0,8)+'01',pto:TODAY_ISO,ch:'sve',clientQ:'',clientCat:'',clientArch:false,posTab:'lista',kq:'',kKind:'fizicko',clientFrom:'poslovi',tx:{type:'sve',company:'sve'},lf:{entity:'sve',user:'svi',days:'30',q:''},pickUser:'nenad',cal:{mode:'mesec',date:TODAY_ISO,who:'svi'},tk:{who:'svi',done:false}};
 
@@ -1452,7 +1459,8 @@ function readImage(file,max=900,type='image/jpeg'){return new Promise((res,rej)=
 /* ---------- Akcije ---------- */
 const A={
   curToggle:()=>{const p=S.prefs[S.session]=S.prefs[S.session]||{};p.currency=dispCur()==='EUR'?'RSD':'EUR';save();render();toast(`Iznosi su prikazani u ${p.currency==='EUR'?'evrima':'dinarima'}.`);},
-  openBalances:()=>balancesSheet(),
+  apickToggle:el=>{const l=el.nextElementSibling,open=l.hidden;closePicks();l.hidden=!open;el.setAttribute('aria-expanded',String(open));},
+  apickSet:el=>{const f=el.closest('form'),w=el.closest('.apick');let from=f.elements.from.value,to=f.elements.to.value;if(w.dataset.name==='from')from=el.dataset.v;else to=el.dataset.v;$('#trPicks').innerHTML=trPicks(from,to);},
   newTransfer:()=>transferForm(),
   delTransfer:el=>{const x=(S.transfers||[]).find(y=>y.id===el.dataset.id);if(!x)return;confirmSheet('Obriši prenos?',`${acctName(x.from)} → ${acctName(x.to)}, ${curAmt(x.amountOriginal,x.currency)} od ${fmtDate(x.date)} (uneo: ${userName(x.by)}).`,'Obriši',()=>{S.transfers=S.transfers.filter(y=>y.id!==x.id);log('transakcija','obrisano',`Prenos ${acctName(x.from)} → ${acctName(x.to)} · ${rsdFix(x.amount)}`);save();render();toast('Prenos je obrisan.');});},
   go:el=>{if(el.dataset.v==='poslovi'&&el.closest('.nav'))ui.clientArch=false;go(el.dataset.v,el.dataset.p||null);},
@@ -1543,9 +1551,6 @@ const F={
     const low=balanceOf(from)<x.amount;(S.transfers=S.transfers||[]).push(x);
     log('transakcija','kreirano',`Prenos ${acctName(from)} → ${acctName(to)} · ${curAmt(orig,cur)}`,[{field:'Sa računa',from:'',to:acctName(from)},{field:'Na račun',from:'',to:acctName(to)}]);save();closeSheet();render();
     toast(low?`Prenos je sačuvan. Na računu ${acctName(from)} je sada minus.`:'Prenos je sačuvan.');},
-  balances:f=>{const e=f.elements,ch=[];accounts().forEach(a=>{const v=parseNum(e['open_'+a.id].value),o=(S.opening||{})[a.id]||0;if(v!==o){ch.push({field:`Početno stanje: ${a.name}`,from:rsdFix(o),to:rsdFix(v)});S.opening[a.id]=v;}});
-    const od=e.openDate.value||S.openDate;if(od!==S.openDate){ch.push({field:'Početno stanje od',from:fmtDate(S.openDate),to:fmtDate(od)});S.openDate=od;}
-    if(ch.length){log('podesavanja','izmenjeno','Početno stanje računa',ch);save();}closeSheet();render();toast(ch.length?'Početno stanje je sačuvano.':'Nema izmena.');},
   // Demo: lozinke se ne proveravaju, samo se prikazuje tok. Prava provera ide u aplikaciju (Supabase Auth).
   login:()=>{const u=ui.pickUser;ui.loginErr="";S.session=u;log("nalog","prijava","Prijava na aplikaciju");save();go("dashboard");checkStartPrompts();},
   setPass:()=>{const u=ui.pickUser;S.auth[u]={hash:"demo",setAt:Date.now()};ui.loginErr="";S.session=u;log("nalog","postavljena lozinka","Lozinka postavljena");log("nalog","prijava","Prijava na aplikaciju");save();go("dashboard");toast("Lozinka je postavljena.");checkStartPrompts();},
@@ -1901,7 +1906,8 @@ Object.assign(F,{
       if(ch.length){log('podesavanja','izmenjeno',`Kategorija: ${name}`,ch);l.name=name;l.c=c;save();}closeSheet();render();toast(ch.length?'Kategorija je sačuvana.':'Nema izmena.');}
     else{S.labels.push({id:uid(),name,c});log('podesavanja','kreirano',`Kategorija: ${name}`,[{field:'Boja',from:'',to:LC_NAME[c]}]);save();render();toast('Kategorija je dodata.');}},
 });
-document.addEventListener('click',e=>{if(!e.target.closest('.ac-wrap')){const b=$('#acList');if(b)b.hidden=true;}
+function closePicks(){document.querySelectorAll('.apick-list').forEach(l=>{l.hidden=true;l.previousElementSibling.setAttribute('aria-expanded','false');});}
+document.addEventListener('click',e=>{if(!e.target.closest('.apick'))closePicks();if(!e.target.closest('.ac-wrap')){const b=$('#acList');if(b)b.hidden=true;}
   document.querySelectorAll('.combo').forEach(w=>{if(w.contains(e.target))return;w.querySelector('.ac').hidden=true;if(!w.querySelector('input[type=hidden]').value){w.querySelector('.combo-q').value='';w.querySelector('.combo-x').hidden=true;}});const el=e.target.closest('[data-act]');if(!el)return;const fn=A[el.dataset.act];if(fn){e.preventDefault();fn(el,e);}});
 document.addEventListener('submit',e=>{e.preventDefault();const f=e.target;F[f.dataset.form]&&F[f.dataset.form](f);});
 document.addEventListener('focusin',e=>{if(e.target.classList?.contains('combo-q'))comboUpdate(e.target.closest('.combo'));});
@@ -1913,7 +1919,6 @@ document.addEventListener('input',e=>{if(e.target.name==='amount'&&e.target.form
 document.addEventListener('change',async e=>{
   const t=e.target;if(t.form&&t.form.id==='txForm'){updTxForm(false);return;}
   if(t.name==='currency'&&t.form&&t.form.id==='trForm'){fxHint(t.form);return;}
-  if(t.name==='from'&&t.form&&t.form.id==='trForm'){const to=t.form.querySelector(`input[name=to][value="${t.value}"]`);if(to&&to.checked){const o=t.form.querySelector(`input[name=to]:not([value="${t.value}"])`);if(o)o.checked=true;}return;}
   if(t.id==='j-label'){const w=$('#newLabelWrap');w.hidden=t.value!=='__new';if(!w.hidden)$('#j-newlabel').focus();return;}
   if(t.name==='icon'&&t.form?.dataset.form==='company'){updLogoPrev(t.form);return;}
   if(t.name==='push'&&t.form?.dataset.form==='notif'){$('#notifPushWrap').hidden=!t.checked;return;}
@@ -1929,7 +1934,7 @@ document.addEventListener('change',async e=>{
     for(const f of files){try{kl.photos.push(await readImage(f));}catch(err){}}
     const added=kl.photos.length-before;if(added){log('posao','dodata slika',posLabel(kl),[{field:'Slike',from:String(before),to:String(kl.photos.length)}]);save();render();toast(added===1?'Slika je dodata.':`Dodato slika: ${added}.`);}else toast('Slike nisu mogle da se učitaju.');}
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#sheetRoot').innerHTML)closeSheet();});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if($('.apick-list:not([hidden])')){closePicks();return;}if($('#sheetRoot').innerHTML)closeSheet();});
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>applyTheme());}catch(e){}
 /* Početak posla: kad dođe datum početka, pitaj da li posao „Na čekanju“ prelazi u „U procesu“.
    Pita se jednom po nalogu za dati datum početka (S.prefs[korisnik].startAsked). */
