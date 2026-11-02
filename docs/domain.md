@@ -183,7 +183,7 @@ Zahtev vlasnika od 2. nov 2026. Urađeno u core-u (v0.2.0), mobilnoj aplikaciji 
 - Stanje računa = početno stanje + prihodi − troškovi ± prenosi (view u bazi).
 
 ## 16. Plate i ulozi vlasnika
-Urađeno u HTML demou; u core i mobile još nije.
+Urađeno u HTML demou, core-u (v0.3.0) i mobilnoj aplikaciji.
 - **Plata**: trošak označen kao **Isplata plate**, bira se Nenad, Jovan ili **Obojica** (dva unosa sa istim iznosom, sa računa se skida dvostruko). Kategorija je uvek „Plata“, bez klijenta. Smanjuje stanje računa sa kog je isplaćena i ulazi u troškove i profit.
 - **Ulog vlasnika**: kod prihoda polje **Ulog vlasnika (sopstveni novac)**, bira se ko je uložio i na koji račun (firma ili keš). Nije prihod: ne ulazi u limite, PDV ni profit, samo povećava stanje računa. U Prometu se vidi pod **Sve** i **Prenosi**, sa oznakom „ulog“.
 - **Neto** po vlasniku = plate − ulozi. **Razlika** poredi neto iznose (ko je neto dobio više).

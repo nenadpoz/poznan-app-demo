@@ -3,11 +3,11 @@
  * mobile preko lokalnog adaptera nad SQLite/PowerSync (offline), sa istim potpisima.
  */
 import type {
-  ClientInput, CompanyInput, JobInput, TaskInput, TransactionInput, TransferInput,
+  ClientInput, CompanyInput, JobInput, OwnerContributionInput, TaskInput, TransactionInput, TransferInput,
 } from '@poznan/shared';
 import type { PaymentLine } from '@poznan/shared';
 import type {
-  Account, AccountBalance, FxRateRow, Transfer, AuditEntry, Appointment, Client, Comment, Company, CompanyHistoryItem, Job, Label, Notification, PendingItem, Profile, Settings, Task, Transaction,
+  Account, AccountBalance, FxRateRow, Transfer, AuditEntry, Client, Comment, Company, CompanyHistoryItem, Job, Label, Notification, OwnerContribution, PendingItem, Profile, Settings, Task, Transaction,
 } from './model';
 
 export interface ListOpts { includeDeleted?: boolean }
@@ -47,9 +47,14 @@ export interface PoznanApi {
     markPaid(jobId: string): Promise<void>;
     addReminder(jobId: string, at: string, to: 'me' | 'both', note?: string | null): Promise<void>;
   };
-  appointments: Crud<Appointment, Omit<Appointment, 'id' | 'createdAt' | 'updatedAt'>>;
   tasks: Crud<Task, TaskInput>;
-  transactions: Omit<Crud<Transaction, TransactionInput>, 'list'> & { list(f?: TxFilter): Promise<Transaction[]> };
+  transactions: Omit<Crud<Transaction, TransactionInput>, 'list'> & {
+    list(f?: TxFilter): Promise<Transaction[]>;
+    /** Više unosa odjednom (npr. plata „Obojici“): sve ili ništa. */
+    createMany(inputs: TransactionInput[]): Promise<Transaction[]>;
+  };
+  /** Ulozi vlasnika; povećavaju stanje računa, nisu prihod. */
+  ownerContributions: Omit<Crud<OwnerContribution, OwnerContributionInput>, 'list'> & { list(f?: { from?: string; to?: string }): Promise<OwnerContribution[]> };
   /** Računi firmi i zaliha keša. Stanje računa računa baza (view account_balances). */
   accounts: {
     list(): Promise<Account[]>;

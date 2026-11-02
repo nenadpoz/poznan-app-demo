@@ -48,14 +48,14 @@ Sve tabele: `id uuid`, `created_at`, `updated_at`, `updated_by`, i `deleted_at` 
 | `company_history` | `company_id, kind` (`phase`/`form`/`edit`), `from_value, to_value, changes jsonb, effective_date, note` |
 | `clients` | `kind` (`fizicko`/`pravno`), `name, pib, mb, city, address, phone, email, note` |
 | `labels` | kategorije: `name` (jedinstven), `color` 0–5 |
-| `jobs` (poslovi) | `client_id, label_id, assignee`, `start_date, start_time, status` (`cekanje`/`proces`/`uplata`/`zavrseno`), `end_date, description, work_address, work_city` |
+| `jobs` (poslovi, prikazuju se i u kalendaru) | `client_id, label_id, assignee`, `start_date, start_time, end_time, status` (`cekanje`/`proces`/`uplata`/`zavrseno`), `end_date, description, work_address, work_city` |
 | `job_pending_items` | očekivane stavke: `job_id, company_id` (null = keš), `amount, description, invoice_no` |
 | `job_reminders` | `job_id, remind_at, audience` (`me`/`both`), `created_by, note, fired_at` |
 | `job_photos` | `job_id, storage_path` |
-| `appointments` (termini, **ukida se**: kalendar prikazuje `jobs`) | `date, start_time, end_time, client_id, job_id, label_id, company_id, title, assignee, status, notes` |
 | `tasks` | `title, assignee, due, status, done_at, done_by, job_id, notes` (bez klijenta) |
 | `comments` | `target_type` (`task`/`job`/`company`), `target_id, parent_id, user_id, text` |
-| `transactions` | `type, amount` (RSD), `amount_original, currency, fx_rate, account_id, created_by, date, company_id` (izvodi se iz računa), `client_id, category, vat, description, job_id, invoice_no` |
+| `transactions` | `type, amount` (RSD), `amount_original, currency, fx_rate, account_id, created_by, date, company_id` (izvodi se iz računa), `client_id, category, vat, description` (u aplikaciji „Komentar“), `job_id, invoice_no, salary_to` (plata vlasniku), `pending_client` (čeka klijenta) |
+| `owner_contributions` | ulog vlasnika: `owner, account_id, amount` (RSD), `amount_original, currency, fx_rate, date, note, created_by`; nije prihod, ulazi u stanje računa |
 | `accounts` | račun firme (`company_id`) ili jedna zaliha keša (`kind = cash`); `opening_balance, opening_date` |
 | `transfers` | podizanje/polaganje: `from_account_id, to_account_id, amount` (RSD), `amount_original, currency, fx_rate, date, note, created_by` |
 | `fx_rates` | `date, eur` (srednji kurs NBS), puni Edge Function `fx-rates` |

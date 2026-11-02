@@ -10,3 +10,4 @@ export * from './schemas';
 export * from './theme';
 export * from './currency';
 export * from './accounts';
+export * from './owners';

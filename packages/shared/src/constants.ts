@@ -18,15 +18,12 @@ export type CompanyIcon = keyof typeof COMPANY_ICONS;
 export const CLIENT_KINDS = { fizicko: 'Fizičko lice', pravno: 'Pravno lice' } as const;
 export type ClientKind = keyof typeof CLIENT_KINDS;
 
-/** Posao ima i „Čeka uplatu“ (rad završen, novac još nije stigao). Zadaci i termini nemaju. */
+/** Posao ima i „Čeka uplatu“ (rad završen, novac još nije stigao). Zadaci nemaju. */
 export const JOB_STATUSES = { cekanje: 'Na čekanju', proces: 'U procesu', uplata: 'Čeka uplatu', zavrseno: 'Završeno' } as const;
 export type JobStatus = keyof typeof JOB_STATUSES;
 
 export const TASK_STATUSES = { cekanje: 'Na čekanju', proces: 'U procesu', zavrseno: 'Završeno' } as const;
 export type TaskStatus = keyof typeof TASK_STATUSES;
-
-export const APPOINTMENT_STATUSES = TASK_STATUSES;
-export type AppointmentStatus = TaskStatus;
 
 /** Ko radi posao / kome je zadatak: jedan od vlasnika ili obojica (podrazumevano). */
 export type Assignee = UserId | 'oba';
@@ -35,6 +32,12 @@ export const TX_TYPES = { prihod: 'Prihod', trosak: 'Trošak' } as const;
 export type TxType = keyof typeof TX_TYPES;
 
 export const CATEGORIES_IN = ['Usluga', 'Prodaja robe', 'Održavanje', 'Ostalo'] as const;
+/** Kategorija za isplatu plate se postavlja sama; nije u listi za izbor. */
+export const SALARY_CATEGORY = 'Plata';
+/** Isplata plate: jednom vlasniku ili obojici (dva unosa sa istim iznosom). */
+export const SALARY_TARGETS = { nenad: 'Nenad', jovan: 'Jovan', oba: 'Obojica' } as const;
+export type SalaryTarget = keyof typeof SALARY_TARGETS;
+
 export const CATEGORIES_OUT = ['Materijal', 'Gorivo', 'Knjigovođa', 'Porez i doprinosi', 'Oprema', 'Zakup', 'Alat', 'Ostalo'] as const;
 
 /** Šta može da se komentariše. */

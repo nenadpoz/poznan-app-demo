@@ -8,7 +8,6 @@ export const keys = {
   jobs: ['jobs'] as const,
   job: (id: string) => ['jobs', id] as const,
   pending: (jobId: string) => ['job_pending_items', jobId] as const,
-  appointments: ['appointments'] as const,
   tasks: ['tasks'] as const,
   transactions: (f: object = {}) => ['transactions', f] as const,
   comments: (target: string, id: string) => ['comments', target, id] as const,
@@ -17,6 +16,7 @@ export const keys = {
   accounts: ['accounts'] as const,
   balances: ['account_balances'] as const,
   transfers: (f: object = {}) => ['transfers', f] as const,
+  ownerContributions: (f: object = {}) => ['owner_contributions', f] as const,
   fx: ['fx_rates'] as const,
   profile: ['profiles', 'me'] as const,
   profiles: ['profiles'] as const,
@@ -30,6 +30,7 @@ export const RELATED: Record<string, string[]> = {
   // Svaka promena novca osvežava brojač stanja na naslovnoj
   transactions: ['transactions', 'account_balances'],
   transfers: ['transfers', 'account_balances'],
+  owner_contributions: ['owner_contributions', 'account_balances'],
   accounts: ['accounts', 'account_balances'],
   companies: ['companies', 'company_history', 'accounts', 'account_balances'],
   comments: ['comments', 'notifications'],

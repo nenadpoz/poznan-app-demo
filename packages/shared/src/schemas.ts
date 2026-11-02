@@ -50,16 +50,19 @@ export const clientSchema = z
   .refine(c => c.kind === 'pravno' || (!c.pib && !c.mb), { message: 'PIB i MB su samo za pravna lica', path: ['pib'] });
 export type ClientInput = z.infer<typeof clientSchema>;
 
-export const jobSchema = z.object({
+export const jobSchema = z
+  .object({
   clientId: id,
   labelId: id.nullable().optional(),
   description: optText(2000),
   workAddress: optText(200), // adresa posla (za navigaciju), može se razlikovati od adrese klijenta
   startDate: isoDate.nullable(),
   startTime: hhmm.nullable().optional(),
+  endTime: hhmm.nullable().optional(),
   assignee: assignee.default('oba'),
   status: z.enum(keys(JOB_STATUSES)),
-});
+  })
+  .refine(j => !j.endTime || !j.startTime || j.endTime > j.startTime, { message: 'Kraj mora biti posle početka', path: ['endTime'] });
 export type JobInput = z.infer<typeof jobSchema>;
 
 export const paymentLineSchema = z.object({
@@ -84,14 +87,6 @@ export const reminderSchema = z.object({
   note: optText(300),
 });
 
-export const appointmentSchema = z.object({
-  clientId: id,
-  date: isoDate,
-  time: hhmm.nullable().optional(),
-  note: optText(1000),
-  status: z.enum(keys(TASK_STATUSES)).default('cekanje'),
-});
-
 /** Zadatak nema klijenta; opciono je vezan za posao. */
 export const taskSchema = z.object({
   title: text(200).min(1, 'Unesi naziv zadatka'),
@@ -113,8 +108,11 @@ export const commentSchema = z.object({
 /**
  * Promet. `accountId` je račun firme ili zaliha keša (odakle novac izlazi ili gde ulazi);
  * firma se izvodi iz računa. Iznos se unosi u izabranoj valuti, baza računa dinare po kursu tog dana.
+ * `description` je u aplikaciji „Komentar“.
+ * Isplata plate (`salaryTo`) je trošak bez klijenta, kategorija „Plata“.
+ * `pendingClient`: izabrano „Podseti me kasnije“ pri dodavanju novog klijenta.
  */
-export const transactionSchema = z.object({
+const transactionBase = z.object({
   type: z.enum(keys(TX_TYPES)),
   amountOriginal: z.number().positive('Iznos mora biti veći od 0'),
   currency: z.enum(CURRENCIES),
@@ -126,8 +124,24 @@ export const transactionSchema = z.object({
   description: optText(300),
   vat: z.number().min(0).max(100).default(0),
   earnedBy: userId.nullable().optional(),
+  salaryTo: userId.nullable().optional(),
+  pendingClient: z.boolean().optional(),
 });
+export const transactionSchema = transactionBase
+  .refine(t => !t.salaryTo || t.type === 'trosak', { message: 'Plata je trošak', path: ['salaryTo'] })
+  .refine(t => !t.salaryTo || !t.clientId, { message: 'Plata nema klijenta', path: ['clientId'] });
 export type TransactionInput = z.infer<typeof transactionSchema>;
+
+/** Ulog vlasnika: sopstveni novac na račun firme ili u keš. Nije prihod (ne ulazi u limite ni profit). */
+export const ownerContributionSchema = z.object({
+  owner: userId,
+  accountId: id,
+  amountOriginal: z.number().positive('Iznos mora biti veći od 0'),
+  currency: z.enum(CURRENCIES),
+  date: isoDate,
+  note: optText(300),
+});
+export type OwnerContributionInput = z.infer<typeof ownerContributionSchema>;
 
 /** Prenos između računa: podizanje keša sa računa firme ili polaganje keša na račun. */
 export const transferSchema = z
@@ -161,7 +175,7 @@ export const settingsSchema = z
 
 /** Glasovna komanda vraća samo predlog forme; čuvanje uvek ide kroz potvrdu korisnika. */
 export const voiceDraftSchema = z.discriminatedUnion('kind', [
-  z.object({ kind: z.literal('transaction'), draft: transactionSchema.partial() }),
+  z.object({ kind: z.literal('transaction'), draft: transactionBase.partial() }),
   z.object({ kind: z.literal('task'), draft: taskSchema.partial() }),
-  z.object({ kind: z.literal('job'), draft: jobSchema.partial() }),
+  z.object({ kind: z.literal('job'), draft: jobSchema.innerType().partial() }),
 ]);

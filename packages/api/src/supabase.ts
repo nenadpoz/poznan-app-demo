@@ -2,7 +2,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { PoznanApi, Crud, ListOpts } from './api';
 import { fromRow, linesToJson, toRow } from './mapping';
-import type { Account, AccountBalance, Client, Company, FxRateRow, Job, Label, Task, Transaction, Transfer, Appointment, Profile, Settings } from './model';
+import type { Account, AccountBalance, Client, Company, FxRateRow, Job, Label, Task, Transaction, Transfer, OwnerContribution, Profile, Settings } from './model';
 
 class ApiError extends Error {
   constructor(message: string, readonly code?: string) { super(message); }
@@ -111,7 +111,6 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
         ok(await sb.from('job_reminders').insert({ job_id: jobId, remind_at: at, audience: to, note: note ?? null, client_at: now() }));
       },
     },
-    appointments: crud<Appointment, never>('appointments', 'date'),
     tasks: crud<Task, never>('tasks', 'due'),
     transactions: {
       ...crud<Transaction, never>('transactions', 'date', false),
@@ -124,6 +123,20 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
         if (f.jobId) q = q.eq('job_id', f.jobId);
         if (f.clientId) q = q.eq('client_id', f.clientId);
         return check(await q).map(r => fromRow<Transaction>('transactions', r));
+      },
+      async createMany(inputs) {
+        // Jedan insert = jedna transakcija u bazi (oba reda ili nijedan)
+        const rows = inputs.map(i => ({ ...toRow('transactions', i as Record<string, unknown>), client_at: now() }));
+        return check(await sb.from('transactions').insert(rows).select()).map(r => fromRow<Transaction>('transactions', r));
+      },
+    },
+    ownerContributions: {
+      ...crud<OwnerContribution, never>('owner_contributions', 'date', false),
+      async list(f = {}) {
+        let q = sb.from('owner_contributions').select('*').is('deleted_at', null).order('date', { ascending: false });
+        if (f.from) q = q.gte('date', f.from);
+        if (f.to) q = q.lte('date', f.to);
+        return check(await q).map(r => fromRow<OwnerContribution>('owner_contributions', r));
       },
     },
     accounts: {

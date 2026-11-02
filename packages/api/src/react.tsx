@@ -1,7 +1,7 @@
 /** React sloj: ApiProvider + hookovi. Isti kod na webu (Next.js) i mobilnom (Expo). */
 import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Currency, PaymentLine, TransactionInput, TransferInput } from '@poznan/shared';
+import type { ClientInput, Currency, OwnerContributionInput, PaymentLine, TransactionInput, TransferInput } from '@poznan/shared';
 import type { PoznanApi, TxFilter } from './api';
 import { keys, tablesToRefresh } from './keys';
 import type { Comment, Profile } from './model';
@@ -33,7 +33,6 @@ export const useLabels = () => { const a = useApi(); return useQuery({ queryKey:
 export const useJobs = () => { const a = useApi(); return useQuery({ queryKey: keys.jobs, queryFn: () => a.jobs.list() }); };
 export const useJob = (id: string) => { const a = useApi(); return useQuery({ queryKey: keys.job(id), queryFn: () => a.jobs.get(id) }); };
 export const usePending = (jobId: string) => { const a = useApi(); return useQuery({ queryKey: keys.pending(jobId), queryFn: () => a.jobs.pending(jobId) }); };
-export const useAppointments = () => { const a = useApi(); return useQuery({ queryKey: keys.appointments, queryFn: () => a.appointments.list() }); };
 export const useTasks = () => { const a = useApi(); return useQuery({ queryKey: keys.tasks, queryFn: () => a.tasks.list() }); };
 export const useTransactions = (f: TxFilter = {}) => { const a = useApi(); return useQuery({ queryKey: keys.transactions(f), queryFn: () => a.transactions.list(f) }); };
 export const useComments = (t: Comment['target'], id: string) => { const a = useApi(); return useQuery({ queryKey: keys.comments(t, id), queryFn: () => a.comments.list(t, id) }); };
@@ -76,6 +75,29 @@ export const useFxLatest = () => { const a = useApi(); return useQuery({ queryKe
 export function useCreateTransaction() {
   const a = useApi(), refresh = useRefresh();
   return useMutation({ mutationFn: (v: TransactionInput) => a.transactions.create(v), onSuccess: () => refresh('transactions') });
+}
+
+/** Više unosa odjednom (plata „Obojici“). */
+export function useCreateTransactions() {
+  const a = useApi(), refresh = useRefresh();
+  return useMutation({ mutationFn: (v: TransactionInput[]) => a.transactions.createMany(v), onSuccess: () => refresh('transactions') });
+}
+
+export function useUpdateTransaction() {
+  const a = useApi(), refresh = useRefresh();
+  return useMutation({ mutationFn: (v: { id: string; patch: Partial<TransactionInput> }) => a.transactions.update(v.id, v.patch), onSuccess: () => refresh('transactions') });
+}
+
+export const useOwnerContributions = (f: { from?: string; to?: string } = {}) => { const a = useApi(); return useQuery({ queryKey: keys.ownerContributions(f), queryFn: () => a.ownerContributions.list(f) }); };
+
+export function useCreateOwnerContribution() {
+  const a = useApi(), refresh = useRefresh();
+  return useMutation({ mutationFn: (v: OwnerContributionInput) => a.ownerContributions.create(v), onSuccess: () => refresh('owner_contributions') });
+}
+
+export function useCreateClient() {
+  const a = useApi(), refresh = useRefresh();
+  return useMutation({ mutationFn: (v: ClientInput) => a.clients.create(v), onSuccess: () => refresh('clients') });
 }
 
 export function useCreateTransfer() {

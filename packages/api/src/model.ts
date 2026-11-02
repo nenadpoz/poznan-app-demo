@@ -25,14 +25,12 @@ export interface Client extends Base {
 export interface Label extends Base { name: string; color: number }
 export interface Job extends Base {
   clientId: string; labelId: string | null; assignee: Assignee; startDate: string | null; startTime: string | null;
+  /** Kalendar prikazuje poslove; vreme kraja je opciono. */
+  endTime: string | null;
   status: JobStatus; endDate: string | null; description: string | null; workAddress: string | null; workCity: string | null;
   paymentComment: string | null;
 }
 export interface PendingItem extends Base { jobId: string; companyId: string | null; amount: number; description: string | null; invoiceNo: string | null }
-export interface Appointment extends Base {
-  date: string; startTime: string | null; endTime: string | null; clientId: string | null; jobId: string | null;
-  labelId: string | null; title: string | null; assignee: Assignee; status: TaskStatus; notes: string | null;
-}
 export interface Task extends Base {
   title: string; assignee: Assignee; dueDate: string | null; status: TaskStatus; doneAt: string | null; doneBy: string | null;
   jobId: string | null; note: string | null;
@@ -43,6 +41,15 @@ export interface Transaction extends Base {
   category: string; vat: number; description: string | null; earnedBy: UserId | null; invoiceNo: string | null;
   /** Račun firme ili keš; `amount` je u dinarima, `amountOriginal` u valuti unosa. */
   accountId: string; currency: Currency; amountOriginal: number; fxRate: number; createdBy: string | null;
+  /** Isplata plate vlasniku (trošak, kategorija „Plata“). */
+  salaryTo: UserId | null;
+  /** Čeka da se doda klijent („Podseti me kasnije“). */
+  pendingClient: boolean;
+}
+/** Ulog vlasnika: sopstveni novac na račun firme ili u keš. `amount` je u dinarima. */
+export interface OwnerContribution extends Base {
+  owner: UserId; accountId: string; amount: number; currency: Currency; amountOriginal: number; fxRate: number;
+  date: string; note: string | null; createdBy: string | null;
 }
 export interface Account extends Base { kind: AccountKind; companyId: string | null; name: string; openingBalance: number; openingDate: string }
 export interface AccountBalance { accountId: string; kind: AccountKind; companyId: string | null; name: string; openingBalance: number; balance: number; changedAt: string | null }
