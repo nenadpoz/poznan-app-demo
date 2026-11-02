@@ -1421,7 +1421,7 @@ function updTxForm(init){
   const c=company(el.namedItem('companyId').value);
   $('#vatWrap').hidden=!(c&&c.form==='pdv');
   $('#t-acc-legend').textContent=type==='prihod'?'Uplata na':'Plaćeno sa';f.classList.toggle('is-out',type==='trosak');
-  // stanja prate valutu izabranu u formi (limiti ostaju u RSD)
+  // stanja i preostalo do limita prate valutu izabranu u formi
   const fc=el.namedItem('currency').value;f.querySelectorAll('[data-rsd]').forEach(x=>{x.textContent=curFmt(+x.dataset.rsd,fc);});
   // isplata plate postoji samo kod troška; tada nema kategorije ni klijenta
   const sal=type==='trosak'&&el.namedItem('salary').checked;$('#salWrap').hidden=type!=='trosak';$('#salWho').hidden=!sal;$('#catWrap').hidden=sal;$('#clientWrap').hidden=sal;
@@ -1660,11 +1660,11 @@ function taskRow(t,reopen=''){
   return `<div class="row task${t.done?' is-done':''}"><button class="tick" data-act="toggleTask" data-id="${t.id}" ${ro} aria-pressed="${!!t.done}" aria-label="${t.done?'Vrati kao otvoren':'Označi kao završen'}">${t.done?ic('check',16):''}</button>
     <button class="task-main" data-act="editTask" data-id="${t.id}"><b>${esc(t.title)}</b><small>${t.done?'':stPill(taskStatus(t),'sm')}${t.due?`<span class="${late?'late':''}">${late?'Kasni · ':''}${shortDay(t.due)}</span>`:'<span>Bez roka</span>'}${j?`<span>· ${esc(jobLabel(j))}</span>`:''}${(t.comments||[]).length?`<span class="cmt-cnt" title="Komentari">${ic('chat',14)}${t.comments.length}</span>`:''}</small></button>${avs(t.assignee)}</div>`;
 }
-// Koliko je ostalo do paušal limita ove godine (uvek u RSD), za izbor firme u unosu prometa
+// Koliko je ostalo do paušal limita ove godine, za izbor firme u unosu prometa (u valuti forme)
 // Koliko je ostalo na računu (kod troška) ili u kešu (uvek) (u izabranoj valuti prikaza)
 const balLeft=(id,label,cls='sub-out')=>{const b=balanceOf(id);return `<small class="${cls}${b<0?' neg':''}">${label}<br><b data-rsd="${b}">${rsd(b)}</b></small>`;};
 function limitLeft(c){const max=S.settings.pausalLimit,used=incomeYTD(c.id),left=max-used,pct=max>0?used/max*100:0,lv=lvlOf(pct);
-  return `<small class="sub-in ${lv==='good'?'':lv==='warn'?'lim-w':'neg'}">do limita<br><b>${left>=0?rsdFix(left):'−'+rsdFix(-left)}</b></small>`;}
+  return `<small class="sub-in ${lv==='good'?'':lv==='warn'?'lim-w':'neg'}">do limita<br><b data-rsd="${left}">${left>=0?rsdFix(left):'−'+rsdFix(-left)}</b></small>`;}
 function limitBars(){
   const cs=S.companies.filter(c=>c.phase!=='zatvorena'),max=S.settings.pausalLimit;
   if(!cs.length)return '';
