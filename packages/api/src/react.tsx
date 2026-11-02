@@ -1,7 +1,7 @@
 /** React sloj: ApiProvider + hookovi. Isti kod na webu (Next.js) i mobilnom (Expo). */
 import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { ClientInput, Currency, JobInput, OwnerContributionInput, PaymentLine, TaskInput, TransactionInput, TransferInput } from '@poznan/shared';
+import type { ClientInput, Currency, JobInput, OwnerContributionInput, PaymentLine, TaskInput, TransactionInput, TransferInput, TxCategoryInput } from '@poznan/shared';
 import type { PoznanApi, TxFilter } from './api';
 import { keys, tablesToRefresh } from './keys';
 import type { Comment, Profile } from './model';
@@ -29,6 +29,18 @@ const useRefresh = () => {
 export const useCompanies = () => { const a = useApi(); return useQuery({ queryKey: keys.companies, queryFn: () => a.companies.list() }); };
 export const useCompanyHistory = (id: string) => { const a = useApi(); return useQuery({ queryKey: keys.companyHistory(id), queryFn: () => a.companies.history(id) }); };
 export const useClients = () => { const a = useApi(); return useQuery({ queryKey: keys.clients, queryFn: () => a.clients.list() }); };
+/** Kategorije prometa, po redosledu pa nazivu. */
+export const useTxCategories = () => { const a = useApi(); return useQuery({ queryKey: keys.txCategories, queryFn: async () => (await a.txCategories.list()).sort((x, y) => x.sort - y.sort || x.name.localeCompare(y.name, 'sr')) }); };
+
+export function useTxCategoryMutations() {
+  const a = useApi(), refresh = useRefresh();
+  const done = () => refresh('tx_categories');
+  return {
+    add: useMutation({ mutationFn: (v: TxCategoryInput) => a.txCategories.create(v), onSuccess: done }),
+    remove: useMutation({ mutationFn: (id: string) => a.txCategories.remove(id), onSuccess: done }),
+  };
+}
+
 export const useLabels = () => { const a = useApi(); return useQuery({ queryKey: keys.labels, queryFn: () => a.labels.list() }); };
 export const useJobs = () => { const a = useApi(); return useQuery({ queryKey: keys.jobs, queryFn: () => a.jobs.list() }); };
 export const useJob = (id: string) => { const a = useApi(); return useQuery({ queryKey: keys.job(id), queryFn: () => a.jobs.get(id) }); };

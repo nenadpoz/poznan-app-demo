@@ -5,6 +5,7 @@ export const keys = {
   companyHistory: (id: string) => ['company_history', id] as const,
   clients: ['clients'] as const,
   labels: ['labels'] as const,
+  txCategories: ['tx_categories'] as const,
   jobs: ['jobs'] as const,
   job: (id: string) => ['jobs', id] as const,
   pending: (jobId: string) => ['job_pending_items', jobId] as const,

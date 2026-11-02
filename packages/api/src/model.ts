@@ -23,6 +23,8 @@ export interface Client extends Base {
   city: string | null; address: string | null; phone: string | null; email: string | null; note: string | null;
 }
 export interface Label extends Base { name: string; color: number }
+/** Kategorija prometa; unos čuva naziv. */
+export interface TxCategory extends Base { type: TxType; name: string; sort: number }
 export interface Job extends Base {
   clientId: string; labelId: string | null; assignee: Assignee; startDate: string | null; startTime: string | null;
   /** Kalendar prikazuje poslove; vreme kraja je opciono. */

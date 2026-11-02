@@ -3,11 +3,11 @@
  * mobile preko lokalnog adaptera nad SQLite/PowerSync (offline), sa istim potpisima.
  */
 import type {
-  ClientInput, CompanyInput, JobInput, OwnerContributionInput, TaskInput, TransactionInput, TransferInput,
+  ClientInput, CompanyInput, JobInput, OwnerContributionInput, TaskInput, TransactionInput, TransferInput, TxCategoryInput,
 } from '@poznan/shared';
 import type { PaymentLine } from '@poznan/shared';
 import type {
-  Account, AccountBalance, FxRateRow, Transfer, AuditEntry, Client, Comment, Company, CompanyHistoryItem, Job, Label, Notification, OwnerContribution, PendingItem, Profile, Settings, Task, Transaction,
+  Account, AccountBalance, FxRateRow, Transfer, AuditEntry, Client, Comment, Company, CompanyHistoryItem, Job, Label, Notification, OwnerContribution, PendingItem, TxCategory, Profile, Settings, Task, Transaction,
 } from './model';
 
 export interface ListOpts { includeDeleted?: boolean }
@@ -39,6 +39,8 @@ export interface PoznanApi {
   };
   clients: Crud<Client, ClientInput>;
   labels: Crud<Label, { name: string; color: number }>;
+  /** Kategorije prometa (prihodi i troškovi). */
+  txCategories: Crud<TxCategory, TxCategoryInput>;
   jobs: Crud<Job, JobInput> & {
     pending(jobId: string): Promise<PendingItem[]>;
     /** „Završeno“: upisuje prihod za svaku stavku; prazna lista = „Završi bez naplate“. */

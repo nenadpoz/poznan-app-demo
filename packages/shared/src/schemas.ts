@@ -143,6 +143,14 @@ export const ownerContributionSchema = z.object({
 });
 export type OwnerContributionInput = z.infer<typeof ownerContributionSchema>;
 
+/** Kategorija prometa (Podešavanja). */
+export const txCategorySchema = z.object({
+  type: z.enum(keys(TX_TYPES)),
+  name: text(60).min(1, 'Unesi naziv kategorije').refine(v => v.toLowerCase() !== 'plata', 'Plata se postavlja isplatom plate'),
+  sort: z.number().int().default(50),
+});
+export type TxCategoryInput = z.infer<typeof txCategorySchema>;
+
 /** Prenos između računa: podizanje keša sa računa firme ili polaganje keša na račun. */
 export const transferSchema = z
   .object({

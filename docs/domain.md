@@ -143,8 +143,9 @@ Tri kartice, tim redom:
 - **Push i email** (Podešavanja → Obaveštenja, lično po nalogu): uključeno/isključeno po kanalu, email adresa za profil, vreme slanja od–do po kanalu (podrazumevano push 07:00–21:00, email 08:00–20:00; van tog vremena čeka početak), vrste: Početak posla, Zadaci (novi dodeljen meni, rok danas), Limit firme (80% i 95%). Izmene idu u logove.
 
 ## 12. Podešavanja
-- Firme, Logovi, Kategorije poslova, Boje traka limita (lično), Obaveštenja (lično), Odjava.
+- Firme, Logovi, Kategorije poslova, Kategorije prometa, Boje traka limita (lično), Obaveštenja (lično), Odjava.
 - U pravoj aplikaciji i: tema, lozinka, limiti i upozorenja, backup.
+- **Kategorije prometa**: dve liste, prihodi i troškovi; dodaju se i brišu u Podešavanjima. U formi prometa kategorija se bira iz padajuće liste. Unos čuva naziv, pa brisanje kategorije ne menja postojeće unose. „Plata“ nije u listi (postavlja je isplata plate). Tabela `tx_categories`.
 - **Kategorije poslova**: lista za poslove; naziv (jedinstven) i boja od šest. Brisanje kategorije ne briše poslove, samo im uklanja kategoriju.
 
 ## 13. Logovi (audit)

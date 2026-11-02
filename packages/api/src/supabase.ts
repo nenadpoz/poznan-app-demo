@@ -2,7 +2,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { PoznanApi, Crud, ListOpts } from './api';
 import { fromRow, linesToJson, toRow } from './mapping';
-import type { Account, AccountBalance, Client, Company, FxRateRow, Job, Label, Task, Transaction, Transfer, OwnerContribution, Profile, Settings } from './model';
+import type { Account, AccountBalance, Client, Company, FxRateRow, Job, Label, Task, Transaction, Transfer, OwnerContribution, TxCategory, Profile, Settings } from './model';
 
 class ApiError extends Error {
   constructor(message: string, readonly code?: string) { super(message); }
@@ -99,6 +99,7 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
     },
     clients: crud<Client, never>('clients', 'name'),
     labels: crud<Label, never>('labels', 'name'),
+    txCategories: crud<TxCategory, never>('tx_categories', 'sort'),
     jobs: {
       ...crud<Job, never>('jobs', 'start_date'),
       async pending(jobId) {
