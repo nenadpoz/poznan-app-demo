@@ -28,3 +28,11 @@ Raspored `job-reminders` (svakog minuta) je u istoj migraciji.
 
 ## Projekti
 - `poznan-app` (ref `nczptyiamjlvgsryiivk`, Frankfurt): repo je povezan (`supabase link`), migracije se puštaju sa `npx -y supabase@2.54.11 db push`.
+
+## Probni podaci
+`scripts/test-data.mjs seed` ubacuje probne klijente, poslove, zadatke, promet (6 meseci), prenose i ulog; `clear` ih briše.
+Probni redovi imaju id koji počinje sa `7e570000-`, pa `clear` ne dira prave podatke. Za vreme testiranja početni datum
+računa (sa početnim stanjem 0) ide 7 meseci unazad da bi se probni promet video u stanju; `clear` ga vraća.
+```bash
+SUPABASE_URL=https://<ref>.supabase.co SUPABASE_SERVICE_ROLE_KEY=<ključ> node supabase/scripts/test-data.mjs seed
+```
