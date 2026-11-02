@@ -14,6 +14,7 @@ Opšta pravila:
 ## 1. Korisnici i nalozi
 - Prva prijava: korisnik postavlja lozinku (dva polja, najmanje 8 karaktera).
 - Zaboravljena lozinka: kod za reset na email (u aplikaciji se upisuju kod i nova lozinka, pa je korisnik prijavljen). Svaki admin može da resetuje lozinku drugom; drugi tada postavlja novu pri sledećoj prijavi.
+- Automatska odjava posle nekorišćenja: kad je od poslednjeg korišćenja počeo novi dan (i prošlo bar 30 minuta) ili posle 24 sata. Ponovna prijava lozinkom ili biometrijom (otisak prsta, lice), ako je uključena na tom telefonu.
 - Promena lozinke traži trenutnu lozinku. Postavljanje, promena i reset idu u logove (bez same lozinke).
 - Lično po nalogu: tema, boje traka limita, podešavanja obaveštenja, email za obaveštenja.
 
