@@ -70,6 +70,24 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
         if (error) throw new ApiError('Pogrešan email ili lozinka', 'auth');
       },
       async signOut() { await sb.auth.signOut(); },
+      async requestPasswordReset(email) {
+        const { error } = await sb.auth.resetPasswordForEmail(email.trim());
+        if (error) throw new ApiError(error.status === 429 ? 'Previše zahteva. Pokušaj ponovo za par minuta.' : 'Email nije poslat', 'auth');
+      },
+      async resetPassword(email, code, password) {
+        const v = await sb.auth.verifyOtp({ email: email.trim(), token: code.trim(), type: 'recovery' });
+        if (v.error) throw new ApiError('Kod nije ispravan ili je istekao', 'auth');
+        const { error } = await sb.auth.updateUser({ password });
+        if (error) throw new ApiError(error.message.includes('different') ? 'Nova lozinka mora biti drugačija od stare' : 'Lozinka nije promenjena', 'auth');
+      },
+      async changePassword(current, password) {
+        const { data } = await sb.auth.getUser();
+        if (!data.user?.email) throw new ApiError('Nisi prijavljen', 'auth');
+        const chk = await sb.auth.signInWithPassword({ email: data.user.email, password: current });
+        if (chk.error) throw new ApiError('Trenutna lozinka nije tačna', 'auth');
+        const { error } = await sb.auth.updateUser({ password });
+        if (error) throw new ApiError(error.message.includes('different') ? 'Nova lozinka mora biti drugačija od stare' : 'Lozinka nije promenjena', 'auth');
+      },
       onChange(cb) {
         const { data } = sb.auth.onAuthStateChange((_e, s) => cb(s ? { userId: s.user.id } : null));
         return () => data.subscription.unsubscribe();

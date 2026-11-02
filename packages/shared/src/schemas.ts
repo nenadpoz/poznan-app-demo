@@ -187,3 +187,10 @@ export const voiceDraftSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('task'), draft: taskSchema.partial() }),
   z.object({ kind: z.literal('job'), draft: jobSchema.innerType().partial() }),
 ]);
+
+/** Nova lozinka: najmanje 8 karaktera, dva ista unosa (postavljanje, promena i reset). */
+export const newPasswordSchema = z
+  .object({ password: z.string().min(8, 'Lozinka mora imati najmanje 8 karaktera.').max(72, 'Lozinka je predugačka.'), repeat: z.string() })
+  .refine(v => v.password === v.repeat, { message: 'Lozinke se ne poklapaju.', path: ['repeat'] });
+/** Kod iz emaila za reset lozinke (6 do 8 cifara). */
+export const resetCodeSchema = z.string().trim().regex(/^\d{6,8}$/, 'Kod iz emaila ima 6 do 8 cifara.');

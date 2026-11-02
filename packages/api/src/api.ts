@@ -27,6 +27,12 @@ export interface PoznanApi {
     session(): Promise<{ userId: string } | null>;
     signIn(email: string, password: string): Promise<void>;
     signOut(): Promise<void>;
+    /** Šalje email sa kodom za reset lozinke. Ne otkriva da li nalog postoji. */
+    requestPasswordReset(email: string): Promise<void>;
+    /** Kod iz emaila + nova lozinka; posle toga je korisnik prijavljen. */
+    resetPassword(email: string, code: string, password: string): Promise<void>;
+    /** Promena lozinke prijavljenog korisnika; traži trenutnu lozinku. */
+    changePassword(current: string, password: string): Promise<void>;
     /** Javlja prijavu i odjavu (i istek sesije). Vraća funkciju za odjavu slušaoca. */
     onChange(cb: (session: { userId: string } | null) => void): () => void;
   };
