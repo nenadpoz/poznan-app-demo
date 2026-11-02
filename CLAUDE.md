@@ -34,4 +34,4 @@ pnpm workspaces, TypeScript strict. pnpm nije globalno instaliran: `corepack pnp
 Izmene šeme idu kao nova migracija u `supabase/migrations`, nikad izmenom postojeće posle objave.
 
 ## Demo
-Otvori `demo/index.html` u Chrome-u. Stanje se čuva u `localStorage` (ključ `poznan-demo-v7`). Za povratak primera obriši taj ključ u alatima pregledača. Demo prikazuje samo tokove ekrana, pa Podešavanja imaju samo Firme, Logove, Kategorije poslova, Boje traka limita i Obaveštenja (oba lično po nalogu). Tema, lozinka, limiti i backup su opisani u docs/domain.md, ali se u demou ne prikazuju.
+Otvori `demo/index.html` u Chrome-u. Stanje se čuva u `localStorage` (ključ `poznan-demo-v7`). Za povratak primera obriši taj ključ u alatima pregledača. Demo prikazuje samo tokove ekrana (lozinke se ne proveravaju). Podešavanja imaju Firme, Logove, Kategorije poslova, Kategorije prometa, Boje traka limita, Obaveštenja, Lozinku i Temu (boje, obaveštenja i tema lično po nalogu), kao u mobilnoj aplikaciji. Limiti i backup su opisani u docs/domain.md, ali se u demou ne prikazuju.
