@@ -43,7 +43,7 @@ Sve tabele: `id uuid`, `created_at`, `updated_at`, `updated_by`, i `deleted_at` 
 |---|---|
 | `admins` | `user_id` |
 | `profiles` | `user_id`, `slug` (`nenad`/`jovan`), `name`, `currency` (prikaz, podrazumevano EUR), `theme`, `bar_colors jsonb`, `notif jsonb` (kanali, email, vremena, vrste) |
-| `settings` | jedan red: `pausal_limit`, `pdv_threshold`, `warn_pct`, `crit_pct`, `backup_every_days` |
+| `settings` | jedan red: `pausal_limit`, `pdv_threshold`, `warn_pct`, `crit_pct` |
 | `companies` | `name, form, phase, address, pib, mb, activity, founded, monthly_fee, notes, icon, logo_path` |
 | `company_history` | `company_id, kind` (`phase`/`form`/`edit`), `from_value, to_value, changes jsonb, effective_date, note` |
 | `clients` | `kind` (`fizicko`/`pravno`), `name, pib, mb, city, address, phone, email, note` |
@@ -96,7 +96,10 @@ Pravila koja čuva baza:
 4. Dodir na push otvara isti ekran kao klik u zvoncu.
 
 ## Edge Functions
-`voice-parse`, `notify-dispatch`, `invoice-pdf` (PDF fakture iz podataka u bazi), `backup-drive` (pg_cron, JSON + slike na Google Drive, poslednjih 10), `admin-reset-password`.
+`voice-parse`, `notify-dispatch`, `invoice-pdf` (PDF fakture iz podataka u bazi), `admin-reset-password`.
+
+## Backup
+GitHub Actions svake noći: `supabase db dump` (uloge, šema, podaci, posebno `public`) → gzip → Google Drive preko rclone-a (scope `drive.file`), poslednjih 30 dana. Vraćanje podataka aplikacije je ručni workflow `restore.yml` (prvo novi backup, pa u jednoj transakciji brisanje i učitavanje `public`). Detalji u `supabase/README.md`.
 
 ## Tema
 - Tokeni boja za svetlu i tamnu temu u `@poznan/shared/theme` (isti nazivi kao u demou: `bg, surface, fg, muted, accent, good, warn, bad, info, lc0–lc5`…). Mobile ih koristi preko konteksta, web preko CSS promenljivih.

@@ -54,3 +54,38 @@ Aplikacija resetuje lozinku kodom iz emaila, ne linkom. U Supabase Dashboard →
 
 Ugrađeni Supabase email server šalje svega nekoliko poruka na sat i samo adresama članova tima projekta. Za pouzdano slanje podesi svoj SMTP (Authentication → Emails → SMTP Settings).
 Promena, postavljanje i reset lozinke se beleže u audit_log (`table_name = 'nalog'`) preko triggera na `auth.users` (migracija 0900).
+
+## Backup (Google Drive)
+Svake noći GitHub Actions (`.github/workflows/backup.yml`) pravi dump baze i šalje ga u folder **Poznan backup** na Google Drive-u.
+Jedan backup je folder `GGGG-MM-DD_HHMM` sa fajlovima `roles.sql.gz`, `schema.sql.gz`, `data.sql.gz` (kompletna baza) i `public-data.sql.gz` (podaci aplikacije).
+Čuva se poslednjih 30 dana. Ako backup ne uspe, GitHub šalje email.
+
+**Jednokratno podešavanje** (tajne `RCLONE_DRIVE_TOKEN` i `SUPABASE_DB_URL` u repou; lozinka se nigde ne ispisuje):
+```bash
+supabase/scripts/backup-setup.sh
+```
+`SUPABASE_DB_URL` je **Session pooler** URI (Dashboard → Connect), jer GitHub nema IPv6 za direktnu vezu.
+
+**Ručni backup** (npr. pre nove migracije):
+```bash
+gh workflow run backup.yml
+```
+
+**Lista backupa** (na Mac-u posle podešavanja):
+```bash
+rclone lsd "poznan-gdrive:Poznan backup"
+```
+
+**Vraćanje na istom projektu** (podaci aplikacije; šema i nalozi ostaju). Prvo se automatski pravi backup trenutnog stanja (`…_pre-vracanja`), pa se u jednoj transakciji brišu i učitavaju sve tabele iz `public`, bez okidanja triggera. Na kraju jedan zapis u logovima. Tabela `backups` posle vraćanja ima stanje iz backupa.
+GitHub → Actions → **Vrati backup** → Run workflow, ili:
+```bash
+gh workflow run restore.yml -f backup=2026-11-03_0200 -f potvrda=VRATI
+```
+
+**Kompletna baza u novi projekat** (ako se izgubi ceo projekat): preuzmi folder sa Drive-a, raspakuj i učitaj psql-om 17 ili novijim:
+```bash
+gunzip *.gz
+psql --single-transaction -v ON_ERROR_STOP=1 -f roles.sql -f schema.sql -c 'SET session_replication_role = replica' -f data.sql -d "<URI novog projekta>"
+```
+
+GitHub isključuje zakazane poslove u javnom repou posle 60 dana bez ijednog commita (stigne email upozorenja); tada ga ponovo uključi u Actions → Backup baze.

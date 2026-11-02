@@ -12,23 +12,14 @@ echo
 echo "1/2  Google Drive"
 echo "     Otvoriće se pregledač. Prijavi se Google nalogom na kom želiš backupe i dozvoli pristup."
 echo "     rclone dobija pristup samo fajlovima koje sam napravi (folder „Poznan backup“), ne celom Drive-u."
-OUT=$(rclone authorize drive "$(printf '{"scope":"drive.file"}' | base64)" 2>&1)
-TOKEN=$(python3 -c '
-import base64, json, re, sys
-s = sys.stdin.read()
-m = re.search(r"--->\s*(.+?)\s*<---", s, re.S)
-if not m: sys.exit("Google prijava nije uspela")
-v = m.group(1).strip()
-if not v.startswith("{"):
-    v = base64.b64decode(v + "=" * (-len(v) % 4)).decode()
-d = json.loads(v)
-t = d.get("token", d)
-print(t if isinstance(t, str) else json.dumps(t))
-' <<<"$OUT")
+# Remote „poznan-gdrive“ na ovom Mac-u (za pregled i preuzimanje backupa); isti token ide u GitHub
+rclone config delete poznan-gdrive 2>/dev/null || true
+rclone config create poznan-gdrive drive scope=drive.file config_change_team_drive=false >/dev/null
+TOKEN=$(rclone config show poznan-gdrive | sed -n 's/^token = //p')
+[[ $TOKEN == *access_token* ]] || { echo "Google prijava nije uspela, pokreni skriptu ponovo." >&2; exit 1; }
 printf %s "$TOKEN" | gh secret set RCLONE_DRIVE_TOKEN --repo "$REPO"
-# Isti pristup i na ovom Mac-u (remote „poznan-gdrive“), za pregled i preuzimanje backupa
-rclone config create poznan-gdrive drive scope=drive.file token="$TOKEN" --non-interactive >/dev/null
-echo "     Google Drive povezan."
+rclone mkdir "poznan-gdrive:Poznan backup"
+echo "     Google Drive povezan (folder „Poznan backup“)."
 
 echo
 echo "2/2  Baza"

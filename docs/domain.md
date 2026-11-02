@@ -154,7 +154,10 @@ Tri kartice, tim redom:
 - Prikaz po danima, filteri po entitetu, korisniku, periodu i tekstu.
 
 ## 14. Backup
-- Na Google Drive svakih N dana (podrazumevano 3), čuva se poslednjih 10. Sadrži export svih tabela i slike.
+- Svake noći na Google Drive (folder „Poznan backup“), čuva se poslednjih 30 dana. Sadrži kompletan dump baze (uloge, šema, svi podaci uključujući naloge i logove) i posebno podatke aplikacije za brzo vraćanje.
+- Pravi ga GitHub Actions (`.github/workflows/backup.yml`), ne aplikacija; svaki backup se upisuje u tabelu `backups` (veličina, putanja), pa i u logove.
+- Vraćanje: ručno pokretanje „Vrati backup“ sa nazivom backupa i potvrdom. Pre vraćanja se automatski pravi backup trenutnog stanja. Vraćaju se podaci aplikacije; šema i nalozi ostaju. U logove ide zapis „backup vraćen“.
+- Slike (Storage) još ne postoje; kad budu dodate, ulaze u backup.
 
 ## 15. Stanje novca i valuta
 Zahtev vlasnika od 2. nov 2026. Urađeno u core-u (v0.2.0), mobilnoj aplikaciji i HTML demou (u demou je kurs fiksan ako pregledač ne može da preuzme današnji).

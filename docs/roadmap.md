@@ -9,7 +9,7 @@
 - [ ] `@poznan/shared`: tipovi, zod šeme, poslovna pravila (limiti, PDV, statusi posla, naplata, faktura, obaveštenja, period zarade), tema; testovi.
 - [ ] `supabase/`: šema, RLS, audit trigger, RPC (`finish_job`, `set_job_awaiting_payment`, `next_invoice_no`), seed iz demoa; pgTAP testovi.
 - [ ] `@poznan/api`: interfejs repozitorijuma + web adapter (Supabase) + mobile adapter (PowerSync); TanStack Query hookovi.
-- [ ] Edge Functions: `notify-dispatch`, `invoice-pdf`, `voice-parse`, `backup-drive`, `admin-reset-password`; pg_cron poslovi.
+- [ ] Edge Functions: `notify-dispatch`, `invoice-pdf`, `voice-parse`, `admin-reset-password`; pg_cron poslovi.
 - [ ] Supabase projekti `dev` i `prod`.
 - [x] Iz demoa u core (v0.3.0): ukinuti `appointments` (kalendar prikazuje `jobs`; `jobs` dobija `start_time`/`end_time`), `transactions.salary_to` i `owner_contributions` (plate i ulozi vlasnika), komentar umesto opisa.
 
@@ -28,4 +28,4 @@
 
 ## Kasnije
 - [ ] Slanje faktura na SEF.
-- [ ] Backup na Google Drive.
+- [x] Backup na Google Drive (GitHub Actions, svake noći, 30 dana).
