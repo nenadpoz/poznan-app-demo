@@ -177,7 +177,7 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:
 .co-opt{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:12px 8px;border:1.5px solid var(--line);border-radius:14px;background:var(--bg);cursor:pointer;min-width:0}
 .co-opt input{position:absolute;opacity:0;pointer-events:none}
 .co-opt b{font-size:13.5px;line-height:1.2;overflow-wrap:anywhere}
-.co-opt small{font-size:12px;color:var(--muted)}.co-opt small b{font-size:12.5px;color:var(--fg);font-variant-numeric:tabular-nums}.co-opt small.lim-w b{color:var(--warn)}.co-opt small.neg b{color:var(--bad)}
+.co-opt small{font-size:12px;color:var(--muted)}.co-opt small b{font-size:12.5px;color:var(--fg);font-variant-numeric:tabular-nums}.co-opt small.lim-w b{color:var(--warn)}.co-opt small.neg b{color:var(--bad)}#txForm:not(.is-out) .sub-out,#txForm.is-out .sub-in{display:none}
 .co-opt:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
 .co-opt:has(input:checked) .co-ic:not(.logo){background:var(--accent);color:var(--accent-fg)}
 .co-opt:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
@@ -1403,8 +1403,8 @@ function txForm(t={},voice=false){
   <p class="small muted fx-hint" style="margin:0"></p>
   <label class="fld"><span>Datum</span><input id="t-date" type="date" name="date" required value="${t.date||TODAY_ISO}"></label>
   <fieldset class="fld"><legend id="t-acc-legend">Uplata na</legend><div class="co-opts" role="radiogroup" aria-label="Račun">
-    <label class="co-opt"><input type="radio" name="companyId" value="" ${!t.companyId?'checked':''}>${coIcon(null)}<b>Keš</b><small>zaliha keša</small></label>
-    ${S.companies.filter(c=>c.phase!=='zatvorena'||c.id===t.companyId).map(c=>`<label class="co-opt"><input type="radio" name="companyId" value="${c.id}" ${t.companyId===c.id?'checked':''}>${coIcon(c)}<b>${esc(c.name)}</b>${limitLeft(c)}</label>`).join('')}</div></fieldset>
+    <label class="co-opt"><input type="radio" name="companyId" value="" ${!t.companyId?'checked':''}>${coIcon(null)}<b>Keš</b><small class="sub-in">zaliha keša</small>${balLeft('kes','na zalihi')}</label>
+    ${S.companies.filter(c=>c.phase!=='zatvorena'||c.id===t.companyId).map(c=>`<label class="co-opt"><input type="radio" name="companyId" value="${c.id}" ${t.companyId===c.id?'checked':''}>${coIcon(c)}<b>${esc(c.name)}</b>${limitLeft(c)}${balLeft(c.id,'na računu')}</label>`).join('')}</div></fieldset>
   <label class="fld" id="vatWrap"><span>PDV stopa (iznos je bez PDV-a)</span><select id="t-vat" name="vat">${[20,10,0].map(v=>`<option value="${v}" ${(t.vat??20)===v?'selected':''}>${v?v+'%':'Bez PDV-a'}</option>`).join('')}</select></label>
   <label class="fld" id="catWrap"><span>Kategorija</span><select id="t-cat" name="category" data-init="${esc(t.category||'')}"></select></label>
   <div class="fld" id="clientWrap"><span>Klijent</span>${combo('clientId',clientItems(),t.clientId,'Pretraži po imenu, mestu ili telefonu')}<small>Nije obavezno.</small></div>
@@ -1420,7 +1420,7 @@ function updTxForm(init){
   sel.innerHTML=cats.map(c=>`<option ${c===cur?'selected':''}>${c}</option>`).join('');
   const c=company(el.namedItem('companyId').value);
   $('#vatWrap').hidden=!(c&&c.form==='pdv');
-  $('#t-acc-legend').textContent=type==='prihod'?'Uplata na':'Plaćeno sa';
+  $('#t-acc-legend').textContent=type==='prihod'?'Uplata na':'Plaćeno sa';f.classList.toggle('is-out',type==='trosak');
   // isplata plate postoji samo kod troška; tada nema kategorije ni klijenta
   const sal=type==='trosak'&&el.namedItem('salary').checked;$('#salWrap').hidden=type!=='trosak';$('#salWho').hidden=!sal;$('#catWrap').hidden=sal;$('#clientWrap').hidden=sal;
   fxHint(f);
@@ -1659,8 +1659,10 @@ function taskRow(t,reopen=''){
     <button class="task-main" data-act="editTask" data-id="${t.id}"><b>${esc(t.title)}</b><small>${t.done?'':stPill(taskStatus(t),'sm')}${t.due?`<span class="${late?'late':''}">${late?'Kasni · ':''}${shortDay(t.due)}</span>`:'<span>Bez roka</span>'}${j?`<span>· ${esc(jobLabel(j))}</span>`:''}${(t.comments||[]).length?`<span class="cmt-cnt" title="Komentari">${ic('chat',14)}${t.comments.length}</span>`:''}</small></button>${avs(t.assignee)}</div>`;
 }
 // Koliko je ostalo do paušal limita ove godine (uvek u RSD), za izbor firme u unosu prometa
+// Kod troška: koliko je ostalo na računu ili u kešu (u izabranoj valuti prikaza)
+const balLeft=(id,label)=>{const b=balanceOf(id);return `<small class="sub-out${b<0?' neg':''}">${label}<br><b>${rsd(b)}</b></small>`;};
 function limitLeft(c){const max=S.settings.pausalLimit,used=incomeYTD(c.id),left=max-used,pct=max>0?used/max*100:0,lv=lvlOf(pct);
-  return `<small class="${lv==='good'?'':lv==='warn'?'lim-w':'neg'}">do limita<br><b>${left>=0?rsdFix(left):'−'+rsdFix(-left)}</b></small>`;}
+  return `<small class="sub-in ${lv==='good'?'':lv==='warn'?'lim-w':'neg'}">do limita<br><b>${left>=0?rsdFix(left):'−'+rsdFix(-left)}</b></small>`;}
 function limitBars(){
   const cs=S.companies.filter(c=>c.phase!=='zatvorena'),max=S.settings.pausalLimit;
   if(!cs.length)return '';
