@@ -14,6 +14,10 @@ export const keys = {
   comments: (target: string, id: string) => ['comments', target, id] as const,
   notifications: ['notifications'] as const,
   settings: ['settings'] as const,
+  accounts: ['accounts'] as const,
+  balances: ['account_balances'] as const,
+  transfers: (f: object = {}) => ['transfers', f] as const,
+  fx: ['fx_rates'] as const,
   profile: ['profiles', 'me'] as const,
   profiles: ['profiles'] as const,
   audit: (o: object = {}) => ['audit_log', o] as const,
@@ -21,10 +25,13 @@ export const keys = {
 
 /** Koje tabele treba osvežiti kad se promeni data tabela (npr. završen posao upisuje promet). */
 export const RELATED: Record<string, string[]> = {
-  jobs: ['jobs', 'job_pending_items', 'transactions'],
+  jobs: ['jobs', 'job_pending_items', 'transactions', 'account_balances'],
   job_pending_items: ['job_pending_items', 'jobs'],
-  transactions: ['transactions'],
-  companies: ['companies', 'company_history'],
+  // Svaka promena novca osvežava brojač stanja na naslovnoj
+  transactions: ['transactions', 'account_balances'],
+  transfers: ['transfers', 'account_balances'],
+  accounts: ['accounts', 'account_balances'],
+  companies: ['companies', 'company_history', 'accounts', 'account_balances'],
   comments: ['comments', 'notifications'],
 };
 

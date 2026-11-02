@@ -2,7 +2,7 @@
 import type {
   Assignee, BusinessForm, ClientKind, CommentTarget, CompanyIcon, CompanyPhase, HistoryKind, JobStatus, TaskStatus, TxType, UserId,
 } from '@poznan/shared';
-import type { NotificationPrefs } from '@poznan/shared';
+import type { AccountKind, Currency, NotificationPrefs } from '@poznan/shared';
 
 interface Base {
   id: string;
@@ -41,11 +41,20 @@ export interface Comment extends Base { target: CommentTarget; targetId: string;
 export interface Transaction extends Base {
   type: TxType; amount: number; date: string; companyId: string | null; clientId: string | null; jobId: string | null;
   category: string; vat: number; description: string | null; earnedBy: UserId | null; invoiceNo: string | null;
+  /** Račun firme ili keš; `amount` je u dinarima, `amountOriginal` u valuti unosa. */
+  accountId: string; currency: Currency; amountOriginal: number; fxRate: number; createdBy: string | null;
 }
+export interface Account extends Base { kind: AccountKind; companyId: string | null; name: string; openingBalance: number; openingDate: string }
+export interface AccountBalance { accountId: string; kind: AccountKind; companyId: string | null; name: string; openingBalance: number; balance: number; changedAt: string | null }
+export interface Transfer extends Base {
+  fromAccountId: string; toAccountId: string; amount: number; currency: Currency; amountOriginal: number; fxRate: number;
+  date: string; note: string | null; createdBy: string | null;
+}
+export interface FxRateRow { date: string; eur: number }
 export interface Notification {
   id: string; createdAt: string; fromUser: string | null; type: string; target: CommentTarget | null; targetId: string | null;
   commentId: string | null; text: string | null; readAt: string | null;
 }
-export interface Profile { userId: string; slug: UserId; name: string; theme: 'light' | 'dark' | 'system'; barColors: Record<string, number>; notif: NotificationPrefs }
+export interface Profile { userId: string; slug: UserId; name: string; theme: 'light' | 'dark' | 'system'; barColors: Record<string, number>; notif: NotificationPrefs; currency: Currency }
 export interface Settings { pausalLimit: number; pdvThreshold: number; warnPct: number; critPct: number; backupEveryDays: number }
 export interface AuditEntry { id: number; userId: string | null; table: string; rowId: string | null; action: 'insert' | 'update' | 'delete'; old: unknown; new: unknown; at: string; clientAt: string | null }

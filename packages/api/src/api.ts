@@ -3,11 +3,11 @@
  * mobile preko lokalnog adaptera nad SQLite/PowerSync (offline), sa istim potpisima.
  */
 import type {
-  ClientInput, CompanyInput, JobInput, TaskInput, TransactionInput,
+  ClientInput, CompanyInput, JobInput, TaskInput, TransactionInput, TransferInput,
 } from '@poznan/shared';
 import type { PaymentLine } from '@poznan/shared';
 import type {
-  AuditEntry, Appointment, Client, Comment, Company, CompanyHistoryItem, Job, Label, Notification, PendingItem, Profile, Settings, Task, Transaction,
+  Account, AccountBalance, FxRateRow, Transfer, AuditEntry, Appointment, Client, Comment, Company, CompanyHistoryItem, Job, Label, Notification, PendingItem, Profile, Settings, Task, Transaction,
 } from './model';
 
 export interface ListOpts { includeDeleted?: boolean }
@@ -50,6 +50,16 @@ export interface PoznanApi {
   appointments: Crud<Appointment, Omit<Appointment, 'id' | 'createdAt' | 'updatedAt'>>;
   tasks: Crud<Task, TaskInput>;
   transactions: Omit<Crud<Transaction, TransactionInput>, 'list'> & { list(f?: TxFilter): Promise<Transaction[]> };
+  /** Računi firmi i zaliha keša. Stanje računa računa baza (view account_balances). */
+  accounts: {
+    list(): Promise<Account[]>;
+    balances(): Promise<AccountBalance[]>;
+    setOpening(accountId: string, openingBalance: number, openingDate: string): Promise<void>;
+  };
+  /** Podizanje keša sa računa ili polaganje na račun; nije prihod ni trošak. */
+  transfers: Omit<Crud<Transfer, TransferInput>, 'list'> & { list(f?: { from?: string; to?: string; accountId?: string }): Promise<Transfer[]> };
+  /** Srednji kurs NBS (1 EUR = x RSD). */
+  fx: { latest(): Promise<FxRateRow | null>; forDate(date: string): Promise<FxRateRow | null> };
   invoices: { assign(kind: 'transaction' | 'pending', id: string): Promise<string> };
   comments: {
     list(target: Comment['target'], targetId: string): Promise<Comment[]>;

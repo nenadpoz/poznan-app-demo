@@ -2,7 +2,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { PoznanApi, Crud, ListOpts } from './api';
 import { fromRow, linesToJson, toRow } from './mapping';
-import type { Client, Company, Job, Label, Task, Transaction, Appointment, Profile, Settings } from './model';
+import type { Account, AccountBalance, Client, Company, FxRateRow, Job, Label, Task, Transaction, Transfer, Appointment, Profile, Settings } from './model';
 
 class ApiError extends Error {
   constructor(message: string, readonly code?: string) { super(message); }
@@ -124,6 +124,35 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
         if (f.jobId) q = q.eq('job_id', f.jobId);
         if (f.clientId) q = q.eq('client_id', f.clientId);
         return check(await q).map(r => fromRow<Transaction>('transactions', r));
+      },
+    },
+    accounts: {
+      async list() { return check(await sb.from('accounts').select('*').is('deleted_at', null).order('name')).map(r => fromRow<Account>('accounts', r)); },
+      async balances() { return check(await sb.from('account_balances').select('*')).map(r => fromRow<AccountBalance>('account_balances', r)); },
+      async setOpening(accountId, openingBalance, openingDate) {
+        ok(await sb.from('accounts').update({ opening_balance: openingBalance, opening_date: openingDate, client_at: now() }).eq('id', accountId));
+      },
+    },
+    transfers: {
+      ...crud<Transfer, never>('transfers', 'date', false),
+      async list(f = {}) {
+        let q = sb.from('transfers').select('*').is('deleted_at', null).order('date', { ascending: false });
+        if (f.from) q = q.gte('date', f.from);
+        if (f.to) q = q.lte('date', f.to);
+        if (f.accountId) q = q.or(`from_account_id.eq.${f.accountId},to_account_id.eq.${f.accountId}`);
+        return check(await q).map(r => fromRow<Transfer>('transfers', r));
+      },
+    },
+    fx: {
+      async latest() {
+        const r = await sb.from('fx_rates').select('date, eur').order('date', { ascending: false }).limit(1).maybeSingle();
+        ok(r);
+        return r.data ? fromRow<FxRateRow>('fx_rates', r.data) : null;
+      },
+      async forDate(date) {
+        const r = await sb.from('fx_rates').select('date, eur').lte('date', date).order('date', { ascending: false }).limit(1).maybeSingle();
+        ok(r);
+        return r.data ? fromRow<FxRateRow>('fx_rates', r.data) : null;
       },
     },
     invoices: {

@@ -1,10 +1,10 @@
 /** React sloj: ApiProvider + hookovi. Isti kod na webu (Next.js) i mobilnom (Expo). */
 import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { PaymentLine } from '@poznan/shared';
+import type { Currency, PaymentLine, TransactionInput, TransferInput } from '@poznan/shared';
 import type { PoznanApi, TxFilter } from './api';
 import { keys, tablesToRefresh } from './keys';
-import type { Comment } from './model';
+import type { Comment, Profile } from './model';
 
 const Ctx = createContext<PoznanApi | null>(null);
 
@@ -63,4 +63,37 @@ export function useAddComment(target: Comment['target'], targetId: string) {
 export function useMarkAllRead() {
   const a = useApi(), refresh = useRefresh();
   return useMutation({ mutationFn: () => a.notifications.markAllRead(), onSuccess: () => refresh('notifications') });
+}
+
+export const useProfiles = () => { const a = useApi(); return useQuery({ queryKey: keys.profiles, queryFn: () => a.profile.all() }); };
+export const useAccounts = () => { const a = useApi(); return useQuery({ queryKey: keys.accounts, queryFn: () => a.accounts.list() }); };
+/** Stanje svih računa (firme + keš) za brojač na naslovnoj. */
+export const useBalances = () => { const a = useApi(); return useQuery({ queryKey: keys.balances, queryFn: () => a.accounts.balances() }); };
+export const useTransfers = (f: { from?: string; to?: string; accountId?: string } = {}) => { const a = useApi(); return useQuery({ queryKey: keys.transfers(f), queryFn: () => a.transfers.list(f) }); };
+/** Poslednji srednji kurs NBS; osvežava se na sat. */
+export const useFxLatest = () => { const a = useApi(); return useQuery({ queryKey: keys.fx, queryFn: () => a.fx.latest(), staleTime: 3_600_000 }); };
+
+export function useCreateTransaction() {
+  const a = useApi(), refresh = useRefresh();
+  return useMutation({ mutationFn: (v: TransactionInput) => a.transactions.create(v), onSuccess: () => refresh('transactions') });
+}
+
+export function useCreateTransfer() {
+  const a = useApi(), refresh = useRefresh();
+  return useMutation({ mutationFn: (v: TransferInput) => a.transfers.create(v), onSuccess: () => refresh('transfers') });
+}
+
+export function useSetOpeningBalance() {
+  const a = useApi(), refresh = useRefresh();
+  return useMutation({ mutationFn: (v: { accountId: string; amount: number; date: string }) => a.accounts.setOpening(v.accountId, v.amount, v.date), onSuccess: () => refresh('accounts') });
+}
+
+/** Valuta prikaza (EUR podrazumevano), pamti se po nalogu; promena se vidi odmah. */
+export function useSetCurrency() {
+  const a = useApi(), qc = useQueryClient();
+  return useMutation({
+    mutationFn: (currency: Currency) => a.profile.update({ currency }),
+    onMutate: currency => qc.setQueryData<Profile>(keys.profile, p => (p ? { ...p, currency } : p)),
+    onSettled: () => qc.invalidateQueries({ queryKey: keys.profile }),
+  });
 }

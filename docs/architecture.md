@@ -42,7 +42,7 @@ Sve tabele: `id uuid`, `created_at`, `updated_at`, `updated_by`, i `deleted_at` 
 | Tabela | Ključna polja |
 |---|---|
 | `admins` | `user_id` |
-| `profiles` | `user_id`, `slug` (`nenad`/`jovan`), `name`, `theme`, `bar_colors jsonb`, `notif jsonb` (kanali, email, vremena, vrste) |
+| `profiles` | `user_id`, `slug` (`nenad`/`jovan`), `name`, `currency` (prikaz, podrazumevano EUR), `theme`, `bar_colors jsonb`, `notif jsonb` (kanali, email, vremena, vrste) |
 | `settings` | jedan red: `pausal_limit`, `pdv_threshold`, `warn_pct`, `crit_pct`, `backup_every_days` |
 | `companies` | `name, form, phase, address, pib, mb, activity, founded, monthly_fee, notes, icon, logo_path` |
 | `company_history` | `company_id, kind` (`phase`/`form`/`edit`), `from_value, to_value, changes jsonb, effective_date, note` |
@@ -55,7 +55,11 @@ Sve tabele: `id uuid`, `created_at`, `updated_at`, `updated_by`, i `deleted_at` 
 | `appointments` (termini) | `date, start_time, end_time, client_id, job_id, label_id, company_id, title, assignee, status, notes` |
 | `tasks` | `title, assignee, due, status, done_at, done_by, job_id, notes` (bez klijenta) |
 | `comments` | `target_type` (`task`/`job`/`company`), `target_id, parent_id, user_id, text` |
-| `transactions` | `type, amount, date, company_id, client_id, category, vat, description, job_id, invoice_no`; način naplate se računa (bez firme = keš) |
+| `transactions` | `type, amount` (RSD), `amount_original, currency, fx_rate, account_id, created_by, date, company_id` (izvodi se iz računa), `client_id, category, vat, description, job_id, invoice_no` |
+| `accounts` | račun firme (`company_id`) ili jedna zaliha keša (`kind = cash`); `opening_balance, opening_date` |
+| `transfers` | podizanje/polaganje: `from_account_id, to_account_id, amount` (RSD), `amount_original, currency, fx_rate, date, note, created_by` |
+| `fx_rates` | `date, eur` (srednji kurs NBS), puni Edge Function `fx-rates` |
+| `account_balances` (view) | stanje = početno + prihodi − troškovi ± prenosi |
 | `invoice_counters` | `company_id, year, last_no` (brojevi faktura bez preskakanja) |
 | `notifications` | `to_user, from_user, type` (`comment`/`reply`/`reminder`/`job_start`/`task_due`/`limit`), `target_type, target_id, comment_id, text, read_at, push_state, email_state, send_after` |
 | `push_tokens` | `user_id, token, platform` |

@@ -1,5 +1,6 @@
 /** Zod šeme za forme i API. Iste se koriste na mobile i web strani. */
 import { z } from 'zod';
+import { CURRENCIES } from './currency';
 import { BUSINESS_FORMS, CLIENT_KINDS, COMPANY_ICONS, COMPANY_PHASES, JOB_STATUSES, TASK_STATUSES, TX_TYPES, USERS } from './constants';
 
 const keys = <T extends Record<string, unknown>>(o: T) => Object.keys(o) as [keyof T & string, ...(keyof T & string)[]];
@@ -109,12 +110,16 @@ export const commentSchema = z.object({
   text: text(2000).min(1, 'Komentar je prazan'),
 });
 
-/** Promet. Bez firme = keš bez računa. */
+/**
+ * Promet. `accountId` je račun firme ili zaliha keša (odakle novac izlazi ili gde ulazi);
+ * firma se izvodi iz računa. Iznos se unosi u izabranoj valuti, baza računa dinare po kursu tog dana.
+ */
 export const transactionSchema = z.object({
   type: z.enum(keys(TX_TYPES)),
-  amount: z.number().positive('Iznos mora biti veći od 0'),
+  amountOriginal: z.number().positive('Iznos mora biti veći od 0'),
+  currency: z.enum(CURRENCIES),
+  accountId: id,
   date: isoDate,
-  companyId: id.nullable(),
   clientId: id.nullable().optional(),
   jobId: id.nullable().optional(),
   category: text(60).min(1),
@@ -123,6 +128,19 @@ export const transactionSchema = z.object({
   earnedBy: userId.nullable().optional(),
 });
 export type TransactionInput = z.infer<typeof transactionSchema>;
+
+/** Prenos između računa: podizanje keša sa računa firme ili polaganje keša na račun. */
+export const transferSchema = z
+  .object({
+    fromAccountId: id,
+    toAccountId: id,
+    amountOriginal: z.number().positive('Iznos mora biti veći od 0'),
+    currency: z.enum(CURRENCIES),
+    date: isoDate,
+    note: optText(300),
+  })
+  .refine(t => t.fromAccountId !== t.toAccountId, { message: 'Izaberi dva različita računa', path: ['toAccountId'] });
+export type TransferInput = z.infer<typeof transferSchema>;
 
 export const timeWindowSchema = z.object({ from: hhmm, to: hhmm });
 export const notificationPrefsSchema = z.object({

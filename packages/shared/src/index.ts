@@ -8,3 +8,5 @@ export * from './notifications';
 export * from './tasks';
 export * from './schemas';
 export * from './theme';
+export * from './currency';
+export * from './accounts';

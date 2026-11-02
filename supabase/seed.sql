@@ -13,3 +13,7 @@ insert into public.clients (kind, name, city, address, phone) values
   ('fizicko', 'Milan Jovanović', 'Bogatić', 'Vojvode Mišića 3', '+381 63 444 5566');
 insert into public.clients (kind, name, city, address, pib, mb, email) values
   ('pravno', 'Agro Drina DOO', 'Loznica', 'Drinska 21', '109876543', '21345678', 'kancelarija@agrodrina.rs');
+
+-- Kurs za lokalni razvoj (u produkciji ga puni Edge Function fx-rates)
+insert into public.fx_rates (date, eur) values (current_date, 117.5367) on conflict do nothing;
+update public.accounts set opening_balance = 250000 where kind = 'cash';
