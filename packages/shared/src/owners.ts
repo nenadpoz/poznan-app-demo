@@ -65,18 +65,17 @@ export function splitSalary<T extends object>(input: T, to: SalaryTarget): (T & 
 /**
  * Trošak plaćen iz više izvora (račun firme, keš, novčanik vlasnika), npr. Jovan 400 € i Nenad 500 €.
  * Jedan red troška po izvoru; redovi istog plaćanja dobijaju isti `splitId`. Red koji je platio vlasnik
- * vodi se na račun `bookAccountId` (keš ili firma) sa `paidBy`, a baza mu sama pravi ulog tog vlasnika.
+ * nema račun (novac nije izašao ni sa firme ni iz keša) i ima `paidBy`; baza mu sama pravi ulog tog vlasnika.
  */
 export interface PayLine { accountId: string | null; owner: UserId | null; amount: number }
-export type SplitRow<T> = T & { accountId: string; amountOriginal: number; paidBy: UserId | null; splitId: string | null };
+export type SplitRow<T> = T & { accountId: string | null; amountOriginal: number; paidBy: UserId | null; splitId: string | null };
 
-export function splitExpense<T extends object>(base: T, lines: PayLine[], bookAccountId: string | null, splitId: string): SplitRow<T>[] {
+export function splitExpense<T extends object>(base: T, lines: PayLine[], splitId: string): SplitRow<T>[] {
   const used = lines.filter(l => l.amount > 0 && (l.accountId || l.owner));
   if (!used.length) throw new Error('Izaberi ko je platio i upiši iznos.');
-  if (used.some(l => l.owner) && !bookAccountId) throw new Error('Izaberi na koji račun se vodi trošak koji je platio vlasnik.');
   return used.map(l => ({
     ...base,
-    accountId: l.owner ? bookAccountId! : l.accountId!,
+    accountId: l.owner ? null : l.accountId,
     amountOriginal: Math.round(l.amount * 100) / 100,
     paidBy: l.owner,
     splitId: used.length > 1 ? splitId : null,

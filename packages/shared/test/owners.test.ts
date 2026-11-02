@@ -50,17 +50,18 @@ describe('plate i ulozi', () => {
 
 describe('trošak iz više izvora', () => {
   const base = { type: 'trosak' as const, currency: 'EUR' as const, date: '2026-11-02', category: 'Alat' };
-  it('Jovan 400 i Nenad 500: dva reda na izabrani račun, isti split', () => {
-    const rows = splitExpense(base, [{ accountId: null, owner: 'jovan', amount: 400 }, { accountId: null, owner: 'nenad', amount: 500 }, { accountId: 'drill', owner: null, amount: 0 }], 'kes', 'S1');
+  it('Jovan 400 i Nenad 500: dva reda bez računa, isti split', () => {
+    const rows = splitExpense(base, [{ accountId: null, owner: 'jovan', amount: 400 }, { accountId: null, owner: 'nenad', amount: 500 }, { accountId: 'drill', owner: null, amount: 0 }], 'S1');
     expect(rows).toEqual([
-      { ...base, accountId: 'kes', amountOriginal: 400, paidBy: 'jovan', splitId: 'S1' },
-      { ...base, accountId: 'kes', amountOriginal: 500, paidBy: 'nenad', splitId: 'S1' },
+      { ...base, accountId: null, amountOriginal: 400, paidBy: 'jovan', splitId: 'S1' },
+      { ...base, accountId: null, amountOriginal: 500, paidBy: 'nenad', splitId: 'S1' },
     ]);
   });
-  it('jedan izvor nema split; vlasnik traži račun', () => {
-    expect(splitExpense(base, [{ accountId: 'drill', owner: null, amount: 100 }], null, 'S1')[0]).toMatchObject({ accountId: 'drill', paidBy: null, splitId: null });
-    expect(() => splitExpense(base, [{ accountId: null, owner: 'nenad', amount: 100 }], null, 'S1')).toThrow();
-    expect(() => splitExpense(base, [], 'kes', 'S1')).toThrow();
+  it('jedan izvor nema split; keš i vlasnik zajedno', () => {
+    expect(splitExpense(base, [{ accountId: 'drill', owner: null, amount: 100 }], 'S1')[0]).toMatchObject({ accountId: 'drill', paidBy: null, splitId: null });
+    expect(splitExpense(base, [{ accountId: 'kes', owner: null, amount: 50 }, { accountId: null, owner: 'nenad', amount: 100 }], 'S1')).toMatchObject([
+      { accountId: 'kes', paidBy: null, splitId: 'S1' }, { accountId: null, paidBy: 'nenad', splitId: 'S1' }]);
+    expect(() => splitExpense(base, [], 'S1')).toThrow();
   });
   it('uuid v4', () => { expect(newUuid()).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/); });
 });

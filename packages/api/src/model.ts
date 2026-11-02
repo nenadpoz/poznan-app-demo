@@ -41,8 +41,8 @@ export interface Comment extends Base { target: CommentTarget; targetId: string;
 export interface Transaction extends Base {
   type: TxType; amount: number; date: string; companyId: string | null; clientId: string | null; jobId: string | null;
   category: string; vat: number; description: string | null; earnedBy: UserId | null; invoiceNo: string | null;
-  /** Račun firme ili keš; `amount` je u dinarima, `amountOriginal` u valuti unosa. */
-  accountId: string; currency: Currency; amountOriginal: number; fxRate: number; createdBy: string | null;
+  /** Račun firme ili keš (null kad je trošak platio vlasnik); `amount` je u dinarima, `amountOriginal` u valuti unosa. */
+  accountId: string | null; currency: Currency; amountOriginal: number; fxRate: number; createdBy: string | null;
   /** Isplata plate vlasniku (trošak, kategorija „Plata“). */
   salaryTo: UserId | null;
   /** Trošak plaćen iz novčanika vlasnika (uz njega postoji ulog) i id plaćanja iz više izvora. */
@@ -50,9 +50,10 @@ export interface Transaction extends Base {
   /** Čeka da se doda klijent („Podseti me kasnije“). */
   pendingClient: boolean;
 }
-/** Ulog vlasnika: sopstveni novac na račun firme ili u keš. `amount` je u dinarima. */
+/** Ulog vlasnika: sopstveni novac na račun firme ili u keš. `amount` je u dinarima.
+ * Ulog uz trošak koji je vlasnik platio nema račun (stanje se ne menja). */
 export interface OwnerContribution extends Base {
-  owner: UserId; accountId: string; amount: number; currency: Currency; amountOriginal: number; fxRate: number;
+  owner: UserId; accountId: string | null; amount: number; currency: Currency; amountOriginal: number; fxRate: number;
   date: string; note: string | null; createdBy: string | null;
   /** Ulog nastao uz trošak koji je vlasnik platio (menja se kroz taj trošak). */
   transactionId: string | null;

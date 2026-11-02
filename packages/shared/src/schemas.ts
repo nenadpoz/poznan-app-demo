@@ -113,7 +113,7 @@ export const commentSchema = z.object({
 
 /**
  * Promet. `accountId` je račun firme ili zaliha keša (odakle novac izlazi ili gde ulazi);
- * firma se izvodi iz računa. Iznos se unosi u izabranoj valuti, baza računa dinare po kursu tog dana.
+ * firma se izvodi iz računa. Trošak koji je platio vlasnik (`paidBy`) nema račun ni firmu. Iznos se unosi u izabranoj valuti, baza računa dinare po kursu tog dana.
  * `description` je u aplikaciji „Komentar“.
  * Isplata plate (`salaryTo`) je trošak bez klijenta, kategorija „Plata“.
  * `pendingClient`: izabrano „Podseti me kasnije“ pri dodavanju novog klijenta.
@@ -122,7 +122,7 @@ const transactionBase = z.object({
   type: z.enum(keys(TX_TYPES)),
   amountOriginal: z.number().positive('Iznos mora biti veći od 0'),
   currency: z.enum(CURRENCIES),
-  accountId: id,
+  accountId: id.nullable(),
   date: isoDate,
   clientId: id.nullable().optional(),
   jobId: id.nullable().optional(),
@@ -140,7 +140,8 @@ const transactionBase = z.object({
 export const transactionSchema = transactionBase
   .refine(t => !t.salaryTo || t.type === 'trosak', { message: 'Plata je trošak', path: ['salaryTo'] })
   .refine(t => !t.salaryTo || !t.clientId, { message: 'Plata nema klijenta', path: ['clientId'] })
-  .refine(t => !t.paidBy || (t.type === 'trosak' && !t.salaryTo), { message: 'Vlasnik može da plati samo trošak', path: ['paidBy'] });
+  .refine(t => !t.paidBy || (t.type === 'trosak' && !t.salaryTo), { message: 'Vlasnik može da plati samo trošak', path: ['paidBy'] })
+  .refine(t => !!t.accountId !== !!t.paidBy, { message: 'Izaberi odakle je plaćeno', path: ['accountId'] });
 export type TransactionInput = z.infer<typeof transactionSchema>;
 
 /** Ulog vlasnika: sopstveni novac na račun firme ili u keš. Nije prihod (ne ulazi u limite ni profit). */
