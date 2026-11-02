@@ -12,7 +12,7 @@ interface Base {
 
 export interface Company extends Base {
   name: string; legalName: string | null; shortName: string | null; form: BusinessForm; phase: CompanyPhase; address: string | null; pib: string | null; mb: string | null;
-  activity: string | null; founded: string | null; notes: string | null; icon: CompanyIcon; logoPath: string | null;
+  activity: string | null; founded: string | null; monthlyFee: number | null; notes: string | null; icon: CompanyIcon; logoPath: string | null;
 }
 export interface CompanyHistoryItem extends Base {
   companyId: string; kind: HistoryKind; fromValue: string | null; toValue: string | null;
@@ -53,7 +53,7 @@ export interface OwnerContribution extends Base {
   owner: UserId; accountId: string; amount: number; currency: Currency; amountOriginal: number; fxRate: number;
   date: string; note: string | null; createdBy: string | null;
 }
-export interface Account extends Base { kind: AccountKind; companyId: string | null; name: string; openingBalance: number; openingDate: string }
+export interface Account extends Base { kind: AccountKind; companyId: string | null; name: string; openingBalance: number; openingDate: string | null }
 export interface AccountBalance { accountId: string; kind: AccountKind; companyId: string | null; name: string; openingBalance: number; balance: number; changedAt: string | null }
 export interface Transfer extends Base {
   fromAccountId: string; toAccountId: string; amount: number; currency: Currency; amountOriginal: number; fxRate: number;

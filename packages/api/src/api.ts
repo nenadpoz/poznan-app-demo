@@ -67,7 +67,8 @@ export interface PoznanApi {
   accounts: {
     list(): Promise<Account[]>;
     balances(): Promise<AccountBalance[]>;
-    setOpening(accountId: string, openingBalance: number, openingDate: string): Promise<void>;
+    /** Početno stanje od datuma; bez datuma (null) u stanje ulazi sav promet. */
+    setOpening(accountId: string, openingBalance: number, openingDate: string | null): Promise<void>;
   };
   /** Podizanje keša sa računa ili polaganje na račun; nije prihod ni trošak. */
   transfers: Omit<Crud<Transfer, TransferInput>, 'list'> & { list(f?: { from?: string; to?: string; accountId?: string }): Promise<Transfer[]> };

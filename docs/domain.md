@@ -36,7 +36,7 @@ Tri kartice, tim redom:
 | naziv (kratko ime u aplikaciji, npr. Poznan Drill), puno i skraćeno poslovno ime (iz APR-a), adresa, PIB, matični broj, delatnost, datum osnivanja | poslovno ime i adresa idu na fakture |
 | oblik | `pausal`, `pdv` (preduzetnik u PDV-u), `van_pdv`, `doo` |
 | faza | `neaktivna` (podrazumevana za novu firmu), `aktivna`, `mirovanje`, `zatvorena` |
-| mesečna obaveza | za paušal: porez + doprinosi |
+| mesečna obaveza | za paušal: porez + doprinosi (mesečni iznos iz rešenja, unosi se i menja u formi firme) |
 | ikonica ili logo | ikonica iz skupa (zgrada, bušilica, kamion, alat, aktovka, kuća) ili ubačen logo; logo ima prednost |
 | napomena | |
 
@@ -182,7 +182,7 @@ Zahtev vlasnika od 2. nov 2026. Urađeno u core-u (v0.2.0), mobilnoj aplikaciji 
 - `transactions`: `account_id` (izvor/odredište), `currency` (`RSD`/`EUR`), `amount_original`, `fx_rate`, iznos u RSD za limite; `created_by` se prikazuje uz stavku.
 - `fx_rates` (datum, EUR srednji kurs), puni ga Edge Function iz pg_cron-a.
 - `profiles.currency` za izabrani prikaz.
-- Stanje računa = početno stanje + prihodi − troškovi ± prenosi (view u bazi).
+- Stanje računa = početno stanje + prihodi − troškovi ± prenosi + ulozi (view u bazi). Bez početnog stanja broji se sav promet, i unet unazad; uz početno stanje broji se promet od njegovog datuma.
 
 ## 16. Plate i ulozi vlasnika
 Urađeno u HTML demou, core-u (v0.3.0) i mobilnoj aplikaciji.

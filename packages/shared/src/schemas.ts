@@ -21,6 +21,8 @@ export const companySchema = z.object({
   shortName: optText(160),
   form: z.enum(keys(BUSINESS_FORMS)),
   founded: isoDate.optional().nullable().or(z.literal('').transform(() => null)),
+  /** Mesečni paušal (porez i doprinosi) u RSD, iz rešenja Poreske uprave; menja se kad stigne novo rešenje. */
+  monthlyFee: z.number().min(0, 'Iznos ne može biti negativan').max(10_000_000).optional().nullable(),
   pib: optText(9).refine(v => !v || /^\d{9}$/.test(v), 'PIB ima 9 cifara'),
   mb: optText(8).refine(v => !v || /^\d{8}$/.test(v), 'Matični broj ima 8 cifara'),
   activity: optText(120),

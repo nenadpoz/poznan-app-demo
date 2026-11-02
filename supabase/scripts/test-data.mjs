@@ -108,11 +108,6 @@ async function seed() {
   await rest('POST', 'owner_contributions', [
     { id: id('owner_contributions', 1), owner: 'jovan', account_id: TRANS, amount: 100000, amount_original: 100000, currency: 'RSD', date: daysAgo(25), note: 'Za registraciju kamiona', created_by: J },
   ]);
-  // Stanje računa broji promet od početnog datuma; da bi se probni promet video u stanju, datum ide 7 meseci unazad
-  // (samo za račune koji još nemaju početno stanje). `clear` ga vraća na dan kada je račun napravljen.
-  for (const a of await rest('GET', 'accounts?select=id,opening_balance,opening_date,created_at&deleted_at=is.null')) {
-    if (Number(a.opening_balance) === 0 && a.opening_date === a.created_at.slice(0, 10)) await rest('PATCH', `accounts?id=eq.${a.id}`, { opening_date: daysAgo(210) });
-  }
   console.log(`Ubačeno: ${clients.length} klijenata, ${jobs.length} poslova, ${tasks.length} zadataka, ${tx.length} unosa prometa, 2 prenosa, 1 ulog.`);
 }
 
@@ -152,12 +147,7 @@ async function clear() {
     await rest('DELETE', `audit_log?table_name=eq.${t}&${auditOf(t)}`);
     console.log(`${t}: obrisano ${rows?.length ?? 0}`);
   }
-  for (const a of await rest('GET', 'accounts?select=id,opening_balance,opening_date,created_at&deleted_at=is.null')) {
-    if (Number(a.opening_balance) === 0 && a.opening_date < a.created_at.slice(0, 10)) {
-      await rest('PATCH', `accounts?id=eq.${a.id}`, { opening_date: a.created_at.slice(0, 10) });
-    }
-  }
-  console.log(`Ukupno obrisano probnih redova: ${total}. Početni datum računa je vraćen.`);
+  console.log(`Ukupno obrisano probnih redova: ${total}.`);
 }
 
 const cmd = process.argv[2];

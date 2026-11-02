@@ -15,3 +15,11 @@ describe('firma', () => {
     expect(companySchema.safeParse({ name: 'X', form: 'pausal', founded: '15.03.2024' }).success).toBe(false);
   });
 });
+
+describe('mesečni paušal', () => {
+  it('nije obavezan i ne može biti negativan', () => {
+    expect(companySchema.parse({ name: 'X', form: 'pausal' }).monthlyFee).toBeUndefined();
+    expect(companySchema.parse({ name: 'X', form: 'pausal', monthlyFee: 41200 }).monthlyFee).toBe(41200);
+    expect(companySchema.safeParse({ name: 'X', form: 'pausal', monthlyFee: -1 }).success).toBe(false);
+  });
+});
