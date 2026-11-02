@@ -1421,6 +1421,8 @@ function updTxForm(init){
   const c=company(el.namedItem('companyId').value);
   $('#vatWrap').hidden=!(c&&c.form==='pdv');
   $('#t-acc-legend').textContent=type==='prihod'?'Uplata na':'Plaćeno sa';f.classList.toggle('is-out',type==='trosak');
+  // stanja prate valutu izabranu u formi (limiti ostaju u RSD)
+  const fc=el.namedItem('currency').value;f.querySelectorAll('[data-rsd]').forEach(x=>{x.textContent=curFmt(+x.dataset.rsd,fc);});
   // isplata plate postoji samo kod troška; tada nema kategorije ni klijenta
   const sal=type==='trosak'&&el.namedItem('salary').checked;$('#salWrap').hidden=type!=='trosak';$('#salWho').hidden=!sal;$('#catWrap').hidden=sal;$('#clientWrap').hidden=sal;
   fxHint(f);
@@ -1660,7 +1662,7 @@ function taskRow(t,reopen=''){
 }
 // Koliko je ostalo do paušal limita ove godine (uvek u RSD), za izbor firme u unosu prometa
 // Koliko je ostalo na računu (kod troška) ili u kešu (uvek) (u izabranoj valuti prikaza)
-const balLeft=(id,label,cls='sub-out')=>{const b=balanceOf(id);return `<small class="${cls}${b<0?' neg':''}">${label}<br><b>${rsd(b)}</b></small>`;};
+const balLeft=(id,label,cls='sub-out')=>{const b=balanceOf(id);return `<small class="${cls}${b<0?' neg':''}">${label}<br><b data-rsd="${b}">${rsd(b)}</b></small>`;};
 function limitLeft(c){const max=S.settings.pausalLimit,used=incomeYTD(c.id),left=max-used,pct=max>0?used/max*100:0,lv=lvlOf(pct);
   return `<small class="sub-in ${lv==='good'?'':lv==='warn'?'lim-w':'neg'}">do limita<br><b>${left>=0?rsdFix(left):'−'+rsdFix(-left)}</b></small>`;}
 function limitBars(){
