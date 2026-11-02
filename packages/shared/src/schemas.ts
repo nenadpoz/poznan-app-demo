@@ -16,7 +16,11 @@ export const assignee = z.enum([...USERS, 'oba']);
 
 export const companySchema = z.object({
   name: text(80).min(1, 'Unesi naziv firme'),
+  /** Puno i skraćeno poslovno ime iz APR-a; naziv (name) je kratko ime u aplikaciji. */
+  legalName: optText(300),
+  shortName: optText(160),
   form: z.enum(keys(BUSINESS_FORMS)),
+  founded: isoDate.optional().nullable().or(z.literal('').transform(() => null)),
   pib: optText(9).refine(v => !v || /^\d{9}$/.test(v), 'PIB ima 9 cifara'),
   mb: optText(8).refine(v => !v || /^\d{8}$/.test(v), 'Matični broj ima 8 cifara'),
   activity: optText(120),

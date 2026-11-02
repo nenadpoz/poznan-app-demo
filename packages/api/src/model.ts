@@ -11,7 +11,7 @@ interface Base {
 }
 
 export interface Company extends Base {
-  name: string; form: BusinessForm; phase: CompanyPhase; address: string | null; pib: string | null; mb: string | null;
+  name: string; legalName: string | null; shortName: string | null; form: BusinessForm; phase: CompanyPhase; address: string | null; pib: string | null; mb: string | null;
   activity: string | null; founded: string | null; notes: string | null; icon: CompanyIcon; logoPath: string | null;
 }
 export interface CompanyHistoryItem extends Base {

@@ -33,7 +33,7 @@ Tri kartice, tim redom:
 ### Podaci
 | Polje | Napomena |
 |---|---|
-| naziv, adresa, PIB, matični broj, delatnost, datum osnivanja | adresa ide na fakture |
+| naziv (kratko ime u aplikaciji, npr. Poznan Drill), puno i skraćeno poslovno ime (iz APR-a), adresa, PIB, matični broj, delatnost, datum osnivanja | poslovno ime i adresa idu na fakture |
 | oblik | `pausal`, `pdv` (preduzetnik u PDV-u), `van_pdv`, `doo` |
 | faza | `neaktivna` (podrazumevana za novu firmu), `aktivna`, `mirovanje`, `zatvorena` |
 | mesečna obaveza | za paušal: porez + doprinosi |

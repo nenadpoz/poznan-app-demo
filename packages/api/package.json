@@ -1,6 +1,6 @@
 {
   "name": "@poznan/api",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "description": "Zajednički API sloj za Poznan App: interfejs, Supabase adapter i TanStack Query hookovi. Ekrani nikad ne zovu Supabase direktno.",
   "type": "module",
   "main": "src/index.ts",
