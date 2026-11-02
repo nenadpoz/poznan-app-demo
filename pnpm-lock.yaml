@@ -9,11 +9,10 @@ importers:
   .: {}
 
   packages/api:
-    dependencies:
+    devDependencies:
       '@poznan/shared':
         specifier: workspace:*
         version: link:../shared
-    devDependencies:
       '@supabase/supabase-js':
         specifier: 2.45.4
         version: 2.45.4
