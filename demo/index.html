@@ -360,7 +360,7 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:
 .sheet{position:fixed;z-index:21;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,var(--w));max-height:92%;overflow:auto;background:var(--surface);border-radius:22px 22px 0 0;padding:8px var(--gut-r) calc(20px + env(safe-area-inset-bottom,0px)) var(--gut-l);animation:up .22s ease;overscroll-behavior:contain}
 .grab{width:42px;height:5px;border-radius:9px;background:var(--line);margin:4px auto 10px}
 .sheet-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
-.sheet-h h2{font-size:20px}
+.sheet-h h2{font-size:20px;flex:1;min-width:0}.later-btn{white-space:nowrap}
 .form{display:flex;flex-direction:column;gap:14px}
 .fld{display:flex;flex-direction:column;gap:6px;border:0;padding:0;margin:0;min-width:0}
 .fld > span,.fld > legend{font-size:13px;font-weight:600;color:var(--muted);padding:0}
@@ -910,7 +910,7 @@ function meter(label,val,max,note=''){
 function txRow(t,{showCompany=true}={}){
   const c=company(t.companyId), k=client(t.clientId), sign=t.type==='prihod'?'+':'−';
   return `<button class="row" data-act="editTx" data-id="${t.id}">
-    <div class="row-main"><b>${esc(t.description||(t.salaryTo?'Plata · '+userName(t.salaryTo):t.category))}</b><small>${fmtDate(t.date)}${showCompany?(c?` <span class="tag">${esc(c.name)}</span>`:' <span class="tag kes">keš</span>'):''}${k?` · ${esc(k.name)}`:''}${t.by?` · ${esc(userName(t.by))}`:''}</small></div>
+    <div class="row-main"><b>${esc(t.description||(t.salaryTo?'Plata · '+userName(t.salaryTo):t.category))}</b><small>${fmtDate(t.date)}${showCompany?(c?` <span class="tag">${esc(c.name)}</span>`:' <span class="tag kes">keš</span>'):''}${k?` · ${esc(k.name)}`:t.pendingClient?' <span class="tag kes">čeka klijenta</span>':''}${t.by?` · ${esc(userName(t.by))}`:''}</small></div>
     <div class="row-amt ${t.type==='prihod'?'pos':''}">${sign}${amt(t.amount)}<small>${t.currency&&t.currency!==dispCur()?`uneto ${curAmt(t.amountOriginal??t.amount,t.currency)}`:esc(t.category)}</small></div></button>`;
 }
 function chart(filterFn=()=>true){
@@ -1018,11 +1018,13 @@ function vPlate(){const all=[...salTx().map(t=>t.date),...(S.ulozi||[]).map(u=>u
   ${block('Ukupno '+y+'.',ownStats(d=>d.startsWith(y)))}
   ${block('Ukupno od početka',ownStats(()=>true))}
   <div class="grid2"><button class="btn primary" data-act="newSalary">${ic('plus',18)} Isplati platu</button><button class="btn" data-act="newUlog">${ic('plus',18)} Dodaj ulog</button></div>`;}
+function pendingClients(){const l=S.tx.filter(t=>t.pendingClient&&!t.clientId);if(!l.length)return '';
+  return `<div class="alerts">${l.map(t=>`<button class="alert info" data-act="addPendingClient" data-id="${t.id}">${ic('user',20)}<div><b>Unos čeka podatke klijenta</b><span>${t.type==='prihod'?'Prihod':'Trošak'} ${rsd(t.amount)} · ${fmtDate(t.date)} · ${esc(acctName(t.companyId||'kes'))}. Dodirni da dodaš klijenta.</span></div></button>`).join('')}</div>`;}
 function vDashboard(){
   const ch=ui.ch,isCash=x=>x.payment==='kes';
   const pred=ch==='kes'?isCash:ch==='firma'?(x=>!isCash(x)):(()=>true);
   const chName=Object.fromEntries(EARN_CH)[ch];
-  return topBar('Pregled',{sub:`Zdravo, ${esc(userName(S.session))}`})+limitBars()+balanceCard()+salaryCard()+`
+  return topBar('Pregled',{sub:`Zdravo, ${esc(userName(S.session))}`})+pendingClients()+limitBars()+balanceCard()+salaryCard()+`
   <section class="card earn">${periodPicker()}<div class="earn-out" id="earnOut">${earnOut()}</div></section>
   <section class="card settings-sec"><div class="sec-h"><h2>Poslednjih 6 meseci</h2><span class="small muted">${chName.toLowerCase()}</span></div>${chart(pred)}</section>`;
 }
@@ -1353,13 +1355,21 @@ const contactFields=k=>`<div class="grid2"><label class="fld"><span>Mesto</span>
   <label class="fld"><span>Ulica i broj</span><input id="k-address" name="address" value="${esc(k.address)}"></label>
   <label class="fld"><span>Email</span><input id="k-email" name="email" type="email" value="${esc(k.email)}"></label>`;
 /* Klijent: samo kontakt podaci */
+// Novi klijent za već sačuvan unos: posle čuvanja se odmah vezuje za unos.
+// „Podseti me kasnije“ ostavlja unos sa oznakom da čeka klijenta i podsetnikom na Pregledu.
+function clientForTx(txId){const t=S.tx.find(x=>x.id===txId);if(!t)return;
+  clientForm({kind:'fizicko'},false,'Novi klijent');const cf=$('[data-form=client]');cf.dataset.tx=txId;
+  cf.insertAdjacentHTML('afterbegin',`<p class="voice-note" style="margin:0">${ic('info',18)}<span>${t.type==='prihod'?'Prihod':'Trošak'} ${esc(curAmt(t.amountOriginal??t.amount,t.currency||'RSD'))} od ${fmtDate(t.date)} je sačuvan. Novi klijent se odmah povezuje sa njim.</span></p>`);
+  $('#sheetRoot .sheet-h h2').insertAdjacentHTML('afterend',`<button type="button" class="btn sm later-btn" data-act="clientLater" data-tx="${txId}" title="Nemam sve podatke, podseti me kasnije">${ic('clock',16)} Podseti me kasnije</button>`);}
+const clientSaveState=f=>{const b=f.querySelector('button[type=submit]');if(b)b.disabled=!f.elements.name.value.trim();};
 function clientForm(k={},voice=false,title='Novi klijent'){
   openSheet(k.id?'Izmeni klijenta':title,`<form class="form" data-form="client" data-id="${k.id||''}">${voice?voiceNote():''}
   ${kindSeg(k.kind)}
-  <label class="fld"><span id="k-name-l">${k.kind==='pravno'?'Naziv firme':'Ime i prezime'}</span><input id="k-name" name="name" required value="${esc(k.name)}"></label>
+  <label class="fld"><span id="k-name-l">${k.kind==='pravno'?'Naziv firme':'Ime i prezime'}</span><input id="k-name" name="name" required value="${esc(k.name)}"><small>Obavezno.</small></label>
   ${pravnoFields(k)}${contactFields(k)}
   <label class="fld"><span>Napomena o klijentu</span><textarea id="k-note" name="note" rows="2">${esc(k.note??k.description)}</textarea></label>
   <div class="form-actions"><button type="button" class="btn" data-act="closeSheet">Otkaži</button><button class="btn primary" type="submit">Sačuvaj klijenta</button></div></form>`);
+  clientSaveState($('[data-form=client]'));
 }
 /* Posao: klijent se bira pretragom (postojeći, polja zaključana) ili se upisuje novi */
 function posaoForm(p={},pre={}){
@@ -1436,7 +1446,7 @@ function txForm(t={},voice=false){
   <label class="fld" id="vatWrap"><span>PDV stopa (iznos je bez PDV-a)</span><select id="t-vat" name="vat">${[20,10,0].map(v=>`<option value="${v}" ${(t.vat??20)===v?'selected':''}>${v?v+'%':'Bez PDV-a'}</option>`).join('')}</select></label>
   <label class="fld" id="catWrap"><span>Kategorija</span><select id="t-cat" name="category" data-init="${esc(t.category||'')}"></select></label>
   <div class="fld" id="clientWrap"><span>Klijent</span><div id="clientPick">${combo('clientId',clientItems(),t.clientId,'Pretraži po imenu, mestu ili telefonu')}</div>
-    <label class="check-row"><input type="checkbox" name="newClient">Dodaj novog klijenta</label><small id="clientHint">Nije obavezno.</small></div>
+    <label class="check-row"><input type="checkbox" name="newClient">Dodaj novog klijenta u sledećem koraku</label><small id="clientHint">Nije obavezno.</small></div>
   <label class="fld"><span>Komentar</span><textarea id="t-desc" name="description" rows="2" placeholder="Nije obavezno">${esc(t.description)}</textarea></label>
   ${t.invoiceNo?`<p class="small muted" style="margin:0">Faktura: ${esc(t.invoiceNo)}</p>`:''}
   <div class="form-actions">${t._ulog?`<button type="button" class="btn danger" data-act="delUlog" data-id="${t._ulog}">Obriši</button>`:t.id?`<button type="button" class="btn danger" data-act="delTx" data-id="${t.id}">Obriši</button>`:`<button type="button" class="btn" data-act="closeSheet">Otkaži</button>`}<button class="btn primary" type="submit">Sačuvaj</button></div></form>`);
@@ -1456,7 +1466,7 @@ function updTxForm(init){
   const sal=type==='trosak'&&el.namedItem('salary').checked;$('#salWrap').hidden=type!=='trosak';$('#salWho').hidden=!sal;const ul=type==='prihod'&&el.namedItem('ulog').checked;$('#ulogWrap').hidden=type!=='prihod';$('#ulogWho').hidden=!ul;$('#ulogHint').hidden=!ul;
   $('#catWrap').hidden=sal||ul;$('#clientWrap').hidden=sal||ul;if(ul)$('#vatWrap').hidden=true;f.classList.toggle('is-out',type==='trosak'||ul);
   // novi klijent se pravi posle čuvanja unosa, pa se pretraga sakriva
-  const nc=el.namedItem('newClient').checked;$('#clientPick').hidden=nc;$('#clientHint').textContent=nc?'Posle čuvanja otvara se forma za novog klijenta, koji se odmah povezuje sa ovim unosom.':'Nije obavezno.';
+  const nc=el.namedItem('newClient').checked;$('#clientPick').hidden=nc;$('#clientHint').textContent=nc?'Posle čuvanja otvara se forma za klijenta.':'Nije obavezno.';
   fxHint(f);
 }
 function voiceSheet(){
@@ -1540,6 +1550,8 @@ const A={
   newTransfer:()=>transferForm(),
   salYear:el=>{if(el.dataset.v){ui.salYear=el.dataset.v;render();}},
   newSalary:()=>txForm({type:'trosak',salaryTo:S.session,category:'Plata'}),
+  clientLater:el=>{const t=S.tx.find(x=>x.id===el.dataset.tx);if(!t)return closeSheet();t.pendingClient=true;log('transakcija','izmenjeno',`${t.type==='prihod'?'Prihod':'Trošak'} ${rsdFix(t.amount)}`,[{field:'Klijent',from:'—',to:'čeka podatke (podsetnik)'}]);save();closeSheet();render();toast('Podsetnik je na Pregledu. Klijent se dodaje kad imaš podatke.');},
+  addPendingClient:el=>clientForTx(el.dataset.id),
   editUlog:el=>{const u=(S.ulozi||[]).find(x=>x.id===el.dataset.id);if(!u)return;txForm({type:'prihod',_ulog:u.id,ulogOwner:u.owner,companyId:u.to==='kes'?null:u.to,amount:u.amount,currency:u.currency,amountOriginal:u.amountOriginal,date:u.date,description:u.note});},
   delUlog:el=>{const u=(S.ulozi||[]).find(x=>x.id===el.dataset.id);if(!u)return;confirmSheet('Obriši ulog?',`Ulog vlasnika ${userName(u.owner)}, ${curAmt(u.amountOriginal,u.currency)} od ${fmtDate(u.date)} biće obrisan.`,'Obriši',()=>{S.ulozi=S.ulozi.filter(x=>x.id!==u.id);log('transakcija','obrisano',`Ulog vlasnika · ${userName(u.owner)} ${rsdFix(u.amount)} · ${acctName(u.to)}`);save();render();toast('Ulog je obrisan.');});},
   newUlog:()=>txForm({type:'prihod',ulogOwner:S.session}),
@@ -1639,7 +1651,7 @@ const F={
     if(!d.name)return toast(kind==='pravno'?'Unesi naziv firme.':'Unesi ime klijenta.');
     if(id){const k=client(id);const ch=diff(k,d,CLIENT_F);if(ch.length){log('klijent','izmenjeno',d.name,ch);Object.assign(k,d);save();}closeSheet();go('klijent',id);toast(ch.length?'Klijent je sačuvan.':'Nema izmena.');}
     else{const k=newClient(d);const tx=f.dataset.tx&&S.tx.find(x=>x.id===f.dataset.tx);
-      if(tx){tx.clientId=k.id;log('transakcija','izmenjeno',`${tx.type==='prihod'?'Prihod':'Trošak'} ${curAmt(tx.amountOriginal??tx.amount,tx.currency||'RSD')}`,[{field:'Klijent',from:'—',to:k.name}]);save();closeSheet();render();toast(`Klijent je dodat i povezan sa unosom.`);return;}
+      if(tx){tx.clientId=k.id;delete tx.pendingClient;log('transakcija','izmenjeno',`${tx.type==='prihod'?'Prihod':'Trošak'} ${curAmt(tx.amountOriginal??tx.amount,tx.currency||'RSD')}`,[{field:'Klijent',from:'—',to:k.name}]);save();closeSheet();render();toast(`Klijent je dodat i povezan sa unosom.`);return;}
       save();closeSheet();go('klijent',k.id);toast('Klijent je dodat.');}},
   posao:f=>{const e=f.elements,id=f.dataset.id;let cid=e.clientId.value;
     const other=e.otherAddr.checked;const d={startDate:e.startDate.value,startTime:e.startDate.value?e.startTime.value:'',description:e.description.value.trim(),workAddress:other?e.workAddress.value.trim():'',workCity:other?e.workCity.value.trim():'',assignee:e.assignee.value||'oba',...(e.endDate?{endDate:e.endDate.value}:{})};
@@ -1674,10 +1686,10 @@ const F={
     const d={type:e.type.value,amount:Math.round(orig*rate*100)/100,currency:cur,amountOriginal:orig,fxRate:rate,date:e.date.value,companyId,clientId:sal||addClient?null:(e.clientId.value||null),category:e.type.value==='trosak'&&e.salary.checked?'Plata':e.category.value,salaryTo:e.type.value==='trosak'&&e.salary.checked?e.salaryTo.value:null,payment:companyId?'faktura':'kes',vat:c&&c.form==='pdv'?+e.vat.value:0,description:e.description.value.trim()};
     if(!(d.amount>0))return toast('Unesi iznos veći od nule.');if(!d.date)return toast('Izaberi datum.');
     const lbl=`${d.salaryTo?'Plata · '+userName(d.salaryTo):d.type==='prihod'?'Prihod':'Trošak'} ${curAmt(orig,cur)} · ${c?.name||'keš'}`;
-    if(id){const t=S.tx.find(x=>x.id===id);const ch=diff(t,d,[['type','Tip',v=>v==='prihod'?'Prihod':'Trošak'],['amount','Iznos (RSD)',rsdFix],['currency','Valuta'],['date','Datum',fmtDate],['companyId','Račun',v=>company(v)?.name||'Keš'],['clientId','Klijent',v=>client(v)?.name||'—'],['category','Kategorija'],['salaryTo','Plata za',v=>v?userName(v):'—'],['payment','Naplata',v=>v==='kes'?'Keš':'Račun'],['vat','PDV',v=>v+'%'],['description','Komentar']]);if(ch.length){log('transakcija','izmenjeno',lbl,ch);Object.assign(t,d);}}
+    if(id){const t=S.tx.find(x=>x.id===id);const ch=diff(t,d,[['type','Tip',v=>v==='prihod'?'Prihod':'Trošak'],['amount','Iznos (RSD)',rsdFix],['currency','Valuta'],['date','Datum',fmtDate],['companyId','Račun',v=>company(v)?.name||'Keš'],['clientId','Klijent',v=>client(v)?.name||'—'],['category','Kategorija'],['salaryTo','Plata za',v=>v?userName(v):'—'],['payment','Naplata',v=>v==='kes'?'Keš':'Račun'],['vat','PDV',v=>v+'%'],['description','Komentar']]);if(ch.length){log('transakcija','izmenjeno',lbl,ch);Object.assign(t,d);}if(t.clientId)delete t.pendingClient;}
     let tid=id;if(!id){tid=uid();S.tx.push({id:tid,...d,by:S.session,ts:Date.now()});log('transakcija','kreirano',lbl,d.clientId?[{field:'Klijent',from:'',to:client(d.clientId).name}]:[]);}
     S.tx.sort((a,b)=>b.date.localeCompare(a.date));save();closeSheet();render();
-    if(addClient){clientForm({kind:'fizicko'},false,'Novi klijent');const cf=$('[data-form=client]');cf.dataset.tx=tid;cf.insertAdjacentHTML('afterbegin',`<p class="voice-note" style="margin:0">${ic('info',18)}<span>${d.type==='prihod'?'Prihod':'Trošak'} ${esc(curAmt(orig,cur))} je sačuvan. Novi klijent se odmah povezuje sa njim.</span></p>`);return;}
+    if(addClient){clientForTx(tid);return;}
     toast(id?'Unos je sačuvan.':(d.type==='prihod'?'Prihod je dodat.':'Trošak je dodat.'));},
 };
 /* ---------- Kalendar, poslovi i zadaci ---------- */
@@ -1965,7 +1977,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.apick'))closePicks(
   document.querySelectorAll('.combo').forEach(w=>{if(w.contains(e.target))return;w.querySelector('.ac').hidden=true;if(!w.querySelector('input[type=hidden]').value){w.querySelector('.combo-q').value='';w.querySelector('.combo-x').hidden=true;}});const el=e.target.closest('[data-act]');if(!el)return;const fn=A[el.dataset.act];if(fn){e.preventDefault();fn(el,e);}});
 document.addEventListener('submit',e=>{e.preventDefault();const f=e.target;F[f.dataset.form]&&F[f.dataset.form](f);});
 document.addEventListener('focusin',e=>{if(e.target.classList?.contains('combo-q'))comboUpdate(e.target.closest('.combo'));});
-document.addEventListener('input',e=>{if(e.target.name==='amount'&&e.target.form&&e.target.form.querySelector('.fx-hint'))fxHint(e.target.form);if(e.target.name?.startsWith('amt_')&&e.target.form?.dataset.form==='payJob'){payTotal(e.target.form);return;}if(e.target.classList.contains('combo-q')){const w=e.target.closest('.combo');w.querySelector('input[type=hidden]').value='';w.querySelector('.combo-x').hidden=!e.target.value;comboUpdate(w);return;}if(e.target.id==='k-name'&&e.target.closest('[data-form=posao]')){acUpdate(e.target);return;}const k=e.target.dataset.input;if(!k)return;const v=e.target.value;
+document.addEventListener('input',e=>{if(e.target.form?.dataset.form==='client')clientSaveState(e.target.form);if(e.target.name==='amount'&&e.target.form&&e.target.form.querySelector('.fx-hint'))fxHint(e.target.form);if(e.target.name?.startsWith('amt_')&&e.target.form?.dataset.form==='payJob'){payTotal(e.target.form);return;}if(e.target.classList.contains('combo-q')){const w=e.target.closest('.combo');w.querySelector('input[type=hidden]').value='';w.querySelector('.combo-x').hidden=!e.target.value;comboUpdate(w);return;}if(e.target.id==='k-name'&&e.target.closest('[data-form=posao]')){acUpdate(e.target);return;}const k=e.target.dataset.input;if(!k)return;const v=e.target.value;
   if(k==='pFrom'||k==='pTo'){ui[k==='pFrom'?'pfrom':'pto']=v;const o=$('#earnOut');if(o)o.innerHTML=earnOut();return;}
   if(k==='pMon'){ui.pmon=+v;render();return;}
   if(k==='pYear'){ui.pyear=+v;render();return;}
