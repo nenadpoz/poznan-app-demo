@@ -19,7 +19,7 @@ Opšta pravila:
 
 ## 2. Navigacija
 - Donji meni: **Pregled, Promet, Poslovi, Zadaci, Klijenti**.
-- Kad je stavka menija aktivna, umesto njene ikonice stoji „+“ sa natpisom radnje: **Dodaj promet**, **Dodaj posao** (Poslovi → Lista) ili **Zakaži termin** (Poslovi → Kalendar), **Dodaj zadatak**, **Dodaj klijenta**.
+- Kad je stavka menija aktivna, umesto njene ikonice stoji „+“ sa natpisom radnje: **Dodaj promet**, **Dodaj posao** (Poslovi, i na Listi i u Kalendaru), **Dodaj zadatak**, **Dodaj klijenta**.
 - Gore desno na svakom ekranu: **zvonce** sa crvenim brojem nepročitanih obaveštenja (broj se ne prikazuje kad je 0) i avatar koji otvara Podešavanja.
 
 ## 3. Pregled (početna)
@@ -79,8 +79,8 @@ Tri kartice, tim redom:
 - Kartica klijenta:
   - kontakt sa dugmićima: telefon (**poziv** + kopiraj), adresa (**Google mape** + kopiraj), email (**novi mejl** + kopiraj), PIB/MB za pravno lice (kopiraj PIB);
   - ukupno naplaćeno, od toga keš, naplata po firmi;
-  - **Termini u kalendaru** sa filterima po statusu (**Svi, Na čekanju, U procesu, Završeno**, sa brojem) i dugmetom **Zakaži termin** (forma bez izbora klijenta, klijent je već poznat);
-  - **Obriši klijenta** (briše i njegove poslove; transakcije, termini i zadaci ostaju bez veze).
+  - **Poslovi** klijenta sa dugmetom **Novi posao** (klijent je već izabran);
+  - **Obriši klijenta** (briše i njegove poslove; transakcije i zadaci ostaju bez veze).
 
 ## 7. Poslovi
 ### Podaci
@@ -96,7 +96,7 @@ Tri kartice, tim redom:
 ### Lista i kartica
 - Poslovi imaju tabove **Lista** i **Kalendar**.
 - Lista: samo aktivni poslovi, prvo oni koji počinju danas ili kasnije (najbliži prvi), zatim započeti (najskoriji prvi); između redova razlika u danima. Red: klijent, kategorija, adresa posla, početak, status, ko radi, dugmad navigacija i poziv. Pretraga i filter kategorije. Ikonica arhive otvara završene poslove.
-- Kartica posla: status, klijent (link), telefon, adresa posla sa navigacijom (i adresa klijenta ako se razlikuje), ko radi, početak/završetak, naplata, opis, komentari, slike, termini klijenta, **Obriši posao**.
+- Kartica posla: status, klijent (link), telefon, adresa posla sa navigacijom (i adresa klijenta ako se razlikuje), ko radi, početak/završetak, naplata, opis, komentar, komentari, slike, **zadaci** vezani za posao (sa dugmetom + Zadatak), **Obriši posao**.
 
 ### Početak posla
 - Kad dođe datum (i vreme, ako je upisano) početka, a posao je Na čekanju, aplikacija pita: „Da li da prebacim [klijent] · [kategorija] u U procesu?“ (Prebaci / Ne sada). Pita se jednom po korisniku za isti početak; posle promene početka pita se ponovo. U mobilnoj aplikaciji ovo stiže i kao push.
@@ -120,11 +120,11 @@ Tri kartice, tim redom:
 - Posao u statusu Čeka uplatu može imati podsetnike: datum, vreme, kome (**Samo meni** ili **Oba korisnika**), napomena.
 - Kad dođe vreme, stiže obaveštenje „Podsetnik: čeka se uplata“ (klik otvara posao); u pravoj aplikaciji i push/email po ličnim podešavanjima. Posle uplate podsetnici više ne stižu.
 
-## 8. Termini (kalendar)
-- Termin je jedan dolazak: datum, vreme od–do, kratak opis, kategorija, ko radi, klijent (opciono), firma (opciono, „Bez firme - keš“), napomena, završen.
-- Prikazi mesec, nedelja, dan, filter po osobi.
-- Status termina: završen = Završeno; budući = Na čekanju; današnji i raniji = U procesu.
-- Iz termina se može otvoriti unos prihoda (naplata) sa popunjenim podacima.
+## 8. Kalendar
+- Kalendar prikazuje **iste poslove** kao Lista, po datumu i vremenu početka. Nema posebnih termina ni posebne forme: dodavanje uvek otvara **Dodaj posao** (iz kalendara sa predloženim izabranim danom).
+- Prikazi mesec, nedelja, dan, filter po osobi. U prikazu dana poslovi bez vremena početka stoje ispod vremenske ose.
+- Klik na posao u kalendaru otvara karticu posla. Status je status posla.
+- U demou su raniji termini pretvoreni u poslove (termini bez klijenta su izostavljeni).
 
 ## 9. Zadaci
 - Polja: naziv, ko je zadužen (Nenad, Jovan, Obojica), status (Na čekanju, U procesu, Završeno; kod završenog ko i kada), rok (opciono), **vezan za posao** (opciono, polje sa pretragom termina; podrazumevano ništa), napomena, komentari. Zadatak nema svog klijenta; vidi se preko posla.
@@ -145,7 +145,7 @@ Tri kartice, tim redom:
 ## 12. Podešavanja
 - Firme, Logovi, Kategorije poslova, Boje traka limita (lično), Obaveštenja (lično), Odjava.
 - U pravoj aplikaciji i: tema, lozinka, limiti i upozorenja, backup.
-- **Kategorije poslova**: zajednička lista za poslove i termine; naziv (jedinstven) i boja od šest. Brisanje kategorije ne briše poslove, samo im uklanja kategoriju.
+- **Kategorije poslova**: lista za poslove; naziv (jedinstven) i boja od šest. Brisanje kategorije ne briše poslove, samo im uklanja kategoriju.
 
 ## 13. Logovi (audit)
 - Zapis: vreme, korisnik, entitet (`posao`, `termin`, `zadatak`, `klijent`, `firma`, `transakcija`, `podesavanja`, `backup`, `nalog`), akcija, naziv, lista promena (polje, staro, novo).
