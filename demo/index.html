@@ -1019,8 +1019,7 @@ const ownDiff=st=>{const d=salDiff(st.nenad.net,st.jovan.net,rsd);return `<b>${d
 function salaryCard(){const y=String(TODAY.getFullYear()),ds=[...salTx().map(t=>t.date),...(S.ulozi||[]).map(u=>u.date)].filter(d=>d.startsWith(y)&&d<=TODAY_ISO).sort();
   const m=(ds[ds.length-1]||TODAY_ISO).slice(0,7),st=ownStats(d=>d.startsWith(m));
   return `<button class="card sal-card" data-act="go" data-v="plate"><div class="sec-h"><h2>Vlasnici: plate i ulozi</h2><span class="small muted" style="display:inline-flex;align-items:center;gap:2px;white-space:nowrap">${cap(MONTHS_FULL[+m.slice(5)-1])} ${m.slice(0,4)}. ${ic('fwd',16)}</span></div>
-  <div class="list">${ownHead()}${ownRows(st)}</div>
-  <div class="kv"><span class="muted">Razlika u neto iznosu</span><span>${ownDiff(st)}</span></div></button>`;}
+  <div class="list">${ownHead()}${ownRows(st)}</div></button>`;}
 // Ekran plata i uloga: filter Mesec / Godina / Sve, jedna tabela za izabrani period
 const salDates=()=>[...salTx().map(t=>t.date),...(S.ulozi||[]).map(u=>u.date)].sort();
 const salLastMonth=()=>{const y=String(TODAY.getFullYear()),ds=salDates().filter(d=>d.startsWith(y)&&d<=TODAY_ISO);return (ds[ds.length-1]||TODAY_ISO).slice(0,7);};
@@ -1041,7 +1040,7 @@ function vPlate(){const mode=ui.salMode||'mesec',ds=salDates(),first=(ds[0]||TOD
   return topBar('Plate i ulozi',{back:'dashboard',sub:`Vlasnici · iznosi u ${dispCur()}`})+
   `<div class="seg" role="group" aria-label="Period">${[['mesec','Mesec'],['godina','Godina'],['sve','Sve']].map(([k,l])=>`<button data-act="salMode" data-v="${k}" aria-pressed="${mode===k}">${l}</button>`).join('')}</div>
   ${nav}
-  ${any?`<div class="list">${ownHead()}${ownRows(st)}</div><div class="kv"><span class="muted">Razlika u neto iznosu</span><span>${ownDiff(st)}</span></div>`:'<div class="card empty">Nema plata ni uloga u ovom periodu.</div>'}
+  ${any?`<div class="list">${ownHead()}${ownRows(st)}</div>`:'<div class="card empty">Nema plata ni uloga u ovom periodu.</div>'}
   <p class="small muted" style="margin:0">Neto = isplaćena plata − ulog. Ulog je novac koji je vlasnik dao firmi ili kešu iz svog džepa (nije prihod).</p>
   ${payDiffBtn(st,title)}
   <div class="grid2"><button class="btn primary" data-act="newSalary">${ic('plus',18)} Isplati platu</button><button class="btn" data-act="newUlog">${ic('plus',18)} Dodaj ulog</button></div>`;}
