@@ -1000,7 +1000,7 @@ const ulSum=(list,u)=>list.filter(x=>x.owner===u).reduce((a,x)=>a+x.amount,0);
 // Plata, uloženo i neto (plata − ulog) po vlasniku za stavke koje prolaze filter datuma
 function ownStats(pf){const sl=salTx().filter(t=>pf(t.date)),ul=(S.ulozi||[]).filter(x=>pf(x.date));
   return Object.fromEntries(OWNERS.map(o=>{const pl=salSum(sl,o),u=ulSum(ul,o);return [o,{pl,ul:u,net:pl-u}];}));}
-const ownHead=()=>`<div class="sal-t head"><span></span><span>Plata</span><span>Uložio</span><span>Neto</span></div>`;
+const ownHead=()=>`<div class="sal-t head"><span></span><span>Isplaćena plata</span><span>Uložio</span><span>Neto</span></div>`;
 const ownRows=st=>OWNERS.map(o=>`<div class="sal-t"><span>${esc(userName(o))}</span><span>${amt(st[o].pl)}</span><span>${st[o].ul?amt(st[o].ul):'—'}</span><b>${amt(st[o].net)}</b></div>`).join('');
 const ownDiff=st=>{const d=salDiff(st.nenad.net,st.jovan.net,rsd);return `<b>${d.v}</b> <span class="small muted">${esc(d.who)}</span>`;};
 function salaryCard(){const y=String(TODAY.getFullYear()),st=ownStats(d=>d.startsWith(y));
