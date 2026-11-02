@@ -1003,11 +1003,12 @@ function ownStats(pf){const sl=salTx().filter(t=>pf(t.date)),ul=(S.ulozi||[]).fi
 const ownHead=()=>`<div class="sal-t head"><span></span><span>Isplaćena plata</span><span>Uložio</span><span>Neto</span></div>`;
 const ownRows=st=>OWNERS.map(o=>`<div class="sal-t"><span>${esc(userName(o))}</span><span>${amt(st[o].pl)}</span><span>${st[o].ul?amt(st[o].ul):'—'}</span><b>${amt(st[o].net)}</b></div>`).join('');
 const ownDiff=st=>{const d=salDiff(st.nenad.net,st.jovan.net,rsd);return `<b>${d.v}</b> <span class="small muted">${esc(d.who)}</span>`;};
-function salaryCard(){const y=String(TODAY.getFullYear()),st=ownStats(d=>d.startsWith(y));
-  return `<button class="card sal-card" data-act="go" data-v="plate"><div class="sec-h"><h2>Vlasnici: plate i ulozi</h2><span class="small muted" style="display:inline-flex;align-items:center;gap:2px;white-space:nowrap">${y}. ${ic('fwd',16)}</span></div>
+// Kartica na Pregledu: samo poslednji mesec tekuće godine sa platom ili ulogom (inače tekući mesec); detalji na ekranu Plate i ulozi
+function salaryCard(){const y=String(TODAY.getFullYear()),ds=[...salTx().map(t=>t.date),...(S.ulozi||[]).map(u=>u.date)].filter(d=>d.startsWith(y)&&d<=TODAY_ISO).sort();
+  const m=(ds[ds.length-1]||TODAY_ISO).slice(0,7),st=ownStats(d=>d.startsWith(m));
+  return `<button class="card sal-card" data-act="go" data-v="plate"><div class="sec-h"><h2>Vlasnici: plate i ulozi</h2><span class="small muted" style="display:inline-flex;align-items:center;gap:2px;white-space:nowrap">${cap(MONTHS_FULL[+m.slice(5)-1])} ${m.slice(0,4)}. ${ic('fwd',16)}</span></div>
   <div class="list">${ownHead()}${ownRows(st)}</div>
-  <div class="kv"><span class="muted">Razlika u neto iznosu</span><span>${ownDiff(st)}</span></div>
-  <p class="small muted" style="margin:0">Neto = isplaćene plate − novac koji je vlasnik uložio iz svog džepa. Iznosi u ${dispCur()}.</p></button>`;}
+  <div class="kv"><span class="muted">Razlika u neto iznosu</span><span>${ownDiff(st)}</span></div></button>`;}
 function vPlate(){const all=[...salTx().map(t=>t.date),...(S.ulozi||[]).map(u=>u.date)],years=[...new Set([String(TODAY.getFullYear()),...all.map(d=>d.slice(0,4))])].sort(),y=ui.salYear&&years.includes(ui.salYear)?ui.salYear:years[years.length-1],i=years.indexOf(y);
   const months=[...new Set(all.filter(d=>d.startsWith(y)).map(d=>d.slice(0,7)))].sort().reverse();
   const block=(title,st,cls='')=>`<section class="settings-sec" style="gap:8px"><div class="month-h"><b>${title}</b><span class="small">razlika ${ownDiff(st)}</span></div><div class="list ${cls}">${ownHead()}${ownRows(st)}</div></section>`;
