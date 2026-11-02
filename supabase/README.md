@@ -12,21 +12,19 @@ zato kurs mora da postoji pre unosa (funkcija uzima poslednju listu pre traženo
 supabase functions deploy fx-rates
 ```
 
-Raspored (SQL editor, jednom po projektu; ključ se čuva u Vault-u, ne u kodu):
+Raspored je u migraciji `20261102000600_base_data_cron.sql`. Adresa i ključ se čitaju iz Vault-a,
+pa se jednom po projektu dodaju dve tajne (Dashboard → Integrations → Vault → Add new secret, ili SQL editor):
 ```sql
-select vault.create_secret('<service_role_key>', 'service_role_key');
-select cron.schedule('fx-rates', '15 8,12,16 * * 1-5', $$
-  select net.http_post(
-    url := 'https://<project-ref>.supabase.co/functions/v1/fx-rates',
-    headers := jsonb_build_object('Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'service_role_key'))
-  );
-$$);
+select vault.create_secret('https://<project-ref>.supabase.co', 'project_url');
+select vault.create_secret('<service_role_key>', 'service_role_key'); -- Settings → API Keys → Legacy → service_role
 ```
+Funkcija prihvata samo token sa ulogom `service_role` (potpis proverava gateway).
 NBS objavljuje listu oko 8h; poziv u 12h i 16h je rezerva.
 
 Prvo punjenje (npr. poslednjih 30 dana) radi se ručnim pozivom sa `{"date": "YYYY-MM-DD"}`.
 
 ## Podsetnici za uplatu
-```sql
-select cron.schedule('job-reminders', '* * * * *', $$ select public.fire_due_reminders(); $$);
-```
+Raspored `job-reminders` (svakog minuta) je u istoj migraciji.
+
+## Projekti
+- `poznan-app` (ref `nczptyiamjlvgsryiivk`, Frankfurt): repo je povezan (`supabase link`), migracije se puštaju sa `npx -y supabase@2.54.11 db push`.

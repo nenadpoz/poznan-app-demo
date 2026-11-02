@@ -11,9 +11,10 @@ interface NbsRate {
 }
 
 Deno.serve(async req => {
-  // Samo service role (pg_cron) sme da upisuje kurs
-  const auth = req.headers.get('Authorization') ?? '';
-  if (auth !== `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`) {
+  // Samo service role (pg_cron) sme da upisuje kurs. Potpis JWT-a proverava Supabase gateway (verify_jwt),
+  // ovde se proverava uloga iz tokena (ključ u okruženju funkcije može biti nov format pa se ne poredi tekst).
+  const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer /, '');
+  if (jwtRole(token) !== 'service_role') {
     return new Response('Nema pristupa', { status: 401 });
   }
 
@@ -32,3 +33,14 @@ Deno.serve(async req => {
 
   return Response.json({ date: r.date_from, eur: r.exchange_middle });
 });
+
+/** Uloga iz JWT-a (bez provere potpisa; to radi gateway). */
+function jwtRole(token: string): string | null {
+  try {
+    const part = token.split('.')[1] ?? '';
+    const json = atob(part.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(part.length / 4) * 4, '='));
+    return (JSON.parse(json) as { role?: string }).role ?? null;
+  } catch {
+    return null;
+  }
+}
