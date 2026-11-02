@@ -188,6 +188,10 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
       },
       async markRead(ids) { if (ids.length) ok(await sb.from('notifications').update({ read_at: now() }).in('id', ids)); },
       async markAllRead() { ok(await sb.from('notifications').update({ read_at: now() }).is('read_at', null)); },
+      async registerPushToken(token, platform) {
+        ok(await sb.from('push_tokens').upsert({ user_id: await uid(), token, platform }, { onConflict: 'user_id,token' }));
+      },
+      async unregisterPushToken(token) { ok(await sb.from('push_tokens').delete().eq('token', token)); },
       async markReadFor(target, targetId) {
         ok(await sb.from('notifications').update({ read_at: now() }).eq('target_type', target).eq('target_id', targetId).is('read_at', null));
       },

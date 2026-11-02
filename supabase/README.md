@@ -29,6 +29,15 @@ Raspored `job-reminders` (svakog minuta) je u istoj migraciji.
 ## Projekti
 - `poznan-app` (ref `nczptyiamjlvgsryiivk`, Frankfurt): repo je povezan (`supabase link`), migracije se puštaju sa `npx -y supabase@2.54.11 db push`.
 
+## Push obaveštenja (notify-dispatch)
+Tabela `notifications` je outbox. Pri svakom novom obaveštenju (i pg_cron svakog minuta za odložena) baza poziva
+Edge Function `notify-dispatch` sa ključem iz Vault-a (iste tajne kao za kurs: `project_url`, `service_role_key`).
+Funkcija poštuje lična podešavanja (push, vreme slanja, vrste događaja) i šalje preko Expo push servisa;
+tokeni telefona su u `push_tokens`. Email još nije povezan.
+```bash
+supabase functions deploy notify-dispatch
+```
+
 ## Probni podaci
 `scripts/test-data.mjs seed` ubacuje probne klijente, poslove, zadatke, promet (6 meseci), prenose i ulog; `clear` ih briše.
 Probni redovi imaju id koji počinje sa `7e570000-`, pa `clear` ne dira prave podatke. Za vreme testiranja početni datum

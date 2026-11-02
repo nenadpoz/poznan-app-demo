@@ -78,6 +78,9 @@ export interface PoznanApi {
     markRead(ids: string[]): Promise<void>;
     markAllRead(): Promise<void>;
     markReadFor(target: Comment['target'], targetId: string): Promise<void>;
+    /** Push token telefona (Expo); jedan nalog može imati više telefona. */
+    registerPushToken(token: string, platform: 'android' | 'ios' | 'web'): Promise<void>;
+    unregisterPushToken(token: string): Promise<void>;
   };
   audit: { list(opts?: { table?: string; rowId?: string; limit?: number }): Promise<AuditEntry[]> };
   /** Javlja izmene sa drugog uređaja (Realtime na webu, sync na mobilnom), da se osveže upiti. */
