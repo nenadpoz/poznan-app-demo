@@ -45,3 +45,12 @@ računa (sa početnim stanjem 0) ide 7 meseci unazad da bi se probni promet vide
 ```bash
 SUPABASE_URL=https://<ref>.supabase.co SUPABASE_SERVICE_ROLE_KEY=<ključ> node supabase/scripts/test-data.mjs seed
 ```
+
+## Reset lozinke (email šablon)
+Aplikacija resetuje lozinku kodom iz emaila, ne linkom. U Supabase Dashboard → Authentication → Emails → **Reset Password** šablon mora da sadrži `{{ .Token }}`, npr.:
+
+- Subject: `Poznan: kod za novu lozinku`
+- Body: `<h2>Nova lozinka</h2><p>Tvoj kod za postavljanje nove lozinke je:</p><h1 style="letter-spacing:4px">{{ .Token }}</h1><p>Kod važi 1 sat. Ako nisi tražio novu lozinku, ignoriši ovaj email.</p>`
+
+Ugrađeni Supabase email server šalje svega nekoliko poruka na sat i samo adresama članova tima projekta. Za pouzdano slanje podesi svoj SMTP (Authentication → Emails → SMTP Settings).
+Promena, postavljanje i reset lozinke se beleže u audit_log (`table_name = 'nalog'`) preko triggera na `auth.users` (migracija 0900).

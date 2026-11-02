@@ -13,7 +13,7 @@ Opšta pravila:
 
 ## 1. Korisnici i nalozi
 - Prva prijava: korisnik postavlja lozinku (dva polja, najmanje 8 karaktera).
-- Zaboravljena lozinka: link za reset na email. Svaki admin može da resetuje lozinku drugom; drugi tada postavlja novu pri sledećoj prijavi.
+- Zaboravljena lozinka: kod za reset na email (u aplikaciji se upisuju kod i nova lozinka, pa je korisnik prijavljen). Svaki admin može da resetuje lozinku drugom; drugi tada postavlja novu pri sledećoj prijavi.
 - Promena lozinke traži trenutnu lozinku. Postavljanje, promena i reset idu u logove (bez same lozinke).
 - Lično po nalogu: tema, boje traka limita, podešavanja obaveštenja, email za obaveštenja.
 
