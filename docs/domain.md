@@ -155,7 +155,7 @@ Tri kartice, tim redom:
 - Na Google Drive svakih N dana (podrazumevano 3), čuva se poslednjih 10. Sadrži export svih tabela i slike.
 
 ## 15. Stanje novca i valuta
-Zahtev vlasnika od 2. nov 2026. Urađeno u core-u (v0.2.0) i mobilnoj aplikaciji; nije dodato u HTML demo.
+Zahtev vlasnika od 2. nov 2026. Urađeno u core-u (v0.2.0), mobilnoj aplikaciji i HTML demou (u demou je kurs fiksan ako pregledač ne može da preuzme današnji).
 
 **Računi (izvori novca)**
 - Svaka firma ima svoj račun, plus jedna zajednička **zaliha keša**.
