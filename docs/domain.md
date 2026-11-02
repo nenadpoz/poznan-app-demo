@@ -181,3 +181,11 @@ Zahtev vlasnika od 2. nov 2026. Urađeno u core-u (v0.2.0), mobilnoj aplikaciji 
 - `fx_rates` (datum, EUR srednji kurs), puni ga Edge Function iz pg_cron-a.
 - `profiles.currency` za izabrani prikaz.
 - Stanje računa = početno stanje + prihodi − troškovi ± prenosi (view u bazi).
+
+## 16. Plate vlasnika
+Urađeno u HTML demou; u core i mobile još nije.
+- Trošak može biti označen kao **Isplata plate**. Tada se bira kome: Nenad ili Jovan. Kategorija je uvek „Plata“.
+- Plata je običan trošak: smanjuje stanje računa sa kog je isplaćena (firma ili keš) i ulazi u troškove i profit.
+- Pregled ima karticu **Plate vlasnika** za tekuću godinu (Nenad, Jovan, razlika i ko je dobio više). Klik otvara ekran sa tabelom po mesecima (Nenad, Jovan, razlika), ukupno za godinu i ukupno od početka.
+- Iznosi se prikazuju u izabranoj valuti (EUR/RSD).
+- Za bazu: `transactions.salary_to` (`nenad`/`jovan`, samo za trošak), zbir po mesecu i osobi kao view.
