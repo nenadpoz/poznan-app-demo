@@ -995,7 +995,9 @@ const OWNERS=['nenad','jovan'];
 const salTx=()=>S.tx.filter(t=>t.type==='trosak'&&t.salaryTo);
 const salSum=(list,u)=>list.filter(t=>t.salaryTo===u).reduce((a,t)=>a+t.amount,0);
 // Razlika: ko je dobio više i za koliko
-function salDiff(n,j,f=amt){const d=n-j;return d===0?{v:'0',who:'jednako'}:{v:'+'+f(Math.abs(d)),who:userName(d>0?'nenad':'jovan')};}
+// razlika manja od najmanje jedinice prikaza (1 RSD ili 0,01 EUR) računa se kao jednako
+const salTol=()=>dispCur()==='EUR'?fxRate()*0.01:1;
+function salDiff(n,j,f=amt){const d=n-j;return Math.abs(d)<salTol()?{v:'0',who:'jednako'}:{v:'+'+f(Math.abs(d)),who:userName(d>0?'nenad':'jovan')};}
 const ulSum=(list,u)=>list.filter(x=>x.owner===u).reduce((a,x)=>a+x.amount,0);
 // Plata, uloženo i neto (plata − ulog) po vlasniku za stavke koje prolaze filter datuma
 function ownStats(pf){const sl=salTx().filter(t=>pf(t.date)),ul=(S.ulozi||[]).filter(x=>pf(x.date));
@@ -1013,6 +1015,9 @@ function salaryCard(){const y=String(TODAY.getFullYear()),ds=[...salTx().map(t=>
 const salDates=()=>[...salTx().map(t=>t.date),...(S.ulozi||[]).map(u=>u.date)].sort();
 const salLastMonth=()=>{const y=String(TODAY.getFullYear()),ds=salDates().filter(d=>d.startsWith(y)&&d<=TODAY_ISO);return (ds[ds.length-1]||TODAY_ISO).slice(0,7);};
 const ymShift=(ym,n)=>{const d=new Date(+ym.slice(0,4),+ym.slice(5)-1+n,1);return d.getFullYear()+'-'+pad(d.getMonth()+1);};
+// Isplati razliku: plata vlasniku sa manjim neto iznosom, tako da se neto izjednači za izabrani period
+function payDiffBtn(st,period){const d=st.nenad.net-st.jovan.net;if(Math.abs(d)<salTol())return '';const to=d>0?'jovan':'nenad',a=Math.abs(d);
+  return `<button class="btn block warn-btn" data-act="payDiff" data-to="${to}" data-rsd="${a}" data-period="${esc(period)}">${ic('swap',18)} Isplati razliku ${esc(userName(to))}u: ${rsd(a)}</button>`;}
 function vPlate(){const mode=ui.salMode||'mesec',ds=salDates(),first=(ds[0]||TODAY_ISO),nowM=TODAY_ISO.slice(0,7);
   let title,pf,prev=null,next=null;
   if(mode==='mesec'){const m=ui.salMonth||salLastMonth();title=cap(MONTHS_FULL[+m.slice(5)-1])+' '+m.slice(0,4)+'.';pf=d=>d.startsWith(m);
@@ -1028,6 +1033,7 @@ function vPlate(){const mode=ui.salMode||'mesec',ds=salDates(),first=(ds[0]||TOD
   ${nav}
   ${any?`<div class="list">${ownHead()}${ownRows(st)}</div><div class="kv"><span class="muted">Razlika u neto iznosu</span><span>${ownDiff(st)}</span></div>`:'<div class="card empty">Nema plata ni uloga u ovom periodu.</div>'}
   <p class="small muted" style="margin:0">Neto = isplaćena plata − ulog. Ulog je novac koji je vlasnik dao firmi ili kešu iz svog džepa (nije prihod).</p>
+  ${payDiffBtn(st,title)}
   <div class="grid2"><button class="btn primary" data-act="newSalary">${ic('plus',18)} Isplati platu</button><button class="btn" data-act="newUlog">${ic('plus',18)} Dodaj ulog</button></div>`;}
 function vDashboard(){
   const ch=ui.ch,isCash=x=>x.payment==='kes';
@@ -1564,6 +1570,7 @@ const A={
   addPendingClient:el=>clientForTx(el.dataset.id),
   editUlog:el=>{const u=(S.ulozi||[]).find(x=>x.id===el.dataset.id);if(!u)return;txForm({type:'prihod',_ulog:u.id,ulogOwner:u.owner,companyId:u.to==='kes'?null:u.to,amount:u.amount,currency:u.currency,amountOriginal:u.amountOriginal,date:u.date,description:u.note});},
   delUlog:el=>{const u=(S.ulozi||[]).find(x=>x.id===el.dataset.id);if(!u)return;confirmSheet('Obriši ulog?',`Ulog vlasnika ${userName(u.owner)}, ${curAmt(u.amountOriginal,u.currency)} od ${fmtDate(u.date)} biće obrisan.`,'Obriši',()=>{S.ulozi=S.ulozi.filter(x=>x.id!==u.id);log('transakcija','obrisano',`Ulog vlasnika · ${userName(u.owner)} ${rsdFix(u.amount)} · ${acctName(u.to)}`);save();render();toast('Ulog je obrisan.');});},
+  payDiff:el=>{const a=+el.dataset.rsd,c=dispCur(),r=fxRate();txForm({type:'trosak',salaryTo:el.dataset.to,category:'Plata',currency:c,amount:Math.round(a*100)/100,amountOriginal:c==='EUR'?Math.round(a/r*100)/100:Math.round(a),description:'Isplata razlike u platama ('+el.dataset.period+')'});},
   newUlog:()=>txForm({type:'prihod',ulogOwner:S.session}),
   delTransfer:el=>{const x=(S.transfers||[]).find(y=>y.id===el.dataset.id);if(!x)return;confirmSheet('Obriši prenos?',`${acctName(x.from)} → ${acctName(x.to)}, ${curAmt(x.amountOriginal,x.currency)} od ${fmtDate(x.date)} (uneo: ${userName(x.by)}).`,'Obriši',()=>{S.transfers=S.transfers.filter(y=>y.id!==x.id);log('transakcija','obrisano',`Prenos ${acctName(x.from)} → ${acctName(x.to)} · ${rsdFix(x.amount)}`);save();render();toast('Prenos je obrisan.');});},
   go:el=>{if(el.dataset.v==='poslovi'&&el.closest('.nav'))ui.clientArch=false;go(el.dataset.v,el.dataset.p||null);},
