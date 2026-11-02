@@ -2,7 +2,7 @@
 
 Upravljanje firmama, prometom, poslovima i klijentima za dva vlasnika.
 
-- **Demo:** otvori `demo/index.html` u Chrome-u.
+- **Demo:** otvori `[demo](https://nenadpoz.github.io/poznan-app-demo/demo/)` u Chrome-u.
 - **Paketi:** `packages/shared` (pravila, zod, tema), `packages/api` (API sloj za oba klijenta).
 - **Baza:** `supabase/` (migracije, RLS, audit, RPC).
 - **Aplikacije:** [poznan-app-mobile](https://github.com/nenadpoz/poznan-app-mobile) (Expo), [poznan-app-web](https://github.com/nenadpoz/poznan-app-web) (Next.js).
