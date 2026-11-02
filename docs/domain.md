@@ -187,6 +187,6 @@ Urađeno u HTML demou; u core i mobile još nije.
 - **Plata**: trošak označen kao **Isplata plate**, bira se Nenad ili Jovan. Kategorija je uvek „Plata“, bez klijenta. Smanjuje stanje računa sa kog je isplaćena i ulazi u troškove i profit.
 - **Ulog vlasnika**: kod prihoda polje **Ulog vlasnika (sopstveni novac)**, bira se ko je uložio i na koji račun (firma ili keš). Nije prihod: ne ulazi u limite, PDV ni profit, samo povećava stanje računa. U Prometu se vidi pod **Sve** i **Prenosi**, sa oznakom „ulog“.
 - **Neto** po vlasniku = plate − ulozi. **Razlika** poredi neto iznose (ko je neto dobio više).
-- Pregled ima karticu **Vlasnici: plate i ulozi** za poslednji mesec tekuće godine (isplaćena plata, uložio, neto, razlika). Klik otvara ekran po mesecima, ukupno za godinu i ukupno od početka, sa dugmadima **Isplati platu** i **Dodaj ulog**.
+- Pregled ima karticu **Vlasnici: plate i ulozi** za poslednji mesec tekuće godine (isplaćena plata, uložio, neto, razlika). Klik otvara ekran **Plate i ulozi** sa filterom **Mesec / Godina / Sve** (strelice za prethodni i sledeći period) i jednom tabelom za izabrani period, sa dugmadima **Isplati platu** i **Dodaj ulog**.
 - Iznosi se prikazuju u izabranoj valuti (EUR/RSD).
 - Za bazu: `transactions.salary_to`, nova tabela `owner_contributions` (vlasnik, račun, iznos, valuta, kurs, datum, komentar, ko je uneo); stanje računa je uključuje.

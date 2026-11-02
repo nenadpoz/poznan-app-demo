@@ -1009,18 +1009,26 @@ function salaryCard(){const y=String(TODAY.getFullYear()),ds=[...salTx().map(t=>
   return `<button class="card sal-card" data-act="go" data-v="plate"><div class="sec-h"><h2>Vlasnici: plate i ulozi</h2><span class="small muted" style="display:inline-flex;align-items:center;gap:2px;white-space:nowrap">${cap(MONTHS_FULL[+m.slice(5)-1])} ${m.slice(0,4)}. ${ic('fwd',16)}</span></div>
   <div class="list">${ownHead()}${ownRows(st)}</div>
   <div class="kv"><span class="muted">Razlika u neto iznosu</span><span>${ownDiff(st)}</span></div></button>`;}
-function vPlate(){const all=[...salTx().map(t=>t.date),...(S.ulozi||[]).map(u=>u.date)],years=[...new Set([String(TODAY.getFullYear()),...all.map(d=>d.slice(0,4))])].sort(),y=ui.salYear&&years.includes(ui.salYear)?ui.salYear:years[years.length-1],i=years.indexOf(y);
-  const months=[...new Set(all.filter(d=>d.startsWith(y)).map(d=>d.slice(0,7)))].sort().reverse();
-  const block=(title,st,cls='')=>`<section class="settings-sec" style="gap:8px"><div class="month-h"><b>${title}</b><span class="small">razlika ${ownDiff(st)}</span></div><div class="list ${cls}">${ownHead()}${ownRows(st)}</div></section>`;
-  return topBar('Plate i ulozi vlasnika',{back:'dashboard',sub:`Iznosi u ${dispCur()}`})+
-  `<div class="pick pick-y"><button class="icon-btn" data-act="salYear" data-v="${years[i-1]||''}" ${i>0?'':'disabled'} aria-label="Prethodna godina">${ic('back',18)}</button><b style="text-align:center;align-self:center;font-family:var(--f-display);font-size:17px">${y}.</b><button class="icon-btn" data-act="salYear" data-v="${years[i+1]||''}" ${i<years.length-1?'':'disabled'} aria-label="Sledeća godina">${ic('fwd',18)}</button></div>
-  <p class="small muted" style="margin:0">Plata je isplata vlasniku (trošak). Ulog je novac koji je vlasnik dao firmi ili kešu iz svog džepa (nije prihod). Neto = plata − ulog; razlika pokazuje ko je neto dobio više.</p>
-  ${months.length?months.map(m=>block(cap(MONTHS_FULL[+m.slice(5)-1]),ownStats(d=>d.startsWith(m)))).join(''):'<div class="card empty">Nema plata ni uloga u ovoj godini.</div>'}
-  ${block('Ukupno '+y+'.',ownStats(d=>d.startsWith(y)))}
-  ${block('Ukupno od početka',ownStats(()=>true))}
+// Ekran plata i uloga: filter Mesec / Godina / Sve, jedna tabela za izabrani period
+const salDates=()=>[...salTx().map(t=>t.date),...(S.ulozi||[]).map(u=>u.date)].sort();
+const salLastMonth=()=>{const y=String(TODAY.getFullYear()),ds=salDates().filter(d=>d.startsWith(y)&&d<=TODAY_ISO);return (ds[ds.length-1]||TODAY_ISO).slice(0,7);};
+const ymShift=(ym,n)=>{const d=new Date(+ym.slice(0,4),+ym.slice(5)-1+n,1);return d.getFullYear()+'-'+pad(d.getMonth()+1);};
+function vPlate(){const mode=ui.salMode||'mesec',ds=salDates(),first=(ds[0]||TODAY_ISO),nowM=TODAY_ISO.slice(0,7);
+  let title,pf,prev=null,next=null;
+  if(mode==='mesec'){const m=ui.salMonth||salLastMonth();title=cap(MONTHS_FULL[+m.slice(5)-1])+' '+m.slice(0,4)+'.';pf=d=>d.startsWith(m);
+    if(m>first.slice(0,7))prev=ymShift(m,-1);if(m<nowM)next=ymShift(m,1);}
+  else if(mode==='godina'){const y=ui.salYear||String(TODAY.getFullYear());title=y+'.';pf=d=>d.startsWith(y);
+    if(y>first.slice(0,4))prev=String(+y-1);if(y<nowM.slice(0,4))next=String(+y+1);}
+  else{title='Od '+fmtDate(first)+' do danas';pf=()=>true;}
+  const st=ownStats(pf),any=OWNERS.some(o=>st[o].pl||st[o].ul);
+  const nav=mode==='sve'?`<b style="text-align:center;font-family:var(--f-display);font-size:16px">${title}</b>`:
+    `<div class="pick pick-y"><button class="icon-btn" data-act="salStep" data-v="${prev||''}" ${prev?'':'disabled'} aria-label="Prethodno">${ic('back',18)}</button><b style="text-align:center;align-self:center;font-family:var(--f-display);font-size:17px">${title}</b><button class="icon-btn" data-act="salStep" data-v="${next||''}" ${next?'':'disabled'} aria-label="Sledeće">${ic('fwd',18)}</button></div>`;
+  return topBar('Plate i ulozi',{back:'dashboard',sub:`Vlasnici · iznosi u ${dispCur()}`})+
+  `<div class="seg" role="group" aria-label="Period">${[['mesec','Mesec'],['godina','Godina'],['sve','Sve']].map(([k,l])=>`<button data-act="salMode" data-v="${k}" aria-pressed="${mode===k}">${l}</button>`).join('')}</div>
+  ${nav}
+  ${any?`<div class="list">${ownHead()}${ownRows(st)}</div><div class="kv"><span class="muted">Razlika u neto iznosu</span><span>${ownDiff(st)}</span></div>`:'<div class="card empty">Nema plata ni uloga u ovom periodu.</div>'}
+  <p class="small muted" style="margin:0">Neto = isplaćena plata − ulog. Ulog je novac koji je vlasnik dao firmi ili kešu iz svog džepa (nije prihod).</p>
   <div class="grid2"><button class="btn primary" data-act="newSalary">${ic('plus',18)} Isplati platu</button><button class="btn" data-act="newUlog">${ic('plus',18)} Dodaj ulog</button></div>`;}
-function pendingClients(){const l=S.tx.filter(t=>t.pendingClient&&!t.clientId);if(!l.length)return '';
-  return `<div class="alerts">${l.map(t=>`<button class="alert info" data-act="addPendingClient" data-id="${t.id}">${ic('user',20)}<div><b>Unos čeka podatke klijenta</b><span>${t.type==='prihod'?'Prihod':'Trošak'} ${rsd(t.amount)} · ${fmtDate(t.date)} · ${esc(acctName(t.companyId||'kes'))}. Dodirni da dodaš klijenta.</span></div></button>`).join('')}</div>`;}
 function vDashboard(){
   const ch=ui.ch,isCash=x=>x.payment==='kes';
   const pred=ch==='kes'?isCash:ch==='firma'?(x=>!isCash(x)):(()=>true);
@@ -1549,7 +1557,8 @@ const A={
   apickToggle:el=>{const l=el.nextElementSibling,open=l.hidden;closePicks();l.hidden=!open;el.setAttribute('aria-expanded',String(open));},
   apickSet:el=>{const f=el.closest('form'),w=el.closest('.apick');let from=f.elements.from.value,to=f.elements.to.value;if(w.dataset.name==='from')from=el.dataset.v;else to=el.dataset.v;$('#trPicks').innerHTML=trPicks(from,to,f.elements.currency.value);},
   newTransfer:()=>transferForm(),
-  salYear:el=>{if(el.dataset.v){ui.salYear=el.dataset.v;render();}},
+  salMode:el=>{ui.salMode=el.dataset.v;render();},
+  salStep:el=>{const v=el.dataset.v;if(!v)return;if((ui.salMode||'mesec')==='mesec')ui.salMonth=v;else ui.salYear=v;render();},
   newSalary:()=>txForm({type:'trosak',salaryTo:S.session,category:'Plata'}),
   clientLater:el=>{const t=S.tx.find(x=>x.id===el.dataset.tx);if(!t)return closeSheet();t.pendingClient=true;log('transakcija','izmenjeno',`${t.type==='prihod'?'Prihod':'Trošak'} ${rsdFix(t.amount)}`,[{field:'Klijent',from:'—',to:'čeka podatke (podsetnik)'}]);save();closeSheet();render();toast('Podsetnik je na Pregledu. Klijent se dodaje kad imaš podatke.');},
   addPendingClient:el=>clientForTx(el.dataset.id),
