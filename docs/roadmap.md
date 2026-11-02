@@ -14,6 +14,7 @@
 
 ## Faza 3: Mobile (poseban repo, Android pa iOS)
 - [ ] Expo + Expo Router, tema, prijava.
+- [ ] Računi firmi i zaliha keša, prenosi (podizanje), brojač stanja na naslovnoj, EUR/RSD prikaz sa srednjim kursom NBS (domain.md, odeljak 15). Prvo migracija i pravila u core-u.
 - [ ] PowerSync (pun offline).
 - [ ] Ekrani: Pregled, Promet, Poslovi (lista, kalendar, kartica, naplata, faktura, podsetnici), Zadaci, Klijenti, Firme, Podešavanja, Logovi.
 - [ ] Push notifikacije (`expo-notifications`): komentari, odgovori, podsetnici, početak posla, rokovi, limit.

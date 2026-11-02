@@ -153,3 +153,31 @@ Tri kartice, tim redom:
 
 ## 14. Backup
 - Na Google Drive svakih N dana (podrazumevano 3), čuva se poslednjih 10. Sadrži export svih tabela i slike.
+
+## 15. Stanje novca i valuta (planirano, još nije u demou ni u kodu)
+Zahtev vlasnika od 2. nov 2026. Uvodi se pre ekrana Promet u mobilnoj aplikaciji.
+
+**Računi (izvori novca)**
+- Svaka firma ima svoj račun, plus jedna zajednička **zaliha keša**.
+- Stanje svakog računa i keša se vidi u svakom trenutku.
+- **Naslovna strana** ima brojač stanja: koliko je na računu svake firme i koliko u kešu. Osvežava se posle svake promene.
+
+**Svaka promena novca bira izvor**
+- **Naplata (prihod):** bira se gde novac ulazi, na račun jedne od firmi ili u keš. Isto važi i za naplatu posla (stavka Keš puni zalihu keša, stavka firme puni račun te firme).
+- **Trošak / plaćanje:** bira se odakle novac izlazi, sa računa firme ili iz keša.
+- **Podizanje novca:** prebacivanje sa računa firme u keš (i obrnuto, polaganje keša na račun). To nije prihod ni trošak, samo prenos između računa, i ne ulazi u paušal limit ni u profit.
+- Uz svaku promenu piše **ko je izvršio** transakciju (Nenad ili Jovan) i kada.
+- Početno stanje računa i keša se unosi jednom (ili kasnije kao korekcija, koja ide u logove).
+
+**Valuta EUR / RSD**
+- Prikaz je podrazumevano u **evrima**. Jednim klikom (prekidač u zaglavlju) se ceo prikaz prebacuje EUR ↔ RSD. Izbor se pamti po nalogu.
+- Kurs je **srednji kurs NBS za taj dan** (preuzima se automatski jednom dnevno; ako za danas još nema kursa, koristi se poslednji objavljeni).
+- Pri unosu prihoda ili troška bira se valuta iznosa (dinari ili evri). Čuva se originalni iznos i valuta, plus kurs tog dana, da se stari iznosi ne menjaju kad se kurs promeni.
+- **Paušal limit i PDV prag se uvek računaju u dinarima** (zakonski su u RSD), bez obzira na izabrani prikaz. Format: `1.234.567 RSD` i `1.234,56 EUR` (ili `€ 1.234,56`, odlučiti u dizajnu).
+
+**Uticaj na model (za implementaciju)**
+- Nova tabela `accounts` (firma ili keš) i `transfers` (podizanje/polaganje).
+- `transactions`: `account_id` (izvor/odredište), `currency` (`RSD`/`EUR`), `amount_original`, `fx_rate`, iznos u RSD za limite; `created_by` se prikazuje uz stavku.
+- `fx_rates` (datum, EUR srednji kurs), puni ga Edge Function iz pg_cron-a.
+- `profiles.currency` za izabrani prikaz.
+- Stanje računa = početno stanje + prihodi − troškovi ± prenosi (view u bazi).
