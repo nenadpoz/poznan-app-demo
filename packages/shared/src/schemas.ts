@@ -132,10 +132,15 @@ const transactionBase = z.object({
   earnedBy: userId.nullable().optional(),
   salaryTo: userId.nullable().optional(),
   pendingClient: z.boolean().optional(),
+  /** Trošak plaćen iz novčanika vlasnika (baza pravi i njegov ulog). */
+  paidBy: userId.nullable().optional(),
+  /** Zajednički id redova jednog plaćanja iz više izvora. */
+  splitId: id.nullable().optional(),
 });
 export const transactionSchema = transactionBase
   .refine(t => !t.salaryTo || t.type === 'trosak', { message: 'Plata je trošak', path: ['salaryTo'] })
-  .refine(t => !t.salaryTo || !t.clientId, { message: 'Plata nema klijenta', path: ['clientId'] });
+  .refine(t => !t.salaryTo || !t.clientId, { message: 'Plata nema klijenta', path: ['clientId'] })
+  .refine(t => !t.paidBy || (t.type === 'trosak' && !t.salaryTo), { message: 'Vlasnik može da plati samo trošak', path: ['paidBy'] });
 export type TransactionInput = z.infer<typeof transactionSchema>;
 
 /** Ulog vlasnika: sopstveni novac na račun firme ili u keš. Nije prihod (ne ulazi u limite ni profit). */

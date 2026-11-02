@@ -45,6 +45,8 @@ export interface Transaction extends Base {
   accountId: string; currency: Currency; amountOriginal: number; fxRate: number; createdBy: string | null;
   /** Isplata plate vlasniku (trošak, kategorija „Plata“). */
   salaryTo: UserId | null;
+  /** Trošak plaćen iz novčanika vlasnika (uz njega postoji ulog) i id plaćanja iz više izvora. */
+  paidBy: UserId | null; splitId: string | null;
   /** Čeka da se doda klijent („Podseti me kasnije“). */
   pendingClient: boolean;
 }
@@ -52,6 +54,8 @@ export interface Transaction extends Base {
 export interface OwnerContribution extends Base {
   owner: UserId; accountId: string; amount: number; currency: Currency; amountOriginal: number; fxRate: number;
   date: string; note: string | null; createdBy: string | null;
+  /** Ulog nastao uz trošak koji je vlasnik platio (menja se kroz taj trošak). */
+  transactionId: string | null;
 }
 export interface Account extends Base { kind: AccountKind; companyId: string | null; name: string; openingBalance: number; openingDate: string | null }
 export interface AccountBalance { accountId: string; kind: AccountKind; companyId: string | null; name: string; openingBalance: number; balance: number; changedAt: string | null }

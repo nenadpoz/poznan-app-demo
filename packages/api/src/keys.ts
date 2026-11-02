@@ -29,7 +29,7 @@ export const RELATED: Record<string, string[]> = {
   jobs: ['jobs', 'job_pending_items', 'transactions', 'account_balances'],
   job_pending_items: ['job_pending_items', 'jobs'],
   // Svaka promena novca osvežava brojač stanja na naslovnoj
-  transactions: ['transactions', 'account_balances'],
+  transactions: ['transactions', 'account_balances', 'owner_contributions'], // trošak vlasnika pravi i ulog
   transfers: ['transfers', 'account_balances'],
   owner_contributions: ['owner_contributions', 'account_balances'],
   accounts: ['accounts', 'account_balances'],

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { jobSchema, latestOwnerMonth, ownerContributionSchema, ownerDiff, ownerStats, ownerTolerance, shiftMonth, splitSalary, transactionSchema } from '../src';
+import { jobSchema, latestOwnerMonth, ownerContributionSchema, ownerDiff, ownerStats, ownerTolerance, shiftMonth, splitSalary, transactionSchema, splitExpense, newUuid } from '../src';
 
 const txs = [
   { type: 'trosak' as const, amount: 100_000, date: '2026-10-05', salaryTo: 'nenad' as const },
@@ -46,4 +46,21 @@ describe('plate i ulozi', () => {
     expect(jobSchema.safeParse({ ...job, startTime: '09:00', endTime: '11:00' }).success).toBe(true);
     expect(jobSchema.safeParse({ ...job, startTime: '11:00', endTime: '09:00' }).success).toBe(false);
   });
+});
+
+describe('trošak iz više izvora', () => {
+  const base = { type: 'trosak' as const, currency: 'EUR' as const, date: '2026-11-02', category: 'Alat' };
+  it('Jovan 400 i Nenad 500: dva reda na izabrani račun, isti split', () => {
+    const rows = splitExpense(base, [{ accountId: null, owner: 'jovan', amount: 400 }, { accountId: null, owner: 'nenad', amount: 500 }, { accountId: 'drill', owner: null, amount: 0 }], 'kes', 'S1');
+    expect(rows).toEqual([
+      { ...base, accountId: 'kes', amountOriginal: 400, paidBy: 'jovan', splitId: 'S1' },
+      { ...base, accountId: 'kes', amountOriginal: 500, paidBy: 'nenad', splitId: 'S1' },
+    ]);
+  });
+  it('jedan izvor nema split; vlasnik traži račun', () => {
+    expect(splitExpense(base, [{ accountId: 'drill', owner: null, amount: 100 }], null, 'S1')[0]).toMatchObject({ accountId: 'drill', paidBy: null, splitId: null });
+    expect(() => splitExpense(base, [{ accountId: null, owner: 'nenad', amount: 100 }], null, 'S1')).toThrow();
+    expect(() => splitExpense(base, [], 'kes', 'S1')).toThrow();
+  });
+  it('uuid v4', () => { expect(newUuid()).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/); });
 });

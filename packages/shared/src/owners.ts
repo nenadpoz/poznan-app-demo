@@ -61,3 +61,37 @@ export function shiftMonth(ym: string, n: number): string {
 export function splitSalary<T extends object>(input: T, to: SalaryTarget): (T & { salaryTo: UserId })[] {
   return (to === 'oba' ? USERS : [to]).map(u => ({ ...input, salaryTo: u }));
 }
+
+/**
+ * Trošak plaćen iz više izvora (račun firme, keš, novčanik vlasnika), npr. Jovan 400 € i Nenad 500 €.
+ * Jedan red troška po izvoru; redovi istog plaćanja dobijaju isti `splitId`. Red koji je platio vlasnik
+ * vodi se na račun `bookAccountId` (keš ili firma) sa `paidBy`, a baza mu sama pravi ulog tog vlasnika.
+ */
+export interface PayLine { accountId: string | null; owner: UserId | null; amount: number }
+export type SplitRow<T> = T & { accountId: string; amountOriginal: number; paidBy: UserId | null; splitId: string | null };
+
+export function splitExpense<T extends object>(base: T, lines: PayLine[], bookAccountId: string | null, splitId: string): SplitRow<T>[] {
+  const used = lines.filter(l => l.amount > 0 && (l.accountId || l.owner));
+  if (!used.length) throw new Error('Izaberi ko je platio i upiši iznos.');
+  if (used.some(l => l.owner) && !bookAccountId) throw new Error('Izaberi na koji račun se vodi trošak koji je platio vlasnik.');
+  return used.map(l => ({
+    ...base,
+    accountId: l.owner ? bookAccountId! : l.accountId!,
+    amountOriginal: Math.round(l.amount * 100) / 100,
+    paidBy: l.owner,
+    splitId: used.length > 1 ? splitId : null,
+  }));
+}
+
+/** Slučajan UUID v4 (za split_id), bez zavisnosti od crypto API-ja telefona. */
+export function newUuid(): string {
+  const h = '0123456789abcdef';
+  let s = '';
+  for (let i = 0; i < 36; i++) {
+    if (i === 8 || i === 13 || i === 18 || i === 23) s += '-';
+    else if (i === 14) s += '4';
+    else if (i === 19) s += h[8 + Math.floor(Math.random() * 4)];
+    else s += h[Math.floor(Math.random() * 16)];
+  }
+  return s;
+}
