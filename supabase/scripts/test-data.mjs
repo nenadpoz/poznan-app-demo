@@ -114,9 +114,35 @@ async function seed() {
 }
 
 async function clear() {
-  // Redosled zbog stranih ključeva: zavisni redovi prvo
-  const order = ['tasks', 'transactions', 'transfers', 'owner_contributions', 'jobs', 'clients'];
   let total = 0;
+  // Briše redove po filteru i njihove stavke u audit logu
+  const delWhere = async (table, filter) => {
+    const rows = (await rest('DELETE', `${table}?${filter}`)) ?? [];
+    if (rows.length) await rest('DELETE', `audit_log?table_name=eq.${table}&row_id=in.(${rows.map(r => r.id).join(',')})`);
+    total += rows.length;
+    return rows;
+  };
+  // Prvo sve što je u aplikaciji nastalo uz probne podatke (naplata posla, komentari, zadaci i promet vezani za probne
+  // poslove i klijente); ti redovi imaju slučajan id, pa se traže po vezi.
+  const jobIds = (await rest('GET', `jobs?select=id&or=(id.in.(${allIds('jobs').join(',')}),client_id.in.(${allIds('clients').join(',')}))`)).map(r => r.id);
+  const taskIds = (await rest('GET', `tasks?select=id&or=(id.in.(${allIds('tasks').join(',')})${jobIds.length ? `,job_id.in.(${jobIds.join(',')})` : ''})`)).map(r => r.id);
+  const targets = [...jobIds, ...taskIds];
+  if (targets.length) {
+    const cmts = (await rest('GET', `comments?select=id&target_id=in.(${targets.join(',')})`)).map(r => r.id);
+    await rest('DELETE', `notifications?or=(target_id.in.(${targets.join(',')})${cmts.length ? `,comment_id.in.(${cmts.join(',')})` : ''})`);
+    await delWhere('comments', `target_id=in.(${targets.join(',')})&parent_id=not.is.null`);
+    await delWhere('comments', `target_id=in.(${targets.join(',')})`);
+  }
+  if (jobIds.length) {
+    for (const t of ['job_pending_items', 'job_reminders', 'job_photos']) await delWhere(t, `job_id=in.(${jobIds.join(',')})`);
+    await delWhere('transactions', `job_id=in.(${jobIds.join(',')})`);
+  }
+  if (taskIds.length) await delWhere('tasks', `id=in.(${taskIds.join(',')})`);
+  await delWhere('transactions', `client_id=in.(${allIds('clients').join(',')})`);
+  if (jobIds.length) await delWhere('jobs', `id=in.(${jobIds.join(',')})`);
+
+  // Zatim probni redovi po id-ju (redosled zbog stranih ključeva: zavisni prvo)
+  const order = ['tasks', 'transactions', 'transfers', 'owner_contributions', 'jobs', 'clients'];
   for (const t of order) {
     const ids = allIds(t);
     const rows = await rest('DELETE', `${t}?id=in.(${ids.join(',')})`);
