@@ -1,7 +1,7 @@
 /** React sloj: ApiProvider + hookovi. Isti kod na webu (Next.js) i mobilnom (Expo). */
 import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { ClientInput, Currency, OwnerContributionInput, PaymentLine, TransactionInput, TransferInput } from '@poznan/shared';
+import type { ClientInput, Currency, JobInput, OwnerContributionInput, PaymentLine, TaskInput, TransactionInput, TransferInput } from '@poznan/shared';
 import type { PoznanApi, TxFilter } from './api';
 import { keys, tablesToRefresh } from './keys';
 import type { Comment, Profile } from './model';
@@ -93,6 +93,16 @@ export const useOwnerContributions = (f: { from?: string; to?: string } = {}) =>
 export function useCreateOwnerContribution() {
   const a = useApi(), refresh = useRefresh();
   return useMutation({ mutationFn: (v: OwnerContributionInput) => a.ownerContributions.create(v), onSuccess: () => refresh('owner_contributions') });
+}
+
+export function useCreateJob() {
+  const a = useApi(), refresh = useRefresh();
+  return useMutation({ mutationFn: (v: JobInput) => a.jobs.create(v), onSuccess: () => refresh('jobs') });
+}
+
+export function useCreateTask() {
+  const a = useApi(), refresh = useRefresh();
+  return useMutation({ mutationFn: (v: TaskInput) => a.tasks.create(v), onSuccess: () => refresh('tasks') });
 }
 
 export function useCreateClient() {
