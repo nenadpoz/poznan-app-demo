@@ -1,0 +1,44 @@
+name: Vrati backup
+
+# Ručno: Actions → Vrati backup → Run workflow, ili
+#   gh workflow run restore.yml -f backup=2026-11-03_0300 -f potvrda=VRATI
+on:
+  workflow_dispatch:
+    inputs:
+      backup:
+        description: 'Naziv backupa sa Drive-a (folder u „Poznan backup“), npr. 2026-11-03_0300'
+        required: true
+      potvrda:
+        description: 'Upiši VRATI. Svi podaci aplikacije se zamenjuju podacima iz backupa.'
+        required: true
+
+concurrency: baza
+
+jobs:
+  restore:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Potvrda
+        if: inputs.potvrda != 'VRATI'
+        run: echo "Potvrda nije VRATI, ništa nije urađeno." && exit 1
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.0.0
+      - name: rclone i psql 17
+        run: |
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y >/dev/null
+          sudo apt-get install -y -qq rclone postgresql-client-17 >/dev/null
+          echo /usr/lib/postgresql/17/bin >> "$GITHUB_PATH"
+      - name: Backup trenutnog stanja (pre vraćanja)
+        run: bash supabase/scripts/backup.sh pre-vracanja
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          RCLONE_DRIVE_TOKEN: ${{ secrets.RCLONE_DRIVE_TOKEN }}
+      - name: Vraćanje
+        run: bash supabase/scripts/restore.sh "$BACKUP"
+        env:
+          BACKUP: ${{ inputs.backup }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          RCLONE_DRIVE_TOKEN: ${{ secrets.RCLONE_DRIVE_TOKEN }}

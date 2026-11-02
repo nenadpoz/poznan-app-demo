@@ -1,0 +1,27 @@
+name: Backup baze
+
+on:
+  schedule:
+    - cron: '0 1 * * *' # svake noći (02:00 ili 03:00 po beogradskom vremenu)
+  workflow_dispatch:
+
+concurrency: baza
+
+jobs:
+  backup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.0.0
+      - name: rclone i psql 17
+        run: |
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y >/dev/null
+          sudo apt-get install -y -qq rclone postgresql-client-17 >/dev/null
+          echo /usr/lib/postgresql/17/bin >> "$GITHUB_PATH"
+      - run: bash supabase/scripts/backup.sh
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          RCLONE_DRIVE_TOKEN: ${{ secrets.RCLONE_DRIVE_TOKEN }}
