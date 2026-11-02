@@ -182,10 +182,11 @@ Zahtev vlasnika od 2. nov 2026. Urađeno u core-u (v0.2.0), mobilnoj aplikaciji 
 - `profiles.currency` za izabrani prikaz.
 - Stanje računa = početno stanje + prihodi − troškovi ± prenosi (view u bazi).
 
-## 16. Plate vlasnika
+## 16. Plate i ulozi vlasnika
 Urađeno u HTML demou; u core i mobile još nije.
-- Trošak može biti označen kao **Isplata plate**. Tada se bira kome: Nenad ili Jovan. Kategorija je uvek „Plata“.
-- Plata je običan trošak: smanjuje stanje računa sa kog je isplaćena (firma ili keš) i ulazi u troškove i profit.
-- Pregled ima karticu **Plate vlasnika** za tekuću godinu (Nenad, Jovan, razlika i ko je dobio više). Klik otvara ekran sa tabelom po mesecima (Nenad, Jovan, razlika), ukupno za godinu i ukupno od početka.
+- **Plata**: trošak označen kao **Isplata plate**, bira se Nenad ili Jovan. Kategorija je uvek „Plata“, bez klijenta. Smanjuje stanje računa sa kog je isplaćena i ulazi u troškove i profit.
+- **Ulog vlasnika**: kod prihoda polje **Ulog vlasnika (sopstveni novac)**, bira se ko je uložio i na koji račun (firma ili keš). Nije prihod: ne ulazi u limite, PDV ni profit, samo povećava stanje računa. U Prometu se vidi pod **Sve** i **Prenosi**, sa oznakom „ulog“.
+- **Neto** po vlasniku = plate − ulozi. **Razlika** poredi neto iznose (ko je neto dobio više).
+- Pregled ima karticu **Vlasnici: plate i ulozi** za tekuću godinu (plata, uložio, neto, razlika). Klik otvara ekran po mesecima, ukupno za godinu i ukupno od početka, sa dugmadima **Isplati platu** i **Dodaj ulog**.
 - Iznosi se prikazuju u izabranoj valuti (EUR/RSD).
-- Za bazu: `transactions.salary_to` (`nenad`/`jovan`, samo za trošak), zbir po mesecu i osobi kao view.
+- Za bazu: `transactions.salary_to`, nova tabela `owner_contributions` (vlasnik, račun, iznos, valuta, kurs, datum, komentar, ko je uneo); stanje računa je uključuje.

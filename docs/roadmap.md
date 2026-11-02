@@ -11,7 +11,7 @@
 - [ ] `@poznan/api`: interfejs repozitorijuma + web adapter (Supabase) + mobile adapter (PowerSync); TanStack Query hookovi.
 - [ ] Edge Functions: `notify-dispatch`, `invoice-pdf`, `voice-parse`, `backup-drive`, `admin-reset-password`; pg_cron poslovi.
 - [ ] Supabase projekti `dev` i `prod`.
-- [ ] Iz demoa u core: ukinuti `appointments` (kalendar prikazuje `jobs`; `jobs` dobija `start_time`/`end_time`), `transactions.salary_to` (plate vlasnika), komentar umesto opisa.
+- [ ] Iz demoa u core: ukinuti `appointments` (kalendar prikazuje `jobs`; `jobs` dobija `start_time`/`end_time`), `transactions.salary_to` i `owner_contributions` (plate i ulozi vlasnika), komentar umesto opisa.
 
 ## Faza 3: Mobile (poseban repo, Android pa iOS)
 - [ ] Expo + Expo Router, tema, prijava.
