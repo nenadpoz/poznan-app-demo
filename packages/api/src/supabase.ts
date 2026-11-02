@@ -69,7 +69,8 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
         const { error } = await sb.auth.signInWithPassword({ email, password });
         if (error) throw new ApiError('Pogrešan email ili lozinka', 'auth');
       },
-      async signOut() { await sb.auth.signOut(); },
+      // Samo ovaj telefon; drugi uređaji istog naloga ostaju prijavljeni
+      async signOut() { await sb.auth.signOut({ scope: 'local' }); },
       async requestPasswordReset(email) {
         const { error } = await sb.auth.resetPasswordForEmail(email.trim());
         if (error) throw new ApiError(error.status === 429 ? 'Previše zahteva. Pokušaj ponovo za par minuta.' : 'Email nije poslat', 'auth');
