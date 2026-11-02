@@ -63,7 +63,7 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
     auth: {
       async session() {
         const { data } = await sb.auth.getSession();
-        return data.session ? { userId: data.session.user.id } : null;
+        return data.session ? { userId: data.session.user.id, email: data.session.user.email ?? null } : null;
       },
       async signIn(email, password) {
         const { error } = await sb.auth.signInWithPassword({ email, password });
@@ -89,7 +89,7 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
         if (error) throw new ApiError(error.message.includes('different') ? 'Nova lozinka mora biti drugačija od stare' : 'Lozinka nije promenjena', 'auth');
       },
       onChange(cb) {
-        const { data } = sb.auth.onAuthStateChange((_e, s) => cb(s ? { userId: s.user.id } : null));
+        const { data } = sb.auth.onAuthStateChange((_e, s) => cb(s ? { userId: s.user.id, email: s.user.email ?? null } : null));
         return () => data.subscription.unsubscribe();
       },
     },

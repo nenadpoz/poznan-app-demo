@@ -24,7 +24,7 @@ export interface Crud<T, I> {
 
 export interface PoznanApi {
   auth: {
-    session(): Promise<{ userId: string } | null>;
+    session(): Promise<{ userId: string; email: string | null } | null>;
     signIn(email: string, password: string): Promise<void>;
     signOut(): Promise<void>;
     /** Šalje email sa kodom za reset lozinke. Ne otkriva da li nalog postoji. */
@@ -34,7 +34,7 @@ export interface PoznanApi {
     /** Promena lozinke prijavljenog korisnika; traži trenutnu lozinku. */
     changePassword(current: string, password: string): Promise<void>;
     /** Javlja prijavu i odjavu (i istek sesije). Vraća funkciju za odjavu slušaoca. */
-    onChange(cb: (session: { userId: string } | null) => void): () => void;
+    onChange(cb: (session: { userId: string; email: string | null } | null) => void): () => void;
   };
   profile: { me(): Promise<Profile>; all(): Promise<Profile[]>; update(patch: Partial<Omit<Profile, 'userId' | 'slug'>>): Promise<void> };
   settings: { get(): Promise<Settings>; update(patch: Partial<Settings>): Promise<void> };
