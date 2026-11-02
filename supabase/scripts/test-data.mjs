@@ -28,8 +28,11 @@ async function rest(method, path, body) {
 // Deterministički id-jevi: 7e570000-0000-4000-8000-<tabela><redni broj>
 const TABLES = { clients: 1, jobs: 2, tasks: 3, transactions: 4, transfers: 5, owner_contributions: 6 };
 const id = (table, n) => `7e570000-0000-4000-8000-${String(TABLES[table]).padStart(4, '0')}${String(n).padStart(8, '0')}`;
-const MAX = 200;
-const allIds = table => Array.from({ length: MAX }, (_, i) => id(table, i + 1));
+// Svi probni id-jevi jedne tabele kao opseg (kratak URL umesto 200 id-jeva)
+const lo = table => id(table, 0), hi = table => id(table, 99999999);
+const range = (table, col = 'id') => `${col}=gte.${lo(table)}&${col}=lte.${hi(table)}`;
+const rangeOr = (table, col = 'id') => `and(${col}.gte.${lo(table)},${col}.lte.${hi(table)})`;
+const auditOf = table => `row_id=like.${lo(table).slice(0, 28)}*`;
 
 const iso = d => d.toISOString().slice(0, 10);
 const today = new Date();
@@ -124,8 +127,8 @@ async function clear() {
   };
   // Prvo sve što je u aplikaciji nastalo uz probne podatke (naplata posla, komentari, zadaci i promet vezani za probne
   // poslove i klijente); ti redovi imaju slučajan id, pa se traže po vezi.
-  const jobIds = (await rest('GET', `jobs?select=id&or=(id.in.(${allIds('jobs').join(',')}),client_id.in.(${allIds('clients').join(',')}))`)).map(r => r.id);
-  const taskIds = (await rest('GET', `tasks?select=id&or=(id.in.(${allIds('tasks').join(',')})${jobIds.length ? `,job_id.in.(${jobIds.join(',')})` : ''})`)).map(r => r.id);
+  const jobIds = (await rest('GET', `jobs?select=id&or=(${rangeOr('jobs')},${rangeOr('clients', 'client_id')})`)).map(r => r.id);
+  const taskIds = (await rest('GET', `tasks?select=id&or=(${rangeOr('tasks')}${jobIds.length ? `,job_id.in.(${jobIds.join(',')})` : ''})`)).map(r => r.id);
   const targets = [...jobIds, ...taskIds];
   if (targets.length) {
     const cmts = (await rest('GET', `comments?select=id&target_id=in.(${targets.join(',')})`)).map(r => r.id);
@@ -138,16 +141,15 @@ async function clear() {
     await delWhere('transactions', `job_id=in.(${jobIds.join(',')})`);
   }
   if (taskIds.length) await delWhere('tasks', `id=in.(${taskIds.join(',')})`);
-  await delWhere('transactions', `client_id=in.(${allIds('clients').join(',')})`);
+  await delWhere('transactions', range('clients', 'client_id'));
   if (jobIds.length) await delWhere('jobs', `id=in.(${jobIds.join(',')})`);
 
   // Zatim probni redovi po id-ju (redosled zbog stranih ključeva: zavisni prvo)
   const order = ['tasks', 'transactions', 'transfers', 'owner_contributions', 'jobs', 'clients'];
   for (const t of order) {
-    const ids = allIds(t);
-    const rows = await rest('DELETE', `${t}?id=in.(${ids.join(',')})`);
+    const rows = await rest('DELETE', `${t}?${range(t)}`);
     total += rows?.length ?? 0;
-    await rest('DELETE', `audit_log?table_name=eq.${t}&row_id=in.(${ids.join(',')})`);
+    await rest('DELETE', `audit_log?table_name=eq.${t}&${auditOf(t)}`);
     console.log(`${t}: obrisano ${rows?.length ?? 0}`);
   }
   for (const a of await rest('GET', 'accounts?select=id,opening_balance,opening_date,created_at&deleted_at=is.null')) {
