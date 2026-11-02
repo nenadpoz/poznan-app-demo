@@ -1,7 +1,14 @@
-# Poznan App
+# Poznan App (core)
 
-Upravljanje firmama, prometom i klijentima za dva vlasnika.
+Upravljanje firmama, prometom, poslovima i klijentima za dva vlasnika.
 
 - **Demo:** otvori `demo/index.html` u Chrome-u.
+- **Paketi:** `packages/shared` (pravila, zod, tema), `packages/api` (API sloj za oba klijenta).
+- **Baza:** `supabase/` (migracije, RLS, audit, RPC).
+- **Aplikacije:** [poznan-app-mobile](https://github.com/nenadpoz/poznan-app-mobile) (Expo), [poznan-app-web](https://github.com/nenadpoz/poznan-app-web) (Next.js).
 - **Dokumentacija:** [docs/](docs/) (domen, arhitektura, roadmap).
-- **Uputstva za Claude Code:** [CLAUDE.md](CLAUDE.md).
+
+```bash
+corepack pnpm@9.12.3 install
+corepack pnpm@9.12.3 -r test
+```

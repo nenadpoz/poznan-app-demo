@@ -1,0 +1,24 @@
+{
+  "name": "@poznan/shared",
+  "version": "0.1.0",
+  "description": "Tipovi, zod šeme, poslovna pravila i tema za Poznan App (mobile i web).",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./theme": "./src/theme.ts"
+  },
+  "files": ["src"],
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "zod": "3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "5.6.3",
+    "vitest": "2.1.4"
+  }
+}

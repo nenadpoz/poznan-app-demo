@@ -1,43 +1,102 @@
 # Arhitektura
 
 ## Pregled
+Tri repozitorijuma:
+
+| Repo | Sadržaj |
+|---|---|
+| **poznan-app-demo** (ovaj, „core“) | `supabase/` (šema, RLS, audit, Edge Functions), `packages/shared` (tipovi, zod, poslovna pravila, tema), `packages/api` (zajednički API sloj), `docs/`, `demo/` |
+| **poznan-app-mobile** | Expo aplikacija (Android, pa iOS), pun offline |
+| **poznan-app-web** | Next.js aplikacija, online |
+
 ```
-apps/mobile (Expo)  ─┐
-                     ├─> packages/api ──> Supabase (Postgres + Auth + Storage + Edge Functions)
-apps/web (Next.js)  ─┘        │
-                       packages/shared (tipovi, zod, poslovna pravila, tema)
+mobile (Expo) ── @poznan/api (mobile adapter) ── PowerSync SQLite (offline) ─┐
+                                                                             ├─ Supabase
+web (Next.js) ── @poznan/api (web adapter) ───── Supabase JS + Realtime ─────┘   (Postgres, Auth, Storage,
+                         │                                                        Edge Functions, pg_cron, Realtime)
+                  @poznan/shared (tipovi, zod, pravila, tema)
 ```
-- **Isti API za web i mobile.** `packages/api` izlaže tipizovane funkcije (`clients.list`, `transactions.create`...) i TanStack Query hookove. Obe aplikacije koriste samo njih.
-- Backend je jedan: Supabase. Poslovna pravila koja moraju biti tačna (audit, pristup) žive u bazi.
+
+- Ekrani nikad ne zovu Supabase direktno. `@poznan/api` izlaže iste funkcije i hookove (`useJobs()`, `jobs.finish()`…) sa dve implementacije: mobile čita/piše lokalni SQLite, web radi direktno sa Supabase-om.
+- Supabase je jedini izvor istine. Audit, pristup i obaveštenja rade u bazi (triggeri, RLS), ne u aplikaciji.
+- Mobile i web koriste `@poznan/shared` i `@poznan/api` iz ovog repoa kao git zavisnost (`github:nenadpoz/poznan-app-demo#<tag>&path:packages/shared`). Kasnije, ako zatreba, objavljuju se na GitHub Packages. Svaka promena paketa dobija tag (`shared-v0.x`), a aplikacije podižu verziju svesno.
 
 ## Tehnologije
 | Sloj | Izbor |
 |---|---|
-| Mobile | Expo + React Native + TypeScript, Expo Router, TanStack Query |
-| Web | Next.js App Router, isti `packages/api` |
-| Monorepo | pnpm workspaces + Turborepo |
-| Baza / Auth / Slike | Supabase Postgres, Supabase Auth (email + lozinka, 2 naloga: pozivnica za prvo postavljanje lozinke, reset preko email linka, admin reset preko Edge Function sa service ključem), Supabase Storage |
-| Validacija | zod, šeme dele web i mobile |
+| Jezik | TypeScript strict svuda |
+| Paketi u core repou | pnpm workspaces, Vitest za testove |
+| Mobile | Expo SDK + React Native, Expo Router, EAS Build + EAS Update |
+| Offline sync (mobile) | PowerSync (SQLite na telefonu, sync rules, red izmena) |
+| Web | Next.js App Router, `@supabase/ssr`, TanStack Query, Supabase Realtime, hosting na Vercel-u |
+| Backend | Supabase (EU, Frankfurt): Postgres, Auth (email + lozinka, bez registracije), Storage, Edge Functions, pg_cron, Realtime |
+| Validacija | zod šeme u `@poznan/shared`, iste za forme, API i Edge Functions |
+| Push | `expo-notifications` + Expo Push API |
+| Email | Resend iz Edge Function-a |
+| Glas | `expo-speech-recognition` (sr-RS) + Edge Function `voice-parse` (Claude Haiku, tool use) |
+| Testovi | Vitest (shared, api), pgTAP (RLS, triggeri), Playwright (web), Maestro (mobile) |
 
-## Audit log
-- Postgres trigger `audit_row_change()` na svim tabelama upisuje u `audit_log`: `user_id` (iz `auth.uid()`), tabela, akcija, `old` i `new` JSONB, vreme.
-- Aplikacija ne može da zaobiđe log. Tabela `audit_log` je samo za čitanje iz klijenta.
+## Model podataka (`supabase/migrations`)
+Sve tabele: `id uuid`, `created_at`, `updated_at`, `updated_by`, i `deleted_at` (meko brisanje, zbog offline sinhronizacije). Iznosi su `numeric(14,2)` u RSD.
 
-## Pristup
-- RLS: pristup imaju samo korisnici iz tabele `admins` (dva naloga). Registracija je isključena.
+| Tabela | Ključna polja |
+|---|---|
+| `admins` | `user_id` |
+| `profiles` | `user_id`, `slug` (`nenad`/`jovan`), `name`, `theme`, `bar_colors jsonb`, `notif jsonb` (kanali, email, vremena, vrste) |
+| `settings` | jedan red: `pausal_limit`, `pdv_threshold`, `warn_pct`, `crit_pct`, `backup_every_days` |
+| `companies` | `name, form, phase, address, pib, mb, activity, founded, monthly_fee, notes, icon, logo_path` |
+| `company_history` | `company_id, kind` (`phase`/`form`/`edit`), `from_value, to_value, changes jsonb, effective_date, note` |
+| `clients` | `kind` (`fizicko`/`pravno`), `name, pib, mb, city, address, phone, email, note` |
+| `labels` | kategorije: `name` (jedinstven), `color` 0–5 |
+| `jobs` (poslovi) | `client_id, label_id, assignee`, `start_date, start_time, status` (`cekanje`/`proces`/`uplata`/`zavrseno`), `end_date, description, work_address, work_city` |
+| `job_pending_items` | očekivane stavke: `job_id, company_id` (null = keš), `amount, description, invoice_no` |
+| `job_reminders` | `job_id, remind_at, audience` (`me`/`both`), `created_by, note, fired_at` |
+| `job_photos` | `job_id, storage_path` |
+| `appointments` (termini) | `date, start_time, end_time, client_id, job_id, label_id, company_id, title, assignee, status, notes` |
+| `tasks` | `title, assignee, due, status, done_at, done_by, job_id, notes` (bez klijenta) |
+| `comments` | `target_type` (`task`/`job`/`company`), `target_id, parent_id, user_id, text` |
+| `transactions` | `type, amount, date, company_id, client_id, category, vat, description, job_id, invoice_no`; način naplate se računa (bez firme = keš) |
+| `invoice_counters` | `company_id, year, last_no` (brojevi faktura bez preskakanja) |
+| `notifications` | `to_user, from_user, type` (`comment`/`reply`/`reminder`/`job_start`/`task_due`/`limit`), `target_type, target_id, comment_id, text, read_at, push_state, email_state, send_after` |
+| `push_tokens` | `user_id, token, platform` |
+| `start_prompts` | `user_id, job_id, start_key` (pitanje „počeo posao“ jednom po korisniku) |
+| `audit_log` | samo čitanje: `user_id, table_name, action, old jsonb, new jsonb, at, client_at` |
+| `backups` | `ts, size, by` |
 
-## Glasovne komande
-1. **Govor u tekst**: on-device prepoznavanje na Androidu (`expo-speech-recognition`, jezik `sr-RS`). Besplatno, radi i bez slanja zvuka na server.
-2. **Tekst u strukturu**: Supabase Edge Function `voice-parse` šalje tekst Claude API-ju (Haiku) sa tool definicijama `create_client`, `create_transaction`, `update_client`... Model vraća strukturisan predlog.
-3. **Potvrda**: aplikacija otvara popunjenu formu. Ništa se ne čuva bez potvrde.
+Pravila koja čuva baza:
+- Firma sa prometom ne može da se obriše (trigger).
+- Posao može u `zavrseno` samo uz upis prihoda ili eksplicitno „bez naplate“ (RPC `finish_job`), a u `uplata` uz očekivane stavke (RPC `set_job_awaiting_payment`). Oba su transakcija u bazi.
+- „Uplaćeno, posao završen“ (`mark_job_paid`) pretvara očekivane stavke u prihode sa istim brojevima faktura.
+- Broj fakture se dodeljuje u bazi (`assign_invoice_no` → `next_invoice_no(company_id, year)`), da dva telefona offline ne dobiju isti broj; offline faktura čeka mrežu.
+- Promena faze ide kroz `change_company_phase` (datum i komentar koje korisnik zada); promena oblika upisuje istoriju triggerom.
+- `jobs.status` u `uplata`/`zavrseno` može samo kroz RPC (trigger odbija direktan upis).
+- Komentar automatski pravi obaveštenje drugom vlasniku (trigger); podsetnike za uplatu ispaljuje `fire_due_reminders()` iz pg_cron-a.
 
-Zašto ne lokalni model kao prvi izbor: mali modeli na telefonu (Gemma preko MediaPipe ili llama.rn) rade offline, ali slabije razumeju srpski padež i adrese, a aplikacija postaje teža za stotine MB. Za dva korisnika cloud parsiranje košta zanemarljivo. Lokalni model ostaje opcija iza istog interfejsa `parseVoiceCommand(text)`.
+## Pristup i audit
+- RLS na svim tabelama: pristup samo za `auth.uid()` iz `admins`. Nalozi se prave pozivnicom.
+- `profiles`, `notifications`, `push_tokens`, `start_prompts`: svako vidi i menja samo svoje.
+- Komentar briše samo autor (RLS).
+- Trigger `audit_row_change()` na svim tabelama upisuje staro i novo stanje, korisnika i `client_at` (kad je izmena nastala na telefonu).
 
-## Backup
-- `pg_cron` pokreće Edge Function `backup-drive` svakih N dana.
-- Funkcija pravi JSON export svih tabela i kopira slike iz Storage-a, pa ih šalje na Google Drive (OAuth nalog vlasnika, folder „Poznan / Backup“). Čuva poslednjih 10 backup-a.
-- Rezultat se upisuje u `backups` i u audit log.
+## Offline (mobile)
+- PowerSync sync rules: oba admina dobijaju sve deljene tabele + samo svoje lične redove. Slike po potrebi (attachments queue).
+- Pisanje ide u lokalni SQLite odmah, pa u red; connector šalje na Supabase kad ima mreže, kroz iste RLS i zod provere.
+- Sukobi: poslednja izmena reda pobeđuje; audit čuva obe verzije.
+- Ne radi offline: glasovno parsiranje, slanje push/email-a, dodela broja fakture (forma ostaje dostupna). Slike se snimaju offline i šalju kasnije.
+- Prva prijava mora online; posle toga sesija važi offline.
+
+## Obaveštenja (jedan tok za zvonce, push i email)
+1. **Nastanak**: trigger na `comments` (komentar, odgovor) upisuje red u `notifications` za drugog korisnika. pg_cron svakog minuta pravi obaveštenja za: podsetnike za uplatu, početak posla, rok zadatka danas, prelazak firme preko 80%/95% limita.
+2. **Zvonce**: `notifications` je izvor liste i brojača (web preko Realtime-a, mobile preko PowerSync-a).
+3. **Slanje**: Edge Function `notify-dispatch` (pg_cron svakog minuta) šalje push i email po ličnim podešavanjima: kanal i vrsta uključeni, unutar vremena od–do, inače `send_after` = početak prozora.
+4. Dodir na push otvara isti ekran kao klik u zvoncu.
+
+## Edge Functions
+`voice-parse`, `notify-dispatch`, `invoice-pdf` (PDF fakture iz podataka u bazi), `backup-drive` (pg_cron, JSON + slike na Google Drive, poslednjih 10), `admin-reset-password`.
 
 ## Tema
-- Tokeni boja za svetlu i tamnu temu u `packages/shared/theme`. Mobile ih koristi preko konteksta, web preko CSS promenljivih.
-- Izbor teme je po korisniku i čuva se u profilu.
+- Tokeni boja za svetlu i tamnu temu u `@poznan/shared/theme` (isti nazivi kao u demou: `bg, surface, fg, muted, accent, good, warn, bad, info, lc0–lc5`…). Mobile ih koristi preko konteksta, web preko CSS promenljivih.
+
+## Okruženja
+- Dva Supabase projekta (`dev`, `prod`), migracije preko Supabase CLI-ja, tipovi se generišu iz baze u `@poznan/shared`.
+- Web: Vercel preview za svaku granu. Mobile: EAS kanali `development`, `preview`, `production`.

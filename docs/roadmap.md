@@ -1,19 +1,29 @@
 # Roadmap
 
-## Faza 1: Klikabilan demo (u toku)
-- [x] `demo/index.html`: svi ekrani, kalendar poslova (mesec, nedelja, dan), zadaci sa zaduženjima, lozinke, primer podataka, logovi, glasovni unos (simulacija parsiranja), light/dark tema.
-- [ ] Feedback od oba vlasnika, izmene toka i polja.
+## Faza 1: Klikabilan demo ✅
+- [x] `demo/index.html` sa svim tokovima (vidi `docs/domain.md`), objavljen kao deljeni link.
 
-## Faza 2: Mobilna aplikacija (Android)
-- [ ] Monorepo: pnpm + Turborepo, `packages/shared`, `packages/api`.
-- [ ] Supabase: šema, RLS, audit trigger, Storage za slike.
-- [ ] Expo app: login, kalendar, zadaci, firme, klijenti, promet, dashboard, logovi, podešavanja, tema.
-- [ ] Glasovne komande: `expo-speech-recognition` + Edge Function `voice-parse`.
-- [ ] Push notifikacije (`expo-notifications` + Edge Function na pg_cron): kad dođe datum i vreme početka posla koji je Na čekanju, stiže obaveštenje „Da li da prebacim [klijent] · [vrsta posla] u U procesu?“. Dodir otvara isto pitanje u aplikaciji. U demou se pitanje pojavljuje samo dok je aplikacija otvorena.
-- [ ] Email obaveštenja (Edge Function + email servis): ista obaveštenja kao push, na adresu koju svaki korisnik upiše u Podešavanja → Obaveštenja. Slanje poštuje lična podešavanja (kanali i vrste obaveštenja).
-- [ ] Backup na Google Drive (pg_cron + Edge Function).
-- [ ] Interni build (EAS) za oba telefona.
+## Faza 2: Core (ovaj repo)
+- [x] Dokumentacija domena i arhitekture.
+- [ ] Workspace: pnpm, TypeScript strict, Vitest.
+- [ ] `@poznan/shared`: tipovi, zod šeme, poslovna pravila (limiti, PDV, statusi posla, naplata, faktura, obaveštenja, period zarade), tema; testovi.
+- [ ] `supabase/`: šema, RLS, audit trigger, RPC (`finish_job`, `set_job_awaiting_payment`, `next_invoice_no`), seed iz demoa; pgTAP testovi.
+- [ ] `@poznan/api`: interfejs repozitorijuma + web adapter (Supabase) + mobile adapter (PowerSync); TanStack Query hookovi.
+- [ ] Edge Functions: `notify-dispatch`, `invoice-pdf`, `voice-parse`, `backup-drive`, `admin-reset-password`; pg_cron poslovi.
+- [ ] Supabase projekti `dev` i `prod`.
 
-## Faza 3: iOS i web
-- [ ] iOS build iz iste Expo baze.
-- [ ] Next.js web app na istom `packages/api`.
+## Faza 3: Mobile (poseban repo, Android pa iOS)
+- [ ] Expo + Expo Router, tema, prijava.
+- [ ] PowerSync (pun offline).
+- [ ] Ekrani: Pregled, Promet, Poslovi (lista, kalendar, kartica, naplata, faktura, podsetnici), Zadaci, Klijenti, Firme, Podešavanja, Logovi.
+- [ ] Push notifikacije (`expo-notifications`): komentari, odgovori, podsetnici, početak posla, rokovi, limit.
+- [ ] Glasovne komande.
+- [ ] EAS interni build za oba telefona, zatim iOS.
+
+## Faza 4: Web (poseban repo)
+- [ ] Next.js App Router na `@poznan/api` (web adapter), isti ekrani, raspored za veliki ekran.
+- [ ] Vercel, preview po grani.
+
+## Kasnije
+- [ ] Slanje faktura na SEF.
+- [ ] Backup na Google Drive.

@@ -4,9 +4,10 @@ Interna aplikacija za dva vlasnika (Nenad i Jovan) za upravljanje sa više firmi
 Oba korisnika su admini sa istim pravima. Svaka izmena se beleži u logove (ko, šta, kada, stara i nova vrednost).
 
 ## Faze
-1. **Demo** (`demo/index.html`): klikabilan HTML prototip, bez build alata. Trenutna faza.
-2. **Mobile** (`apps/mobile`): Expo (React Native) + TypeScript, prvo Android, zatim iOS.
-3. **Web** (`apps/web`): Next.js App Router.
+1. **Demo** (`demo/index.html`): klikabilan HTML prototip, bez build alata. Završeno.
+2. **Core** (ovaj repo): `packages/shared`, `packages/api`, `supabase/`. Trenutna faza.
+3. **Mobile** ([poznan-app-mobile](https://github.com/nenadpoz/poznan-app-mobile)): Expo (React Native) + TypeScript, pun offline, prvo Android, zatim iOS.
+4. **Web** ([poznan-app-web](https://github.com/nenadpoz/poznan-app-web)): Next.js App Router.
 
 Detalji: [docs/roadmap.md](docs/roadmap.md), [docs/domain.md](docs/domain.md), [docs/architecture.md](docs/architecture.md).
 
@@ -20,17 +21,17 @@ Detalji: [docs/roadmap.md](docs/roadmap.md), [docs/domain.md](docs/domain.md), [
 - Glasovna komanda nikada ne čuva direktno. Uvek otvara popunjenu formu za potvrdu.
 - Tema: svetla, tamna i sistemska. Boje samo preko tokena (`packages/shared/theme`), bez literalnih boja u komponentama.
 
-## Monorepo
+## Repo (core)
 ```
 demo/             HTML demo (faza 1)
-apps/mobile/      Expo
-apps/web/         Next.js
-packages/api/     zajednički API sloj (Supabase klijent + TanStack Query hookovi)
-packages/shared/  tipovi, zod, poslovna pravila, tema
-supabase/         migracije, RLS, edge functions
+packages/shared/  @poznan/shared: tipovi, zod, poslovna pravila, tema (+ testovi)
+packages/api/     @poznan/api: interfejs, Supabase adapter, TanStack Query hookovi
+supabase/         migracije, RLS, audit trigger, RPC, seed
 docs/
 ```
-Planirano: pnpm workspaces + Turborepo, TypeScript strict.
+Mobile i web su posebni repoi i koriste pakete kao git zavisnost (vidi docs/architecture.md).
+pnpm workspaces, TypeScript strict. pnpm nije globalno instaliran: `corepack pnpm@9.12.3 install`, `corepack pnpm@9.12.3 -r test`, `corepack pnpm@9.12.3 -r typecheck`.
+Izmene šeme idu kao nova migracija u `supabase/migrations`, nikad izmenom postojeće posle objave.
 
 ## Demo
 Otvori `demo/index.html` u Chrome-u. Stanje se čuva u `localStorage` (ključ `poznan-demo-v7`). Za povratak primera obriši taj ključ u alatima pregledača. Demo prikazuje samo tokove ekrana, pa Podešavanja imaju samo Firme, Logove, Kategorije poslova, Boje traka limita i Obaveštenja (oba lično po nalogu). Tema, lozinka, limiti i backup su opisani u docs/domain.md, ali se u demou ne prikazuju.
