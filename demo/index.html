@@ -1403,7 +1403,7 @@ function txForm(t={},voice=false){
   <p class="small muted fx-hint" style="margin:0"></p>
   <label class="fld"><span>Datum</span><input id="t-date" type="date" name="date" required value="${t.date||TODAY_ISO}"></label>
   <fieldset class="fld"><legend id="t-acc-legend">Uplata na</legend><div class="co-opts" role="radiogroup" aria-label="Račun">
-    <label class="co-opt"><input type="radio" name="companyId" value="" ${!t.companyId?'checked':''}>${coIcon(null)}<b>Keš</b><small class="sub-in">zaliha keša</small>${balLeft('kes','na zalihi')}</label>
+    <label class="co-opt"><input type="radio" name="companyId" value="" ${!t.companyId?'checked':''}>${coIcon(null)}<b>Keš</b>${balLeft('kes','na zalihi','')}</label>
     ${S.companies.filter(c=>c.phase!=='zatvorena'||c.id===t.companyId).map(c=>`<label class="co-opt"><input type="radio" name="companyId" value="${c.id}" ${t.companyId===c.id?'checked':''}>${coIcon(c)}<b>${esc(c.name)}</b>${limitLeft(c)}${balLeft(c.id,'na računu')}</label>`).join('')}</div></fieldset>
   <label class="fld" id="vatWrap"><span>PDV stopa (iznos je bez PDV-a)</span><select id="t-vat" name="vat">${[20,10,0].map(v=>`<option value="${v}" ${(t.vat??20)===v?'selected':''}>${v?v+'%':'Bez PDV-a'}</option>`).join('')}</select></label>
   <label class="fld" id="catWrap"><span>Kategorija</span><select id="t-cat" name="category" data-init="${esc(t.category||'')}"></select></label>
@@ -1659,8 +1659,8 @@ function taskRow(t,reopen=''){
     <button class="task-main" data-act="editTask" data-id="${t.id}"><b>${esc(t.title)}</b><small>${t.done?'':stPill(taskStatus(t),'sm')}${t.due?`<span class="${late?'late':''}">${late?'Kasni · ':''}${shortDay(t.due)}</span>`:'<span>Bez roka</span>'}${j?`<span>· ${esc(jobLabel(j))}</span>`:''}${(t.comments||[]).length?`<span class="cmt-cnt" title="Komentari">${ic('chat',14)}${t.comments.length}</span>`:''}</small></button>${avs(t.assignee)}</div>`;
 }
 // Koliko je ostalo do paušal limita ove godine (uvek u RSD), za izbor firme u unosu prometa
-// Kod troška: koliko je ostalo na računu ili u kešu (u izabranoj valuti prikaza)
-const balLeft=(id,label)=>{const b=balanceOf(id);return `<small class="sub-out${b<0?' neg':''}">${label}<br><b>${rsd(b)}</b></small>`;};
+// Koliko je ostalo na računu (kod troška) ili u kešu (uvek) (u izabranoj valuti prikaza)
+const balLeft=(id,label,cls='sub-out')=>{const b=balanceOf(id);return `<small class="${cls}${b<0?' neg':''}">${label}<br><b>${rsd(b)}</b></small>`;};
 function limitLeft(c){const max=S.settings.pausalLimit,used=incomeYTD(c.id),left=max-used,pct=max>0?used/max*100:0,lv=lvlOf(pct);
   return `<small class="sub-in ${lv==='good'?'':lv==='warn'?'lim-w':'neg'}">do limita<br><b>${left>=0?rsdFix(left):'−'+rsdFix(-left)}</b></small>`;}
 function limitBars(){
