@@ -595,7 +595,7 @@ const CO_ICON_NAME=Object.fromEntries(CO_ICONS);
 const coIcon=c=>c?(c.logo?`<span class="co-ic logo"><img src="${c.logo}" alt=""></span>`:`<span class="co-ic">${ic(c.icon||'building',22)}</span>`):`<span class="co-ic kes">${ic('cash',22)}</span>`;
 const CHECK=[['apr','Registracija u APR-u'],['pib','Dobijen PIB i matični broj'],['racun','Otvoren poslovni račun'],['knjig','Ugovor sa knjigovođom'],['sef','Nalog na SEF-u (e-fakture)']];
 const CAT_IN=['Usluga','Prodaja robe','Održavanje','Ostalo'];
-const CAT_OUT=['Plata','Materijal','Gorivo','Knjigovođa','Porez i doprinosi','Oprema','Zakup','Alat','Ostalo'];
+const CAT_OUT=['Materijal','Gorivo','Knjigovođa','Porez i doprinosi','Oprema','Zakup','Alat','Ostalo'];
 const CLIENT_LABELS={k1:'l3',k2:'l3',k3:'l6',k4:'l3',k5:'l4',k6:'l6',k7:'l5',k8:'l2'};
 const CLIENT_PLAN={k1:[-9,0],k2:[0,0],k3:[-120,0],k4:[9,0],k5:[-40,1,-25],k6:[3,0],k7:[-60,1,-35],k8:[-3,0]};
 const ST=[['cekanje','Na čekanju'],['proces','U procesu'],['zavrseno','Završeno']];
@@ -806,19 +806,22 @@ function balanceCard(){const a=accounts(),tot=a.reduce((s,x)=>s+balanceOf(x.id),
   <div class="kv bal-tot"><span>Ukupno</span><b>${rsd(tot)}</b></div>${lastMove()}</section>`;}
 function transferRow(x){return `<button class="row" data-act="delTransfer" data-id="${x.id}"><div class="row-main"><b>${esc(acctName(x.from))} → ${esc(acctName(x.to))}</b><small>${fmtDate(x.date)} <span class="tag">prenos</span> · ${esc(userName(x.by))}${x.note?' · '+esc(x.note):''}</small></div>
   <div class="row-amt tr">${amt(x.amount)}${x.currency!==dispCur()?`<small>uneto ${curAmt(x.amountOriginal,x.currency)}</small>`:'<small>prenos</small>'}</div></button>`;}
-const acctItem=a=>`${coIcon(a.c)}<span class="apick-t"><b>${esc(a.name)}</b><small>${rsd(balanceOf(a.id))}</small></span>`;
+// Stanje se prikazuje u valuti izabranoj u formi prenosa (pickCur).
+let pickCur='EUR';
+const curFmt=(n,c)=>c==='EUR'?eur2(n/fxRate())+' EUR':rsdFix(n);
+const acctItem=a=>`${coIcon(a.c)}<span class="apick-t"><b>${esc(a.name)}</b><small>${curFmt(balanceOf(a.id),pickCur)}</small></span>`;
 function acctPick(name,label,sel,exclude){const list=accounts().filter(a=>a.id!==exclude),cur=list.find(a=>a.id===sel)||list[0];
   return `<div class="fld"><span id="ap-${name}">${label}</span><div class="apick" data-name="${name}"><input type="hidden" name="${name}" value="${cur.id}">
   <button type="button" class="apick-btn" data-act="apickToggle" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="ap-${name}">${acctItem(cur)}${ic('down',18)}</button>
   <div class="apick-list" role="listbox" aria-labelledby="ap-${name}" hidden>${list.map(a=>`<button type="button" role="option" class="apick-opt" data-act="apickSet" data-v="${a.id}" aria-selected="${a.id===cur.id}">${acctItem(a)}${a.id===cur.id?ic('check',18):''}</button>`).join('')}</div></div></div>`;}
 // "Na račun" nikad ne nudi račun sa kog se podiže.
-function trPicks(from,to){const ok=accounts().filter(a=>a.id!==from);if(!ok.some(a=>a.id===to))to=(ok.find(a=>a.id==='kes')||ok[0])?.id;return acctPick('from','Sa računa',from)+acctPick('to','Na račun',to,from);}
+function trPicks(from,to,cur){pickCur=cur||dispCur();const ok=accounts().filter(a=>a.id!==from);if(!ok.some(a=>a.id===to))to=(ok.find(a=>a.id==='kes')||ok[0])?.id;return acctPick('from','Sa računa',from)+acctPick('to','Na račun',to,from);}
 function curSeg(sel){return `<div class="seg cur-seg" role="radiogroup" aria-label="Valuta">${['EUR','RSD'].map(c=>`<label><input type="radio" name="currency" value="${c}" ${sel===c?'checked':''}>${c}</label>`).join('')}</div>`;}
 function fxHint(f){const h=f.querySelector('.fx-hint');if(!h)return;const c=f.elements.currency.value,v=parseNum(f.elements.amount.value);
   h.textContent=c==='EUR'?(v>0?`≈ ${rsdFix(v*fxRate())} · srednji kurs NBS ${rateTxt()}`:`Srednji kurs NBS: ${rateTxt()}`):(v>0?`≈ ${eur2(v/fxRate())} EUR`:'');}
 function transferForm(){const f0=S.companies.find(c=>c.phase!=='zatvorena')?.id||'kes';
   openSheet('Podigni ili položi keš',`<form class="form" data-form="transfer" id="trForm"><p class="small muted" style="margin:0">Prenos između računa nije prihod ni trošak: ne ulazi u limite ni u profit.</p>
-  <div id="trPicks" class="form" style="gap:14px">${trPicks(f0,'kes')}</div>
+  <div id="trPicks" class="form" style="gap:14px">${trPicks(f0,'kes',dispCur())}</div>
   <div class="grid2 amt-row"><label class="fld"><span>Iznos</span><input name="amount" inputmode="decimal" placeholder="0" required></label><div class="fld"><span>Valuta</span>${curSeg(dispCur())}</div></div>
   <p class="small muted fx-hint" style="margin:0"></p>
   <label class="fld"><span>Datum</span><input type="date" name="date" value="${TODAY_ISO}" required></label>
@@ -1393,6 +1396,8 @@ function txForm(t={},voice=false){
   const type=t.type||'prihod';
   openSheet(t.id?'Izmeni unos':'Novi unos',`<form class="form" id="txForm" data-form="tx" data-id="${t.id||''}">${voice?voiceNote():''}
   <div class="seg" role="radiogroup" aria-label="Tip"><label><input type="radio" name="type" value="prihod" ${type==='prihod'?'checked':''}>Prihod</label><label><input type="radio" name="type" value="trosak" ${type==='trosak'?'checked':''}>Trošak</label></div>
+  <div class="fld" id="salWrap"><label class="check-row"><input type="checkbox" name="salary" ${t.salaryTo?'checked':''}>Isplata plate</label>
+  <div class="seg sal-who" id="salWho" role="radiogroup" aria-label="Kome je isplaćena plata" ${t.salaryTo?'':'hidden'}>${['nenad','jovan'].map(u=>`<label><input type="radio" name="salaryTo" value="${u}" ${(t.salaryTo||S.session)===u?'checked':''}>${esc(userName(u))}</label>`).join('')}</div></div>
   <div class="grid2 amt-row"><label class="fld"><span>Iznos</span><input id="t-amount" name="amount" inputmode="decimal" required value="${t.amount?(t.currency==='EUR'?eur2(t.amountOriginal):money(t.amount)):''}" placeholder="0"></label>
   <div class="fld"><span>Valuta</span>${curSeg(t.currency||(t.id?'RSD':dispCur()))}</div></div>
   <p class="small muted fx-hint" style="margin:0"></p>
@@ -1400,15 +1405,13 @@ function txForm(t={},voice=false){
   <fieldset class="fld"><legend id="t-acc-legend">Uplata na</legend><div class="co-opts" role="radiogroup" aria-label="Račun">
     <label class="co-opt"><input type="radio" name="companyId" value="" ${!t.companyId?'checked':''}>${coIcon(null)}<b>Keš</b><small>zaliha keša</small></label>
     ${S.companies.filter(c=>c.phase!=='zatvorena'||c.id===t.companyId).map(c=>`<label class="co-opt"><input type="radio" name="companyId" value="${c.id}" ${t.companyId===c.id?'checked':''}>${coIcon(c)}<b>${esc(c.name)}</b><small>${FORMS[c.form]}</small></label>`).join('')}</div></fieldset>
-  <div class="fld" id="salWrap"><label class="check-row"><input type="checkbox" name="salary" ${t.salaryTo?'checked':''}>Isplata plate</label>
-  <div class="seg sal-who" id="salWho" role="radiogroup" aria-label="Kome je isplaćena plata" ${t.salaryTo?'':'hidden'}>${['nenad','jovan'].map(u=>`<label><input type="radio" name="salaryTo" value="${u}" ${(t.salaryTo||S.session)===u?'checked':''}>${esc(userName(u))}</label>`).join('')}</div></div>
   <label class="fld" id="vatWrap"><span>PDV stopa (iznos je bez PDV-a)</span><select id="t-vat" name="vat">${[20,10,0].map(v=>`<option value="${v}" ${(t.vat??20)===v?'selected':''}>${v?v+'%':'Bez PDV-a'}</option>`).join('')}</select></label>
-  <div class="grid2"><label class="fld"><span>Kategorija</span><select id="t-cat" name="category" data-init="${esc(t.category||'')}"></select></label>
-  <label class="fld"><span>Klijent</span><select id="t-client" name="clientId"><option value="">Bez klijenta</option>${[...S.clients].sort((a,b)=>a.name.localeCompare(b.name,'sr')).map(k=>`<option value="${k.id}" ${t.clientId===k.id?'selected':''}>${esc(k.name)}</option>`).join('')}</select></label></div>
+  <label class="fld" id="catWrap"><span>Kategorija</span><select id="t-cat" name="category" data-init="${esc(t.category||'')}"></select></label>
+  <div class="fld" id="clientWrap"><span>Klijent</span>${combo('clientId',clientItems(),t.clientId,'Pretraži po imenu, mestu ili telefonu')}<small>Nije obavezno.</small></div>
   <label class="fld"><span>Opis</span><input id="t-desc" name="description" value="${esc(t.description)}"></label>
   ${t.invoiceNo?`<p class="small muted" style="margin:0">Faktura: ${esc(t.invoiceNo)}</p>`:''}
   <div class="form-actions">${t.id?`<button type="button" class="btn danger" data-act="delTx" data-id="${t.id}">Obriši</button>`:`<button type="button" class="btn" data-act="closeSheet">Otkaži</button>`}<button class="btn primary" type="submit">Sačuvaj</button></div></form>`);
-  ui.salWas=!!t.salaryTo;updTxForm(true);
+  updTxForm(true);
 }
 function updTxForm(init){
   const f=$('#txForm');if(!f)return;const el=f.elements;
@@ -1418,9 +1421,8 @@ function updTxForm(init){
   const c=company(el.namedItem('companyId').value);
   $('#vatWrap').hidden=!(c&&c.form==='pdv');
   $('#t-acc-legend').textContent=type==='prihod'?'Uplata na':'Plaćeno sa';
-  // isplata plate postoji samo kod troška; kategorija je tada uvek „Plata“
-  const sal=type==='trosak'&&el.namedItem('salary').checked;$('#salWrap').hidden=type!=='trosak';$('#salWho').hidden=!sal;
-  if(sal)sel.value='Plata';else if(!init&&sel.value==='Plata'&&ui.salWas)sel.value=CAT_OUT[1];ui.salWas=sal;sel.disabled=sal;
+  // isplata plate postoji samo kod troška; tada nema kategorije ni klijenta
+  const sal=type==='trosak'&&el.namedItem('salary').checked;$('#salWrap').hidden=type!=='trosak';$('#salWho').hidden=!sal;$('#catWrap').hidden=sal;$('#clientWrap').hidden=sal;
   fxHint(f);
 }
 function voiceSheet(){
@@ -1500,7 +1502,7 @@ function readImage(file,max=900,type='image/jpeg'){return new Promise((res,rej)=
 const A={
   curToggle:()=>{const p=S.prefs[S.session]=S.prefs[S.session]||{};p.currency=dispCur()==='EUR'?'RSD':'EUR';save();render();toast(`Iznosi su prikazani u ${p.currency==='EUR'?'evrima':'dinarima'}.`);},
   apickToggle:el=>{const l=el.nextElementSibling,open=l.hidden;closePicks();l.hidden=!open;el.setAttribute('aria-expanded',String(open));},
-  apickSet:el=>{const f=el.closest('form'),w=el.closest('.apick');let from=f.elements.from.value,to=f.elements.to.value;if(w.dataset.name==='from')from=el.dataset.v;else to=el.dataset.v;$('#trPicks').innerHTML=trPicks(from,to);},
+  apickSet:el=>{const f=el.closest('form'),w=el.closest('.apick');let from=f.elements.from.value,to=f.elements.to.value;if(w.dataset.name==='from')from=el.dataset.v;else to=el.dataset.v;$('#trPicks').innerHTML=trPicks(from,to,f.elements.currency.value);},
   newTransfer:()=>transferForm(),
   salYear:el=>{if(el.dataset.v){ui.salYear=el.dataset.v;render();}},
   newSalary:()=>txForm({type:'trosak',salaryTo:S.session,category:'Plata'}),
@@ -1620,7 +1622,7 @@ const F={
     // kurs se uzima pri unosu; pri izmeni ostaje isti ako se iznos, valuta i datum ne menjaju
     const keep=old&&old.currency===cur&&(old.amountOriginal??old.amount)===orig&&old.date===e.date.value&&old.fxRate;
     const rate=cur==='EUR'?(keep?old.fxRate:fxRate()):1;
-    const d={type:e.type.value,amount:Math.round(orig*rate*100)/100,currency:cur,amountOriginal:orig,fxRate:rate,date:e.date.value,companyId,clientId:e.clientId.value||null,category:e.type.value==='trosak'&&e.salary.checked?'Plata':e.category.value,salaryTo:e.type.value==='trosak'&&e.salary.checked?e.salaryTo.value:null,payment:companyId?'faktura':'kes',vat:c&&c.form==='pdv'?+e.vat.value:0,description:e.description.value.trim()};
+    const d={type:e.type.value,amount:Math.round(orig*rate*100)/100,currency:cur,amountOriginal:orig,fxRate:rate,date:e.date.value,companyId,clientId:e.type.value==='trosak'&&e.salary.checked?null:(e.clientId.value||null),category:e.type.value==='trosak'&&e.salary.checked?'Plata':e.category.value,salaryTo:e.type.value==='trosak'&&e.salary.checked?e.salaryTo.value:null,payment:companyId?'faktura':'kes',vat:c&&c.form==='pdv'?+e.vat.value:0,description:e.description.value.trim()};
     if(!(d.amount>0))return toast('Unesi iznos veći od nule.');if(!d.date)return toast('Izaberi datum.');
     const lbl=`${d.salaryTo?'Plata · '+userName(d.salaryTo):d.type==='prihod'?'Prihod':'Trošak'} ${curAmt(orig,cur)} · ${c?.name||'keš'}`;
     if(id){const t=S.tx.find(x=>x.id===id);const ch=diff(t,d,[['type','Tip',v=>v==='prihod'?'Prihod':'Trošak'],['amount','Iznos (RSD)',rsdFix],['currency','Valuta'],['date','Datum',fmtDate],['companyId','Račun',v=>company(v)?.name||'Keš'],['clientId','Klijent',v=>client(v)?.name||'—'],['category','Kategorija'],['salaryTo','Plata za',v=>v?userName(v):'—'],['payment','Naplata',v=>v==='kes'?'Keš':'Račun'],['vat','PDV',v=>v+'%'],['description','Opis']]);if(ch.length){log('transakcija','izmenjeno',lbl,ch);Object.assign(t,d);}}
@@ -1639,7 +1641,7 @@ function relDay(s){if(s===TODAY_ISO)return 'Danas';if(s===addD(TODAY_ISO,1))retu
 function shortDay(s){if(s===TODAY_ISO)return 'Danas';if(s===addD(TODAY_ISO,1))return 'Sutra';const d=pd(s);return `${DOW[dowOf(s)]} ${d.getDate()}.${d.getMonth()+1}.`;}
 const jobsOn=(d,f)=>S.jobs.filter(j=>j.date===d&&forWho(j.assignee,f)).sort((a,b)=>a.start.localeCompare(b.start));
 const jobLabel=j=>`${lbl(j.label).name} · ${client(j.clientId)?.name||j.title}`;
-const clientOpts=sel=>[...S.clients].sort((a,b)=>a.name.localeCompare(b.name,'sr')).map(k=>`<option value="${k.id}" ${sel===k.id?'selected':''}>${esc(k.name)}</option>`).join('');
+const clientItems=()=>[...S.clients].sort((a,b)=>a.name.localeCompare(b.name,'sr')).map(k=>({v:k.id,label:k.name,sub:[KIND[k.kind||'fizicko'],k.city,k.phone].filter(Boolean).join(' · '),q:[k.name,k.city,k.phone,k.address].join(' ')}));
 const whoSeg=(name,cur)=>`<div class="seg">${[['nenad',userName('nenad')],['jovan',userName('jovan')],['oba','Obojica']].map(([k,l])=>`<label><input type="radio" name="${name}" value="${k}" ${cur===k?'checked':''}>${esc(l)}</label>`).join('')}</div>`;
 
 /* Status termina: završen, ili po datumu (budući je na čekanju, današnji i prošli u procesu) */
@@ -1767,7 +1769,7 @@ function jobForm(j={},{lockClient=false}={}){
   <label class="fld"><span>Datum</span><input id="j-date" type="date" name="date" value="${j.date||TODAY_ISO}"></label>
   <div class="grid2"><label class="fld"><span>Od</span><input id="j-start" type="time" name="start" value="${j.start||'08:00'}"></label><label class="fld"><span>Do</span><input id="j-end" type="time" name="end" value="${j.end||''}"></label></div>
   <fieldset class="fld"><legend>Ko radi</legend>${whoSeg('assignee',j.assignee||'oba')}</fieldset>
-  <div class="${lock?'':'grid2'}">${lock?`<input type="hidden" name="clientId" value="${esc(j.clientId)}">`:`<label class="fld"><span>Klijent</span><select id="j-client" name="clientId"><option value="">Bez klijenta</option>${clientOpts(j.clientId)}</select></label>`}
+  <div class="${lock?'':'grid2'}">${lock?`<input type="hidden" name="clientId" value="${esc(j.clientId)}">`:`<div class="fld"><span>Klijent</span>${combo('clientId',clientItems(),j.clientId,'Pretraži klijente')}</div>`}
   <label class="fld"><span>Preko firme</span><select id="j-company" name="companyId"><option value="">Bez firme - keš</option>${S.companies.filter(c=>c.phase!=='zatvorena'||c.id===j.companyId).map(c=>`<option value="${c.id}" ${j.companyId===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label></div>
   <label class="fld"><span>Napomena</span><textarea id="j-notes" name="notes" rows="2" placeholder="Pristup, materijal, kontakt na terenu">${esc(j.notes)}</textarea></label>
   <div class="form-actions">${j.id?`<button type="button" class="btn danger" data-act="delJob" data-id="${j.id}">Obriši</button>`:`<button type="button" class="btn" data-act="closeSheet">Otkaži</button>`}<button class="btn primary" type="submit">Sačuvaj posao</button></div></form>`);
@@ -1777,8 +1779,8 @@ const COMBO={};
 function combo(name,items,sel,ph){COMBO[name]=items;const cur=items.find(i=>i.v===sel);
   return `<div class="ac-wrap combo" data-combo="${name}"><input type="hidden" name="${name}" value="${esc(cur?cur.v:'')}"><div class="combo-in"><input class="combo-q" value="${esc(cur?cur.label:'')}" placeholder="${esc(ph)}" autocomplete="off" aria-label="${esc(ph)}" aria-autocomplete="list"><button type="button" class="combo-x" data-act="comboClear" aria-label="Ukloni izbor" ${cur?'':'hidden'}>${ic('x',16)}</button></div><div class="ac" role="listbox" hidden></div></div>`;}
 function comboUpdate(w){const q=norm(w.querySelector('.combo-q').value),box=w.querySelector('.ac');
-  const m=(COMBO[w.dataset.combo]||[]).filter(i=>!q||norm(i.label).includes(q)).slice(0,8);
-  box.innerHTML=m.length?m.map(i=>`<button type="button" class="ac-item" role="option" data-act="comboPick" data-v="${esc(i.v)}"><b>${esc(i.label)}</b></button>`).join(''):'<div class="ac-item muted">Nema rezultata.</div>';box.hidden=false;}
+  const m=(COMBO[w.dataset.combo]||[]).filter(i=>!q||norm(i.q||i.label).includes(q)).slice(0,30);
+  box.innerHTML=m.length?m.map(i=>`<button type="button" class="ac-item" role="option" data-act="comboPick" data-v="${esc(i.v)}"><b>${esc(i.label)}</b>${i.sub?`<small>${esc(i.sub)}</small>`:''}</button>`).join(''):'<div class="ac-item muted">Nema rezultata.</div>';box.hidden=false;}
 function comboSet(w,item){w.querySelector('input[type=hidden]').value=item?item.v:'';w.querySelector('.combo-q').value=item?item.label:'';w.querySelector('.combo-x').hidden=!item;w.querySelector('.ac').hidden=true;const f=w.closest('form[data-sig]');if(f)dirtyCheck(f);}
 /* Dugme za čuvanje je isključeno dok se forma ne promeni (komentari se ne računaju, oni se čuvaju odmah) */
 const formSig=f=>JSON.stringify([...new FormData(f)].map(([k,v])=>[k,typeof v==='string'?v:'']));
@@ -1960,7 +1962,7 @@ document.addEventListener('input',e=>{if(e.target.name==='amount'&&e.target.form
   if(k==='clientQ')ui.clientQ=v;else if(k==='kontaktQ')ui.kq=v;else if(k==='clientCat')ui.clientCat=v;else if(k==='txCompany')ui.tx.company=v;else if(k==='logQ')ui.lf.q=v;else if(k==='lfUser')ui.lf.user=v;else if(k==='lfDays')ui.lf.days=v;render();});
 document.addEventListener('change',async e=>{
   const t=e.target;if(t.form&&t.form.id==='txForm'){updTxForm(false);return;}
-  if(t.name==='currency'&&t.form&&t.form.id==='trForm'){fxHint(t.form);return;}
+  if(t.name==='currency'&&t.form&&t.form.id==='trForm'){const e=t.form.elements;$('#trPicks').innerHTML=trPicks(e.from.value,e.to.value,t.value);fxHint(t.form);return;}
   if(t.id==='j-label'){const w=$('#newLabelWrap');w.hidden=t.value!=='__new';if(!w.hidden)$('#j-newlabel').focus();return;}
   if(t.name==='icon'&&t.form?.dataset.form==='company'){updLogoPrev(t.form);return;}
   if(t.name==='push'&&t.form?.dataset.form==='notif'){$('#notifPushWrap').hidden=!t.checked;return;}
