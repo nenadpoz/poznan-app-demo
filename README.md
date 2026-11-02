@@ -1,4 +1,4 @@
-# Poznan App (core)
+# Poznan App (demo)
 
 Upravljanje firmama, prometom, poslovima i klijentima za dva vlasnika.
 
