@@ -1,6 +1,6 @@
 {
   "name": "@poznan/shared",
-  "version": "0.3.9",
+  "version": "0.3.10",
   "description": "Tipovi, zod šeme, poslovna pravila i tema za Poznan App (mobile i web).",
   "type": "module",
   "main": "src/index.ts",

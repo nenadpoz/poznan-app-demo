@@ -163,7 +163,7 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
       async list() { return check(await sb.from('accounts').select('*').is('deleted_at', null).order('name')).map(r => fromRow<Account>('accounts', r)); },
       async balances() { return check(await sb.from('account_balances').select('*')).map(r => fromRow<AccountBalance>('account_balances', r)); },
       async setOpening(accountId, openingBalance, openingDate) {
-        ok(await sb.from('accounts').update({ opening_balance: openingBalance, opening_date: openingDate, client_at: now() }).eq('id', accountId));
+        ok(await sb.from('accounts').update({ opening_balance: openingBalance, opening_date: openingDate || null, client_at: now() }).eq('id', accountId));
       },
     },
     transfers: {

@@ -129,7 +129,7 @@ export function useCreateTransfer() {
 
 export function useSetOpeningBalance() {
   const a = useApi(), refresh = useRefresh();
-  return useMutation({ mutationFn: (v: { accountId: string; amount: number; date: string }) => a.accounts.setOpening(v.accountId, v.amount, v.date), onSuccess: () => refresh('accounts') });
+  return useMutation({ mutationFn: (v: { accountId: string; amount: number; date: string | null }) => a.accounts.setOpening(v.accountId, v.amount, v.date), onSuccess: () => refresh('accounts') });
 }
 
 /** Valuta prikaza (EUR podrazumevano), pamti se po nalogu; promena se vidi odmah. */
