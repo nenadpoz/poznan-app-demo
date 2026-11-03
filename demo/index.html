@@ -68,8 +68,8 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:
 .sal-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .sal-sum > div{background:var(--surface-2);border-radius:12px;padding:10px 12px;min-width:0}
 .sal-sum span{display:block;font-size:12.5px;color:var(--muted)}.sal-sum b{display:block;font-variant-numeric:tabular-nums;font-size:15px;overflow-wrap:anywhere}
-.sal-t{display:grid;grid-template-columns:minmax(0,1.1fr) repeat(3,minmax(0,1fr));column-gap:8px;align-items:center;padding:10px 14px;border-top:1px solid var(--line);font-size:14px;font-variant-numeric:tabular-nums}
-.sal-t > :not(:first-child){text-align:right}.sal-t small{display:block;font-size:11.5px;color:var(--muted)}
+.sal-t{display:grid;grid-template-columns:48px repeat(3,minmax(0,1fr));column-gap:8px;align-items:center;padding:10px 14px;border-top:1px solid var(--line);font-size:14px;font-variant-numeric:tabular-nums}
+.sal-t > :not(:first-child){text-align:right}.sal-t:not(.head) > *{white-space:nowrap}.sal-t small{display:block;font-size:11.5px;color:var(--muted)}
 .list > .sal-t:first-child{border-top:0}.sal-t.head{font-size:12px;color:var(--muted);font-weight:600;background:var(--surface-2)}.sal-t.tot{font-weight:700;background:var(--surface-2)}
 .sal-card{display:flex;flex-direction:column;gap:10px;text-align:left;width:100%;color:inherit;font:inherit;cursor:pointer}
 .apick{position:relative}
@@ -1622,7 +1622,7 @@ const A={
   cancelReset:()=>{ui.resetFor=null;ui.loginErr='';render();},
   tcType:el=>{ui.tcType=el.dataset.v;render();},
   delTxCat:el=>{const t=ui.tcType||'prihod',c=el.dataset.v;confirmSheet('Obriši kategoriju?',`„${c}“ se više neće nuditi u formi. Postojeći unosi zadržavaju kategoriju.`,'Obriši',()=>{S.txCats=S.txCats||{prihod:[...CAT_IN],trosak:[...CAT_OUT]};S.txCats[t]=catsOf(t).filter(x=>x!==c);log('podesavanja','obrisano',`Kategorija prometa: ${c}`,[{field:'Vrsta',from:t==='prihod'?'Prihod':'Trošak',to:''}]);save();render();toast('Kategorija je obrisana.');});},
-  setTheme:el=>{const v=el.dataset.v,p=(S.prefs[S.session]=S.prefs[S.session]||{}),was=p.theme||'system';if(v===was)return;const N=Object.fromEntries(THEMES);p.theme=v;log('podesavanja','izmenjeno',`Tema za ${userName(S.session)}`,[{field:'Tema',from:N[was],to:N[v]}]);save();applyTheme();render();},
+  setTheme:el=>{const v=el.dataset.v,p=(S.prefs[S.session]=S.prefs[S.session]||{}),was=p.theme||'system';if(v===was)return;p.theme=v;save();applyTheme();render();},
   txType:el=>{ui.tx.type=el.dataset.v;render();},
   txCompany:el=>{ui.tx={type:el.dataset.type||'sve',company:el.dataset.id};go('promet');},
   coTab:el=>{ui.coTab=el.dataset.v;render();},
@@ -1989,7 +1989,7 @@ Object.assign(A,{
   clearLogo:el=>{const f=el.form;f.elements.logo.value='';updLogoPrev(f);},
   setBarColor:el=>{const c=company(el.dataset.id),u=S.session,nv=el.dataset.c===''?null:+el.dataset.c,ov=barColorOf(c.id);
     if(nv!==ov){const p=S.prefs[u]=S.prefs[u]||{};p.bars=p.bars||{};if(nv===null)delete p.bars[c.id];else p.bars[c.id]=nv;
-      log('podesavanja','izmenjeno',`Boja trake za ${userName(u)}: ${c.name}`,[{field:'Boja',from:barColorName(ov),to:barColorName(nv)}]);save();}
+      save();}
     closeSheet();render();toast('Boja trake je sačuvana za tvoj nalog.');},
   perMode:el=>{ui.pm=el.dataset.v;render();},
   perStep:el=>{const n=+el.dataset.v;if(ui.pm==='godina')ui.pyear+=n;else{let m=ui.pmon+n,y=ui.pyear;if(m<0){m=11;y--;}if(m>11){m=0;y++;}ui.pmon=m;ui.pyear=y;}render();},
@@ -2029,7 +2029,7 @@ Object.assign(F,{
     if(winTxt(d.pushWin)!==winTxt(n.pushWin))ch.push({field:'Vreme za push',from:winTxt(n.pushWin),to:winTxt(d.pushWin)});
     if(winTxt(d.emailWin)!==winTxt(n.emailWin))ch.push({field:'Vreme za email',from:winTxt(n.emailWin),to:winTxt(d.emailWin)});
     NOTIF_EV.forEach(([k,l])=>{if(d.ev[k]!==(n.ev[k]!==false))ch.push({field:l,from:onOff(n.ev[k]!==false),to:onOff(d.ev[k])});});
-    if(ch.length){log('podesavanja','izmenjeno',`Obaveštenja za ${userName(u)}`,ch);S.prefs[u].notif=d;save();}
+    if(ch.length){S.prefs[u].notif=d;save();}
     go('vise');toast(ch.length?'Obaveštenja su sačuvana.':'Nema izmena.');},
   cat:f=>{const e=f.elements,id=f.dataset.id,name=cap(e.name.value.trim()),c=+e.c.value;
     if(!name)return toast('Unesi naziv kategorije.');
