@@ -24,7 +24,7 @@ function minutesUntil(from: string, now: string): number {
   return d > 0 ? d : d + 1440;
 }
 /** Vrsta obaveštenja → podešavanje „Šta šaljemo“ (komentari i podsetnici idu uvek). */
-const EVENT: Record<string, string | null> = { comment: null, reply: null, reminder: null, job_start: 'start', task_due: 'tasks', task_assigned: 'tasks', limit: 'limit' };
+const EVENT: Record<string, string | null> = { comment: null, reply: null, reminder: null, job_start: 'start', task_due: 'tasks', task_assigned: 'tasks', limit: 'limit', tx_income: 'promet', tx_expense: 'promet' };
 
 function titleOf(n: Notif, from: string): string {
   switch (n.type) {
@@ -35,6 +35,8 @@ function titleOf(n: Notif, from: string): string {
     case 'task_due': return 'Zadatak za danas';
     case 'task_assigned': return `${from} ti je dodelio zadatak`;
     case 'limit': return 'Limit firme';
+    case 'tx_income': return `${from} je uneo prihod`;
+    case 'tx_expense': return `${from} je uneo trošak`;
     default: return 'Poznan';
   }
 }

@@ -66,7 +66,9 @@ export interface Transfer extends Base {
 }
 export interface FxRateRow { date: string; eur: number }
 export interface Notification {
-  id: string; createdAt: string; fromUser: string | null; type: string; target: CommentTarget | null; targetId: string | null;
+  id: string; createdAt: string; fromUser: string | null; type: string;
+  /** Na šta se odnosi (dodir otvara tu stavku); `transaction` = prihod ili trošak. */
+  target: CommentTarget | 'transaction' | null; targetId: string | null;
   commentId: string | null; text: string | null; readAt: string | null;
 }
 export interface Profile { userId: string; slug: UserId; name: string; theme: 'light' | 'dark' | 'system'; barColors: Record<string, number>; notif: NotificationPrefs; currency: Currency }
