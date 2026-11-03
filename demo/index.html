@@ -1339,9 +1339,9 @@ function vKategorije(){
   const used=new Set(S.labels.map(l=>l.c));const next=[0,1,2,3,4,5].find(i=>!used.has(i))??(S.labels.length%6);
   return topBar('Kategorije poslova',{back:'vise',sub:`${S.labels.length} kategorija`})+`
   <form class="card form" data-form="cat" data-id="">
-    <label class="fld"><span>Nova kategorija</span><input id="cat-name" name="name" placeholder="npr. Bušenje bunara" autocomplete="off"></label>
+    <label class="fld"><span>Nova kategorija</span><input id="cat-name" name="name" placeholder="npr. Bušenje bunara" autocomplete="off" data-req></label>
     <fieldset class="fld"><legend>Boja</legend>${swatches('c',next)}</fieldset>
-    <button class="btn primary block" type="submit">${ic('plus',18)} Dodaj kategoriju</button></form>
+    <button class="btn primary block" type="submit" data-needs disabled>${ic('plus',18)} Dodaj kategoriju</button></form>
   ${S.labels.length?`<div class="list">${S.labels.map(l=>`<div class="row"><div class="row-main"><div class="row-title">${lblChip(l)}</div><small>Koristi se kod ${nPos(catUse(l.id))}</small></div><div class="row-actions"><button class="call-btn" data-act="catColor" data-id="${l.id}" aria-label="Promeni boju: ${esc(l.name)}"><span class="dotc lc-${l.c}"></span></button><button class="call-btn" data-act="editCat" data-id="${l.id}" aria-label="Izmeni: ${esc(l.name)}">${ic('edit',18)}</button></div></div>`).join('')}</div>`:'<div class="card empty">Još nema kategorija. Dodaj prvu iznad.</div>'}`;
 }
 function catForm(l){
@@ -1860,8 +1860,8 @@ function vKategorijeProm(){
   const t=ui.tcType||'prihod',list=catsOf(t),use=c=>S.tx.filter(x=>x.type===t&&x.category===c).length;
   return topBar('Kategorije prometa',{back:'vise',sub:`${catsOf('prihod').length+catsOf('trosak').length} kategorija`})+`
   <div class="seg" role="group" aria-label="Vrsta">${[['prihod','Prihodi'],['trosak','Troškovi']].map(([k,l])=>`<button data-act="tcType" data-v="${k}" aria-pressed="${t===k}">${l} (${catsOf(k).length})</button>`).join('')}</div>
-  <form class="card form" data-form="txCat"><label class="fld"><span>Nova kategorija ${t==='prihod'?'prihoda':'troška'}</span><input name="name" placeholder="${t==='prihod'?'npr. Iznajmljivanje opreme':'npr. Registracija vozila'}" autocomplete="off"></label>
-  <button class="btn primary block" type="submit">${ic('plus',18)} Dodaj kategoriju</button></form>
+  <form class="card form" data-form="txCat"><label class="fld"><span>Nova kategorija ${t==='prihod'?'prihoda':'troška'}</span><input name="name" placeholder="${t==='prihod'?'npr. Iznajmljivanje opreme':'npr. Registracija vozila'}" autocomplete="off" data-req></label>
+  <button class="btn primary block" type="submit" data-needs disabled>${ic('plus',18)} Dodaj kategoriju</button></form>
   ${list.length?`<div class="list">${list.map(c=>{const n=use(c);return `<div class="row"><div class="row-main"><b>${esc(c)}</b><small>${n?`Koristi se u ${n} ${n===1?'unosu':'unosa'}`:'Još se ne koristi'}</small></div><div class="row-actions"><button class="call-btn" data-act="delTxCat" data-v="${esc(c)}" aria-label="Obriši: ${esc(c)}">${ic('trash',18)}</button></div></div>`;}).join('')}</div>`:'<div class="card empty">Nema kategorija. Dodaj prvu iznad.</div>'}
   <p class="small muted" style="margin:0">Obrisana kategorija ostaje na postojećim unosima, samo se više ne nudi u formi.</p>`;
 }
@@ -1897,7 +1897,7 @@ function commentsHtml(o,kind='task'){const cs=o.comments||[],top=cs.filter(c=>!c
   return top.length?top.map(c=>oneCmt(kind,o,c,false)+cs.filter(r=>r.parentId===c.id).map(r=>oneCmt(kind,o,r,true)).join('')).join(''):'<p class="small muted" style="margin:0">Još nema komentara.</p>';}
 function commentSection(o,kind){return `<div class="fld cmt-sec" data-kind="${kind}" data-oid="${o.id}"><span class="cmt-title">Komentari (${(o.comments||[]).length})</span><div class="cmt-list">${commentsHtml(o,kind)}</div>
   <div class="cmt-replying" hidden></div>
-  <div class="cmt-add"><textarea class="cmt-text" rows="2" placeholder="Napiši komentar" aria-label="Novi komentar"></textarea><button type="button" class="btn primary sm" data-act="addComment" data-kind="${kind}" data-id="${o.id}">${ic('send',16)} Pošalji</button></div></div>`;}
+  <div class="cmt-add"><textarea class="cmt-text" rows="2" placeholder="Napiši komentar" aria-label="Novi komentar" data-req></textarea><button type="button" class="btn primary sm" data-needs disabled data-act="addComment" data-kind="${kind}" data-id="${o.id}">${ic('send',16)} Pošalji</button></div></div>`;}
 /* Sekcija se traži od dugmeta, jer na ekranu mogu biti dve (kartica posla i zadatak preko nje) */
 function refreshComments(o,kind,sec){if(sec&&sec.closest('#sheetRoot')){sec.querySelector('.cmt-list').innerHTML=commentsHtml(o,kind);sec.querySelector('.cmt-title').textContent=`Komentari (${(o.comments||[]).length})`;sec.querySelector('.cmt-replying').hidden=true;sec.querySelector('.cmt-text').placeholder='Napiši komentar';}render();}
 /* Upisuje komentar i šalje obaveštenje drugom korisniku (i kod odgovora) */
@@ -2043,7 +2043,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.apick'))closePicks(
   document.querySelectorAll('.combo').forEach(w=>{if(w.contains(e.target))return;w.querySelector('.ac').hidden=true;if(!w.querySelector('input[type=hidden]').value){w.querySelector('.combo-q').value='';w.querySelector('.combo-x').hidden=true;}});const el=e.target.closest('[data-act]');if(!el)return;const fn=A[el.dataset.act];if(fn){e.preventDefault();fn(el,e);}});
 document.addEventListener('submit',e=>{e.preventDefault();const f=e.target;F[f.dataset.form]&&F[f.dataset.form](f);});
 document.addEventListener('focusin',e=>{if(e.target.classList?.contains('combo-q'))comboUpdate(e.target.closest('.combo'));});
-document.addEventListener('input',e=>{if(e.target.form?.dataset.form==='client')clientSaveState(e.target.form);if(e.target.name==='amount'&&e.target.form&&e.target.form.querySelector('.fx-hint'))fxHint(e.target.form);if(e.target.name?.startsWith('amt_')&&e.target.form?.dataset.form==='payJob'){payTotal(e.target.form);return;}if(e.target.classList.contains('combo-q')){const w=e.target.closest('.combo');w.querySelector('input[type=hidden]').value='';w.querySelector('.combo-x').hidden=!e.target.value;comboUpdate(w);return;}if(e.target.id==='k-name'&&e.target.closest('[data-form=posao]')){acUpdate(e.target);return;}const k=e.target.dataset.input;if(!k)return;const v=e.target.value;
+document.addEventListener('input',e=>{if(e.target.hasAttribute?.('data-req')){const w=e.target.closest('form,.cmt-add');w?.querySelectorAll('[data-needs]').forEach(b=>b.disabled=!e.target.value.trim());}if(e.target.form?.dataset.form==='client')clientSaveState(e.target.form);if(e.target.name==='amount'&&e.target.form&&e.target.form.querySelector('.fx-hint'))fxHint(e.target.form);if(e.target.name?.startsWith('amt_')&&e.target.form?.dataset.form==='payJob'){payTotal(e.target.form);return;}if(e.target.classList.contains('combo-q')){const w=e.target.closest('.combo');w.querySelector('input[type=hidden]').value='';w.querySelector('.combo-x').hidden=!e.target.value;comboUpdate(w);return;}if(e.target.id==='k-name'&&e.target.closest('[data-form=posao]')){acUpdate(e.target);return;}const k=e.target.dataset.input;if(!k)return;const v=e.target.value;
   if(k==='pFrom'||k==='pTo'){ui[k==='pFrom'?'pfrom':'pto']=v;const o=$('#earnOut');if(o)o.innerHTML=earnOut();return;}
   if(k==='pMon'){ui.pmon=+v;render();return;}
   if(k==='pYear'){ui.pyear=+v;render();return;}
