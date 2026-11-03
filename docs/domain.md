@@ -152,6 +152,7 @@ Tri kartice, tim redom:
 ## 13. Logovi (audit)
 - Zapis: vreme, korisnik, entitet (`posao`, `termin`, `zadatak`, `klijent`, `firma`, `transakcija`, `podesavanja`, `backup`, `nalog`), akcija, naziv, lista promena (polje, staro, novo).
 - Prikaz po danima, filteri po entitetu, korisniku, periodu i tekstu.
+- Ne beleže se lična podešavanja prikaza na nalogu (valuta prikaza EUR/RSD, tema, boje traka limita, obaveštenja): menjaju samo izgled za tog korisnika. Izmena imena i emaila se beleži.
 
 ## 14. Backup
 - Svake noći na Google Drive (folder „Poznan backup“), čuva se poslednjih 30 dana. Sadrži kompletan dump baze (uloge, šema, svi podaci uključujući naloge i logove) i posebno podatke aplikacije za brzo vraćanje.
