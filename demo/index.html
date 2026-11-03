@@ -282,6 +282,8 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:
 .ac-item.ac-new{flex-direction:row;align-items:center;gap:6px;color:var(--accent);font-weight:600}
 .ac-item:hover,.ac-item:focus-visible{background:var(--surface-2)}
 .fld input:disabled{opacity:.65}
+.pw{position:relative;display:block}.pw input{padding-right:46px}
+.pw-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:38px;height:38px;display:grid;place-items:center;border:0;background:none;color:var(--muted);border-radius:10px;cursor:pointer}
 .seg label:has(input:disabled){opacity:.6}
 .picked{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--info-soft);border-radius:10px;padding:8px 12px;font-size:13px}
 .picked span{display:flex;align-items:center;gap:6px}
@@ -579,6 +581,8 @@ const I={
  trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>',
  save:'<path d="M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6"/>',
  chat:'<path d="M4 5h16v11H9l-5 4z"/>',
+ eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+ eyeOff:'<path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7c1.9 0 3.5-.6 4.9-1.4M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
  send:'<path d="M4 12l16-8-6 16-2-7z"/>',
  bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"/>',
  palette:'<path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.5-.8 1.5-1.6 0-1.2-1-1.5-1-2.6 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/>',
@@ -951,18 +955,18 @@ function loginForm(){
   if(ui.resetFor===u)return `<form class="form" data-form="resetPass">
       <div class="voice-note">${ic('mail',18)}<span>Kod za novu lozinku je poslat na email naloga ${nm}. U demou upiši bilo koji kod od 6 cifara.</span></div>
       <label class="fld"><span>Kod iz emaila</span><input id="l-code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="123456"></label>
-      <label class="fld"><span>Nova lozinka</span><input name="p1" type="password" autocomplete="new-password"><small>Najmanje 8 karaktera.</small></label>
-      <label class="fld"><span>Ponovi lozinku</span><input name="p2" type="password" autocomplete="new-password"></label>
+      <label class="fld"><span>Nova lozinka</span><span class="pw"><input name="p1" type="password" autocomplete="new-password"><button type="button" class="pw-eye" data-act="pwEye" aria-label="Prikaži lozinku" aria-pressed="false">${ic('eye',20)}</button></span><small>Najmanje 8 karaktera.</small></label>
+      <label class="fld"><span>Ponovi lozinku</span><span class="pw"><input name="p2" type="password" autocomplete="new-password"><button type="button" class="pw-eye" data-act="pwEye" aria-label="Prikaži lozinku" aria-pressed="false">${ic('eye',20)}</button></span></label>
       ${err}<button class="btn primary block" type="submit">Postavi lozinku i prijavi se</button>
       <button type="button" class="link" data-act="cancelReset" style="align-self:center">Nazad na prijavu</button></form>`;
   if(has)return `<form class="form" data-form="login">
-      <label class="fld"><span>Lozinka</span><input id="l-pass" name="pass" type="password" autocomplete="current-password"></label>
+      <label class="fld"><span>Lozinka</span><span class="pw"><input id="l-pass" name="pass" type="password" autocomplete="current-password"><button type="button" class="pw-eye" data-act="pwEye" aria-label="Prikaži lozinku" aria-pressed="false">${ic('eye',20)}</button></span></label>
       ${err}<button class="btn primary block" type="submit">Prijavi se</button>
       <button type="button" class="link" data-act="forgot" style="align-self:center">Zaboravljena lozinka?</button></form>`;
   return `<form class="form" data-form="setPass">
       <div class="voice-note">${ic('info',18)}<span>${nm} još nema lozinku. Postavi je sada i koristi je za sledeće prijave.</span></div>
-      <label class="fld"><span>Nova lozinka</span><input id="l-new1" name="p1" type="password" autocomplete="new-password"><small>Najmanje 8 karaktera.</small></label>
-      <label class="fld"><span>Ponovi lozinku</span><input id="l-new2" name="p2" type="password" autocomplete="new-password"></label>
+      <label class="fld"><span>Nova lozinka</span><span class="pw"><input id="l-new1" name="p1" type="password" autocomplete="new-password"><button type="button" class="pw-eye" data-act="pwEye" aria-label="Prikaži lozinku" aria-pressed="false">${ic('eye',20)}</button></span><small>Najmanje 8 karaktera.</small></label>
+      <label class="fld"><span>Ponovi lozinku</span><span class="pw"><input id="l-new2" name="p2" type="password" autocomplete="new-password"><button type="button" class="pw-eye" data-act="pwEye" aria-label="Prikaži lozinku" aria-pressed="false">${ic('eye',20)}</button></span></label>
       ${err}<button class="btn primary block" type="submit">Postavi lozinku i prijavi se</button></form>`;
 }
 async function hashPw(user,pw){
@@ -1016,9 +1020,9 @@ const ownHead=()=>`<div class="sal-t head"><span></span><span>Isplaćena plata</
 const ownRows=st=>OWNERS.map(o=>`<div class="sal-t"><span>${esc(userName(o))}</span><span>${amt(st[o].pl)}</span><span>${st[o].ul?amt(st[o].ul):'—'}</span><b>${amt(st[o].net)}</b></div>`).join('');
 const ownDiff=st=>{const d=salDiff(st.nenad.net,st.jovan.net,rsd);return `<b>${d.v}</b> <span class="small muted">${esc(d.who)}</span>`;};
 // Kartica na Pregledu: samo poslednji mesec tekuće godine sa platom ili ulogom (inače tekući mesec); detalji na ekranu Plate i ulozi
-function salaryCard(){const y=String(TODAY.getFullYear()),ds=[...salTx().map(t=>t.date),...(S.ulozi||[]).map(u=>u.date)].filter(d=>d.startsWith(y)&&d<=TODAY_ISO).sort();
-  const m=(ds[ds.length-1]||TODAY_ISO).slice(0,7),st=ownStats(d=>d.startsWith(m));
-  return `<button class="card sal-card" data-act="go" data-v="plate"><div class="sec-h"><h2>Vlasnici: plate i ulozi</h2><span class="small muted" style="display:inline-flex;align-items:center;gap:2px;white-space:nowrap">${cap(MONTHS_FULL[+m.slice(5)-1])} ${m.slice(0,4)}. ${ic('fwd',16)}</span></div>
+// Pregled: plate i ulozi za tekuću godinu; dodir otvara ekran plata na istoj godini
+function salaryCard(){const y=String(TODAY.getFullYear()),st=ownStats(d=>d.startsWith(y)&&d<=TODAY_ISO);
+  return `<button class="card sal-card" data-act="salYear" data-v="${y}"><div class="sec-h"><h2>Vlasnici: plate i ulozi</h2><span class="small muted" style="display:inline-flex;align-items:center;gap:2px;white-space:nowrap">${y}. ${ic('fwd',16)}</span></div>
   <div class="list">${ownHead()}${ownRows(st)}</div></button>`;}
 // Ekran plata i uloga: filter Mesec / Godina / Sve, jedna tabela za izabrani period
 const salDates=()=>[...salTx().map(t=>t.date),...(S.ulozi||[]).map(u=>u.date)].sort();
@@ -1602,6 +1606,8 @@ const A={
     else{const t=S.tasks.find(x=>x.id===n.taskId);if(!t){render();toast('Zadatak je obrisan.');return;}go('zadaci');taskForm(t);}
     if(!n.commentId)return; // podsetnik: samo otvori posao
     setTimeout(()=>{const c=document.getElementById('cmt-'+n.commentId);if(c){c.scrollIntoView({behavior:'smooth',block:'center'});c.classList.add('cmt-hl');setTimeout(()=>c.classList.remove('cmt-hl'),2200);}else toast('Komentar je obrisan.');},260);},
+  salYear:el=>{ui.salMode='godina';ui.salYear=el.dataset.v;go('plate');},
+  pwEye:el=>{const i=el.parentElement.querySelector('input'),on=i.type==='password';i.type=on?'text':'password';el.innerHTML=ic(on?'eyeOff':'eye',20);el.setAttribute('aria-pressed',String(on));el.setAttribute('aria-label',on?'Sakrij lozinku':'Prikaži lozinku');i.focus();},
   addComment:el=>{const sec=el.closest('.cmt-sec'),kind=el.dataset.kind||'task',o=cmtOwner(kind,el.dataset.id),inp=sec.querySelector('.cmt-text'),text=inp.value.trim();if(!text){toast('Napiši komentar.');inp.focus();return;}
     const parent=sec.dataset.reply||null;postComment(kind,o,text,parent);delete sec.dataset.reply;inp.value='';refreshComments(o,kind,sec);toast(parent?'Odgovor je poslat.':'Komentar je dodat.');},
   replyComment:el=>{const sec=el.closest('.cmt-sec'),b=sec.querySelector('.cmt-replying'),i=sec.querySelector('.cmt-text');sec.dataset.reply=el.dataset.id;
@@ -1867,9 +1873,9 @@ function vKategorijeProm(){
 }
 function vLozinka(){
   return topBar('Promeni lozinku',{back:'vise'})+`<form class="card form" data-form="changePass">
-  <label class="fld"><span>Trenutna lozinka</span><input name="cur" type="password" autocomplete="current-password"></label>
-  <label class="fld"><span>Nova lozinka</span><input name="p1" type="password" autocomplete="new-password"><small>Najmanje 8 karaktera.</small></label>
-  <label class="fld"><span>Ponovi novu lozinku</span><input name="p2" type="password" autocomplete="new-password"></label>
+  <label class="fld"><span>Trenutna lozinka</span><span class="pw"><input name="cur" type="password" autocomplete="current-password"><button type="button" class="pw-eye" data-act="pwEye" aria-label="Prikaži lozinku" aria-pressed="false">${ic('eye',20)}</button></span></label>
+  <label class="fld"><span>Nova lozinka</span><span class="pw"><input name="p1" type="password" autocomplete="new-password"><button type="button" class="pw-eye" data-act="pwEye" aria-label="Prikaži lozinku" aria-pressed="false">${ic('eye',20)}</button></span><small>Najmanje 8 karaktera.</small></label>
+  <label class="fld"><span>Ponovi novu lozinku</span><span class="pw"><input name="p2" type="password" autocomplete="new-password"><button type="button" class="pw-eye" data-act="pwEye" aria-label="Prikaži lozinku" aria-pressed="false">${ic('eye',20)}</button></span></label>
   <button class="btn primary block" type="submit">Promeni lozinku</button></form>
   <p class="small muted" style="margin:0">Zaboravio si trenutnu? Odjavi se i na prijavi izaberi „Zaboravljena lozinka?“. U demou se trenutna lozinka ne proverava.</p>`;
 }
