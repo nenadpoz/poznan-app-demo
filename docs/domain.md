@@ -69,6 +69,7 @@ Tri kartice, tim redom:
 - Iznose i rokove proveriti sa knjigovođom na početku svake godine.
 
 ## 5. Promet (transakcije)
+- **Detalji unosa**: dodir na stavku u Prometu (i na obaveštenje) otvara pregled: iznos (u valuti unosa, uz dinare i kurs za EUR), datum, odakle je plaćeno, kategorija, klijent i posao (sa linkom), komentar, delovi plaćanja iz više izvora i istorija (ko je uneo i menjao, i koja polja). Izmena je na ikonici gore desno; prenos ima samo brisanje.
 - Polja: tip (`prihod` | `trosak`), iznos (RSD, bez PDV-a), datum, firma (opciono), klijent (opciono), kategorija, PDV stopa (samo PDV firma), opis, veza na posao (opciono), broj fakture (opciono).
 - Firma se bira **karticama** (kao radio dugme): prva je **Bez firme (keš)** sa ikonicom novca i podrazumevana je; ostale su otvorene firme sa ikonicom ili logom.
 - Način naplate se ne bira: bez firme = keš bez računa, sa firmom = preko računa.
@@ -141,7 +142,9 @@ Tri kartice, tim redom:
 
 ## 11. Obaveštenja
 - **Zvonce** (u aplikaciji): lista samo nepročitanih, „Označi sve kao pročitano“, „Nema novih obaveštenja.“ kad je prazno. Vrste: komentar, odgovor, podsetnik za uplatu (kasnije i početak posla, rok zadatka, limit firme). Klik otvara zadatak/posao/firmu i skroluje do komentara (kratko istakne). Otvaranje zadatka ili posla označava njegova obaveštenja kao pročitana.
-- **Push i email** (Podešavanja → Obaveštenja, lično po nalogu): uključeno/isključeno po kanalu, email adresa za profil, vreme slanja od–do po kanalu (podrazumevano push 07:00–21:00, email 08:00–20:00; van tog vremena čeka početak), vrste: Početak posla, Zadaci (novi dodeljen meni, rok danas), Limit firme (80% i 95%). Izmene idu u logove.
+- **Push i email** (Podešavanja → Obaveštenja, lično po nalogu): uključeno/isključeno po kanalu, email adresa za profil, vreme slanja od–do po kanalu (podrazumevano push 07:00–21:00, email 08:00–20:00; van tog vremena čeka početak), vrste: Početak posla, Zadaci (novi dodeljen meni, rok danas), Limit firme (80% i 95%), Prihodi i troškovi. Izmene ne idu u logove (lično podešavanje).
+- **Nov prihod ili trošak**: kad jedan vlasnik unese prihod ili trošak (i platu, i naplatu posla), drugi dobija obaveštenje „Jovan je uneo trošak“ sa iznosom u valuti unosa i kategorijom ili komentarom. Trošak iz više izvora daje jedno obaveštenje sa ukupnim iznosom. Dodir otvara detalje unosa.
+- **Baner u aplikaciji**: novo obaveštenje dok je aplikacija otvorena pojavi se na vrhu ekrana (uživo preko Realtime-a, i bez push-a); dodir otvara stavku, sklanja se posle 6 s ili na ×.
 
 ## 12. Podešavanja
 - Firme, Logovi, Kategorije poslova, Kategorije prometa, Boje traka limita (lično), Obaveštenja (lično), Odjava.
