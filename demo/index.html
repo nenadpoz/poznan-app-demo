@@ -310,7 +310,10 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}
 .stat b{display:block;font-size:16px;font-variant-numeric:tabular-nums;margin-top:3px;overflow-wrap:anywhere}
 .stat.wide{grid-column:1/-1}
+.tx-total{display:flex;gap:16px}.tx-total>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.tx-total b{font-size:21px;white-space:nowrap}.tx-total b.pos{color:var(--good)}.tx-total b.neg{color:var(--bad)}
+.task-h{display:flex;align-items:flex-start;gap:10px}.task-h h3{flex:1;margin:0;font-size:20px}.task-h .is-done{text-decoration:line-through;color:var(--muted)}
 .facts{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;font-size:14px;margin:0}
+.facts a{color:var(--accent);font-weight:600;text-decoration:none}
 .facts dt{color:var(--muted)} .facts dd{margin:0;min-width:0;overflow-wrap:anywhere}
 .check{display:flex;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:14.5px}
 .check:first-of-type{border-top:0}
@@ -826,9 +829,9 @@ function balanceCard(){const a=accounts(),tot=a.reduce((s,x)=>s+balanceOf(x.id),
   return `<section class="card bal" aria-label="Stanje novca"><div class="sec-h"><h2>Stanje novca</h2><span class="small muted">${dispCur()==='EUR'?'kurs '+fxRate().toFixed(4).replace('.',','):'u dinarima'}</span></div>
   ${a.map(x=>{const b=balanceOf(x.id);return `<div class="kv"><span class="bal-n">${coIcon(x.c)}${esc(x.name)}</span><b class="${b<0?'neg':''}">${rsd(b)}</b></div>`;}).join('')}
   <div class="kv bal-tot"><span>Ukupno</span><b>${rsd(tot)}</b></div>${lastMove()}</section>`;}
-function ulogRow(u){return `<button class="row" data-act="editUlog" data-id="${u.id}"><div class="row-main"><b>Ulog vlasnika · ${esc(userName(u.owner))}</b><small>${fmtDate(u.date)} ${u.to==='kes'?'<span class="tag kes">keš</span>':`<span class="tag">${esc(acctName(u.to))}</span>`} <span class="tag">ulog</span> · ${esc(userName(u.by))}${u.note?' · '+esc(u.note):''}</small></div>
+function ulogRow(u){return `<button class="row" data-act="editUlog" data-id="${u.id}"><div class="row-main"><b>Ulog vlasnika · ${esc(userName(u.owner))}</b><small>${fmtDate(u.date)} ${u.to==='kes'?'<span class="tag kes">keš</span>':`<span class="tag">${esc(acctName(u.to))}</span>`} <span class="tag">ulog</span>${u.note?' · '+esc(u.note):''}</small></div>
   <div class="row-amt tr">+${amt(u.amount)}${u.currency!==dispCur()?`<small>uneto ${curAmt(u.amountOriginal,u.currency)}</small>`:'<small>nije prihod</small>'}</div></button>`;}
-function transferRow(x){return `<button class="row" data-act="delTransfer" data-id="${x.id}"><div class="row-main"><b>${esc(acctName(x.from))} → ${esc(acctName(x.to))}</b><small>${fmtDate(x.date)} <span class="tag">prenos</span> · ${esc(userName(x.by))}${x.note?' · '+esc(x.note):''}</small></div>
+function transferRow(x){return `<button class="row" data-act="delTransfer" data-id="${x.id}"><div class="row-main"><b>${esc(acctName(x.from))} → ${esc(acctName(x.to))}</b><small>${fmtDate(x.date)} <span class="tag">prenos</span>${x.note?' · '+esc(x.note):''}</small></div>
   <div class="row-amt tr">${amt(x.amount)}${x.currency!==dispCur()?`<small>uneto ${curAmt(x.amountOriginal,x.currency)}</small>`:'<small>prenos</small>'}</div></button>`;}
 // Stanje se prikazuje u valuti izabranoj u formi prenosa (pickCur).
 let pickCur='EUR';
@@ -917,7 +920,7 @@ function meter(label,val,max,note=''){
 function txRow(t,{showCompany=true}={}){
   const c=company(t.companyId), k=client(t.clientId), sign=t.type==='prihod'?'+':'−';
   return `<button class="row" data-act="editTx" data-id="${t.id}">
-    <div class="row-main"><b>${esc(t.description||(t.salaryTo?'Plata · '+userName(t.salaryTo):t.category))}</b><small>${fmtDate(t.date)}${showCompany?(c?` <span class="tag">${esc(c.name)}</span>`:' <span class="tag kes">keš</span>'):''}${k?` · ${esc(k.name)}`:t.pendingClient?' <span class="tag kes">čeka klijenta</span>':''}${t.by?` · ${esc(userName(t.by))}`:''}</small></div>
+    <div class="row-main"><b>${esc(t.description||(t.salaryTo?'Plata · '+userName(t.salaryTo):t.category))}</b><small>${fmtDate(t.date)}${showCompany?(c?` <span class="tag">${esc(c.name)}</span>`:' <span class="tag kes">keš</span>'):''}${k?` · ${esc(k.name)}`:t.pendingClient?' <span class="tag kes">čeka klijenta</span>':''}</small></div>
     <div class="row-amt ${t.type==='prihod'?'pos':''}">${sign}${amt(t.amount)}<small>${t.currency&&t.currency!==dispCur()?`uneto ${curAmt(t.amountOriginal??t.amount,t.currency)}`:esc(t.category)}</small></div></button>`;
 }
 function chart(filterFn=()=>true){
@@ -1275,6 +1278,7 @@ function vPromet(){
   <div class="seg" role="group" aria-label="Tip">${[['sve','Sve'],['prihod','Prihodi'],['trosak','Troškovi'],['prenos','Prenosi']].map(([k,l])=>`<button data-act="txType" data-v="${k}" aria-pressed="${f.type===k}">${l}</button>`).join('')}</div>
   <select class="select" id="txCompany" data-input="txCompany" aria-label="Firma"><option value="sve">Sve firme i keš</option>${S.companies.map(c=>`<option value="${c.id}" ${f.company===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}<option value="kes" ${f.company==='kes'?'selected':''}>Keš</option></select>
   <button class="btn block" data-act="newTransfer">${ic('swap',18)} Podigni ili položi keš</button>
+  ${f.type!=='prenos'?`<div class="card tx-total">${(f.type==='sve'?['prihod','trosak']:[f.type]).map(k=>{const l=list.filter(t=>t.type===k);return `<div><span class="small muted">${k==='prihod'?'Ukupno prihoda':'Ukupno troškova'}</span><b class="num ${k==='prihod'?'pos':'neg'}">${k==='prihod'?'+':'−'}${rsd(sum(l))}</b><small class="muted">${l.length} ${l.length===1?'unos':'unosa'}</small></div>`;}).join('')}</div>`:''}
   ${keys.length?keys.map(k=>{const g=groups[k].sort((a,b)=>b.date.localeCompare(a.date)||(b.ts||0)-(a.ts||0));const inc=sum(g.filter(x=>x.type==='prihod')),out=sum(g.filter(x=>x.type==='trosak'));const [yy,mm]=k.split('-');
     return `<section class="settings-sec" style="gap:8px"><div class="month-h"><b>${MONTHS_FULL[+mm-1]} ${yy}.</b><span class="small muted num">+${amt(inc)} / −${amt(out)}</span></div><div class="list">${g.map(t=>t._tr?transferRow(t):t._ul?ulogRow(t):txRow(t)).join('')}</div></section>`;}).join(''):'<div class="card empty">Nema unosa za izabrani filter.</div>'}`;
 }
@@ -1603,7 +1607,7 @@ const A={
   openNotif:el=>{const n=(S.notifs||[]).find(x=>x.id===el.dataset.id);if(!n)return;n.read=true;save();closeSheet();
     if(n.companyId){const c=company(n.companyId);if(!c){render();toast('Firma je obrisana.');return;}go('firma',c.id);}
     else if(n.jobId){const p=posao(n.jobId);if(!p){render();toast('Posao je obrisan.');return;}ui.posFrom={v:'poslovi'};go('posao',p.id);}
-    else{const t=S.tasks.find(x=>x.id===n.taskId);if(!t){render();toast('Zadatak je obrisan.');return;}go('zadaci');taskForm(t);}
+    else{const t=S.tasks.find(x=>x.id===n.taskId);if(!t){render();toast('Zadatak je obrisan.');return;}go('zadaci');taskDetail(t);}
     if(!n.commentId)return; // podsetnik: samo otvori posao
     setTimeout(()=>{const c=document.getElementById('cmt-'+n.commentId);if(c){c.scrollIntoView({behavior:'smooth',block:'center'});c.classList.add('cmt-hl');setTimeout(()=>c.classList.remove('cmt-hl'),2200);}else toast('Komentar je obrisan.');},260);},
   salYear:el=>{ui.salMode='godina';ui.salYear=el.dataset.v;go('plate');},
@@ -1921,6 +1925,21 @@ function notifSheet(){const list=myNotifs().filter(n=>!n.read),unread=list.lengt
 /* Otvaranje zadatka označava njegova obaveštenja kao pročitana */
 function readNotifsFor(key,id){let ch=false;(S.notifs||[]).forEach(n=>{if(n.to===S.session&&n[key]===id&&!n.read){n.read=true;ch=true;}});if(ch)save();return ch;}
 function readTaskNotifs(taskId){if(readNotifsFor('taskId',taskId))render();}
+// Detalji zadatka: pregled, komentari i istorija; izmena i brisanje ikonicama gore
+function taskDetail(t){
+  ui.replyTo=null;readTaskNotifs(t.id);
+  const late=t.due&&!t.done&&t.due<TODAY_ISO,j=posao(t.jobId),hist=S.logs.filter(l=>l.entity==='zadatak'&&l.label===t.title).slice().reverse();
+  openSheet('Zadatak',`<div class="form">
+  <div class="task-h"><h3 class="${t.done?'is-done':''}">${esc(t.title)}</h3><button class="icon-btn" data-act="taskEdit" data-id="${t.id}" aria-label="Izmeni zadatak">${ic('edit',18)}</button><button class="icon-btn" data-act="delTask" data-id="${t.id}" aria-label="Obriši zadatak" style="color:var(--bad)">${ic('trash',18)}</button></div>
+  <div>${stPill(t.done?'zavrseno':taskStatus(t))}</div>
+  <dl class="facts"><dt>Zadužen</dt><dd>${esc(whoName(t.assignee))}</dd><dt>Rok</dt><dd class="${late?'late':''}">${t.due?`${late?'Kasni · ':''}${fmtDate(t.due)}`:'Bez roka'}</dd>
+  <dt>Posao</dt><dd>${j?`<a href="#" data-act="taskJob" data-id="${j.id}">${esc(posLabel(j))}</a>`:'—'}</dd><dt>Napomena</dt><dd>${esc(t.notes)||'—'}</dd>
+  ${t.done?`<dt>Završen</dt><dd>${esc(userName(t.doneBy))}${t.doneAt?' · '+fmtDate(iso(new Date(t.doneAt))):''}</dd>`:''}</dl>
+  <button class="btn ${t.done?'':'primary'} block" data-act="toggleTask" data-id="${t.id}">${ic(t.done?'back':'check',18)} ${t.done?'Vrati kao otvoren':'Završi zadatak'}</button>
+  ${commentSection(t,'task')}
+  <div class="fld"><span class="cmt-title">Istorija</span>${hist.length?hist.map(l=>`<div class="small"><b>${ACT[l.action]||cap(l.action)}</b> <span class="muted">· ${esc(userName(l.user))} · ${dayLabel(l.ts)} u ${fmtTime(l.ts)}</span>${l.changes?.length?`<div class="muted">${l.changes.map(c=>esc(c.field)).join(', ')}</div>`:''}</div>`).join(''):`<div class="small muted">Uneo ${esc(userName(t.createdBy||S.session))}</div>`}</div>
+  </div>`);
+}
 function taskForm(t={}){
   ui.replyTo=null;if(t.id)readTaskNotifs(t.id);
   const jobs=S.poslovi.filter(p=>!p.archived||p.id===t.jobId).sort((a,b)=>(b.startDate||'').localeCompare(a.startDate||''));
@@ -1931,8 +1950,8 @@ function taskForm(t={}){
   <label class="fld"><span>Rok</span><input id="tk-due" type="date" name="due" value="${t.due||''}"></label>
   <div class="fld"><span>Vezan za posao</span>${combo('jobId',jobs.map(p=>({v:p.id,label:posLabel(p),sub:p.startDate?'Početak '+startTxt(p):'Početak nije određen',q:posLabel(p)+' '+(p.description||'')})),t.jobId,'Počni da kucaš, pretražujem poslove')}<small>Nije obavezno.</small></div>
   <label class="fld"><span>Napomena</span><textarea id="tk-notes" name="notes" rows="2">${esc(t.notes)}</textarea></label>
-  ${t.id?commentSection(t,'task'):'<p class="small muted" style="margin:0">Komentari se dodaju kad je zadatak sačuvan.</p>'}
-  <div class="form-actions">${t.id?`<button type="button" class="btn danger-fill" data-act="delTask" data-id="${t.id}">${ic('trash',18)} Obriši</button>`:''}<button class="btn primary" type="submit">${ic('save',18)} Sačuvaj zadatak</button><button type="button" class="btn" data-act="closeSheet">${ic('x',18)} Zatvori</button></div></form>`);
+  ${t.id?'':'<p class="small muted" style="margin:0">Komentari se dodaju na detaljima zadatka, kad je sačuvan.</p>'}
+  <div class="form-actions"><button class="btn primary" type="submit">${ic('save',18)} Sačuvaj zadatak</button><button type="button" class="btn" data-act="closeSheet">${ic('x',18)} Zatvori</button></div></form>`);
   trackDirty(document.querySelector('[data-form=task]'));
 }
 const TASK_F=[['title','Zadatak'],['assignee','Zadužen',whoName],['due','Rok',v=>v?fmtDate(v):'bez roka'],['jobId','Posao',v=>{const j=posao(v);return j?posLabel(j):'—';}],['notes','Napomena']];
@@ -1972,7 +1991,9 @@ Object.assign(A,{
   tkWho:el=>{ui.tk.who=el.dataset.v;render();},
   tkDone:()=>{ui.tk.done=!ui.tk.done;render();},
   newTask:el=>{const j=posao(el.dataset.job);taskForm({jobId:j?.id||null,clientId:j?.clientId||null,assignee:j?.assignee||S.session,due:j?.startDate||''});},
-  editTask:el=>taskForm(S.tasks.find(t=>t.id===el.dataset.id)),
+  editTask:el=>taskDetail(S.tasks.find(t=>t.id===el.dataset.id)),
+  taskEdit:el=>taskForm(S.tasks.find(t=>t.id===el.dataset.id)),
+  taskJob:el=>{closeSheet();ui.posFrom={v:ui.view};go('posao',el.dataset.id);},
   // Završavanje zadatka traži potvrdu; vraćanje u otvoren ide odmah
   toggleTask:el=>{const t=S.tasks.find(x=>x.id===el.dataset.id);if(t.done)return A.toggleTaskYes(el);const ro=el.dataset.reopen?`data-reopen="${el.dataset.reopen}"`:'';
     openSheet('Završi zadatak?',`<div class="form"><p style="margin:0">Da li je zadatak „<b>${esc(t.title)}</b>“ završen?</p><div class="form-actions"><button class="btn" data-act="toggleTaskNo" ${ro}>Otkaži</button><button class="btn primary" data-act="toggleTaskYes" data-id="${t.id}" ${ro}>${ic('check',18)} Završi zadatak</button></div></div>`);},
@@ -1987,7 +2008,7 @@ Object.assign(F,{
     if(!d.title)return toast('Unesi šta treba uraditi.');
     d.clientId=d.jobId?posao(d.jobId)?.clientId||null:null; // zadatak nema svog klijenta, samo preko posla
     const stv=e.status.value;
-    if(id){const t=S.tasks.find(x=>x.id===id);const ch=diff(t,d,TASK_F);const was=taskStatus(t),prevA=t.assignee;if(stv!==was)ch.push({field:'Status',from:ST_NAME[was],to:ST_NAME[stv]});if(ch.length){Object.assign(t,d);if(t.assignee!==prevA)notifyAssigned(t);applyTaskStatus(t,stv);log('zadatak','izmenjeno',t.title,ch);save();}closeSheet();render();toast(ch.length?'Zadatak je sačuvan.':'Nema izmena.');}
+    if(id){const t=S.tasks.find(x=>x.id===id);const ch=diff(t,d,TASK_F);const was=taskStatus(t),prevA=t.assignee;if(stv!==was)ch.push({field:'Status',from:ST_NAME[was],to:ST_NAME[stv]});if(ch.length){Object.assign(t,d);if(t.assignee!==prevA)notifyAssigned(t);applyTaskStatus(t,stv);log('zadatak','izmenjeno',t.title,ch);save();}closeSheet();render();taskDetail(t);toast(ch.length?'Zadatak je sačuvan.':'Nema izmena.');}
     else{const t={id:uid(),...d,done:false,doneAt:null,doneBy:null,createdBy:S.session};applyTaskStatus(t,stv);S.tasks.push(t);notifyAssigned(t);log('zadatak','kreirano',t.title,[{field:'Status',from:'',to:ST_NAME[stv]},{field:'Zadužen',from:'',to:whoName(d.assignee)},...(d.due?[{field:'Rok',from:'',to:fmtDate(d.due)}]:[])]);save();closeSheet();render();toast('Zadatak je dodat.');}},
 });
 Object.assign(A,{
