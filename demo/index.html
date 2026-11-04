@@ -1006,8 +1006,8 @@ function earnOut(){
   const earn=k=>sum(inP.filter(x=>x.type==='prihod'&&(k==='kes'?isCash(x):k==='firma'?!isCash(x):true)));
   const sel=inP.filter(x=>ch==='kes'?isCash(x):ch==='firma'?!isCash(x):true),inc=sum(sel.filter(x=>x.type==='prihod')),out=sum(sel.filter(x=>x.type==='trosak'));
   const chName=Object.fromEntries(EARN_CH)[ch];
-  return `<div><span class="label">Zarada · ${chName} · ${esc(P.label)}</span><div class="big">${rsd(inc)}</div></div>
-    ${ch==='sve'?`<div class="earn-sub"><span>Troškovi <b>${rsd(out)}</b></span><span>Profit <b>${rsd(inc-out)}</b></span></div>`:''}
+  return `<div><span class="label">Profit · ${chName} · ${esc(P.label)}</span><div class="big">${rsd(inc-out)}</div></div>
+    <div class="earn-sub"><span>Zarada <b>${rsd(inc)}</b></span><span>Troškovi <b>${rsd(out)}</b></span></div>
     <div class="earn-tiles" role="group" aria-label="Način naplate">${EARN_CH.map(([k,l])=>`<button data-act="earnCh" data-v="${k}" aria-pressed="${ch===k}"><span>${l}</span><b>${amt(earn(k))}</b></button>`).join('')}</div>`;
 }
 const OWNERS=['nenad','jovan'];

@@ -26,7 +26,7 @@ Opšta pravila:
 ## 3. Pregled (početna)
 Tri kartice, tim redom:
 1. **Trake limita**: po jedna traka za svaku firmu koja nije zatvorena. Levo naplaćeno u tekućoj godini, desno preostalo do limita, naziv firme unutar trake (centriran, menja boju preko granice popune). Maksimum je paušal limit iz podešavanja (podrazumevano 6.000.000 RSD), ne ispisuje se. Boja: zelena, žuta od 80%, crvena od 95%; preko limita preostalo je negativno i crveno. Svaki korisnik može svakoj firmi da izabere stalnu boju trake (Podešavanja → Boje traka limita); preostali iznos i dalje menja boju po limitu.
-2. **Zarada**: izbor perioda (tabovi **Godina, Mesec, Period**; podrazumevano tekuća godina; Mesec ima mesec + godinu sa strelicama; Period ima od–do, datumi se okreću ako je „od“ posle „do“). Pločice **Ukupno, Preko firme, Keš** sa iznosima. Veliki iznos prikazuje izabranu pločicu. Samo na pločici Ukupno ispod iznosa stoje troškovi i profit.
+2. **Zarada**: izbor perioda (tabovi **Godina, Mesec, Period**; podrazumevano tekuća godina; Mesec ima mesec + godinu sa strelicama; Period ima od–do, datumi se okreću ako je „od“ posle „do“). Pločice **Ukupno, Preko firme, Keš** sa iznosima. Veliki iznos je **profit** (zarada minus troškovi) za izabranu pločicu, a ispod njega stoje zarada i troškovi te pločice.
 3. **Grafik poslednjih 6 meseci**: prihodi, troškovi i profit; prati izbor pločice, ne prati period.
 
 ## 4. Firme
