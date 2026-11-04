@@ -1,4 +1,6 @@
-// Edge Function: šalje obaveštenja na telefon (Expo push) iz tabele notifications (outbox).
+// Edge Function: šalje obaveštenja na telefon iz tabele notifications (outbox).
+// Android: direktno preko Firebase-a (FCM HTTP v1), ključ servisnog naloga je tajna FCM_SERVICE_ACCOUNT u Supabase-u.
+// Expo push token (iOS, kasnije): preko Expo push servisa.
 // Pokreće je baza (okidač pri novom obaveštenju i pg_cron svakog minuta) sa service_role ključem iz Vault-a.
 // Ne prima podatke spolja: samo obradi redove koji čekaju.
 //
@@ -80,10 +82,41 @@ Deno.serve(async req => {
     for (const to of mine) messages.push({ n, to, title: titleOf(n, from), body: n.text ?? '' });
   }
 
+  const ok = new Set<string>(), bad = new Set<string>();
+  const result = (m: { n: Notif; to: string }, good: boolean, gone: boolean) => {
+    if (good) ok.add(m.n.id); else bad.add(m.n.id);
+    // Telefon koji više nije registrovan: token se briše
+    if (gone) void sb.from('push_tokens').delete().eq('token', m.to);
+  };
+  const isExpo = (t: string) => t.startsWith('ExponentPushToken[') || t.startsWith('ExpoPushToken[');
+
+  // Android: Firebase (FCM HTTP v1), jedna poruka po telefonu
+  const fcm = messages.filter(m => !isExpo(m.to));
+  if (fcm.length) {
+    const auth = await fcmAuth();
+    for (const m of fcm) {
+      if (!auth) { result(m, false, false); continue; }
+      const res = await fetch(`https://fcm.googleapis.com/v1/projects/${auth.projectId}/messages:send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+        body: JSON.stringify({
+          message: {
+            token: m.to,
+            notification: { title: m.title, body: m.body },
+            data: { notificationId: m.n.id, target: m.n.target_type ?? '', targetId: m.n.target_id ?? '' },
+            android: { priority: 'HIGH', notification: { channel_id: 'default', sound: 'default' } },
+          },
+        }),
+      });
+      const err = res.ok ? '' : await res.text();
+      result(m, res.ok, res.status === 404 || err.includes('UNREGISTERED'));
+    }
+  }
+
   // Expo push: do 100 poruka po pozivu
-  let sent = 0;
-  for (let i = 0; i < messages.length; i += 100) {
-    const batch = messages.slice(i, i + 100);
+  const expo = messages.filter(m => isExpo(m.to));
+  for (let i = 0; i < expo.length; i += 100) {
+    const batch = expo.slice(i, i + 100);
     const res = await fetch('https://exp.host/--/api/v2/push/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -93,16 +126,13 @@ Deno.serve(async req => {
       }))),
     });
     const out = res.ok ? ((await res.json()) as { data: { status: string; details?: { error?: string } }[] }).data : [];
-    const ok = new Set<string>(), bad = new Set<string>();
-    batch.forEach((m, k) => {
-      const r = out[k];
-      if (r?.status === 'ok') { ok.add(m.n.id); sent++; } else bad.add(m.n.id);
-      // Telefon koji više nije registrovan: token se briše
-      if (r?.details?.error === 'DeviceNotRegistered') void sb.from('push_tokens').delete().eq('token', m.to);
-    });
-    for (const id of ok) await set(id, { push_state: 'sent', email_state: 'skipped' });
-    for (const id of bad) if (!ok.has(id)) await set(id, { push_state: 'failed', email_state: 'skipped' });
+    batch.forEach((m, k) => result(m, out[k]?.status === 'ok', out[k]?.details?.error === 'DeviceNotRegistered'));
   }
+
+  // Obaveštenje je poslato ako je stiglo bar na jedan telefon
+  for (const id of ok) await set(id, { push_state: 'sent', email_state: 'skipped' });
+  for (const id of bad) if (!ok.has(id)) await set(id, { push_state: 'failed', email_state: 'skipped' });
+  const sent = ok.size;
   return Response.json({ sent, processed: list.length });
 });
 
@@ -114,4 +144,26 @@ function jwtRole(token: string): string | null {
   } catch {
     return null;
   }
+}
+
+/** Pristupni token za Firebase iz ključa servisnog naloga (JWT potpisan RS256, važi sat vremena). */
+async function fcmAuth(): Promise<{ token: string; projectId: string } | null> {
+  const raw = Deno.env.get('FCM_SERVICE_ACCOUNT');
+  if (!raw) { console.error('Nema tajne FCM_SERVICE_ACCOUNT'); return null; }
+  const sa = JSON.parse(raw) as { client_email: string; private_key: string; project_id: string; token_uri?: string };
+  const aud = sa.token_uri ?? 'https://oauth2.googleapis.com/token';
+  const now = Math.floor(Date.now() / 1000);
+  const b64 = (b: ArrayBuffer | Uint8Array) => btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const enc = (o: unknown) => b64(new TextEncoder().encode(JSON.stringify(o)));
+  const unsigned = `${enc({ alg: 'RS256', typ: 'JWT' })}.${enc({ iss: sa.client_email, scope: 'https://www.googleapis.com/auth/firebase.messaging', aud, iat: now, exp: now + 3600 })}`;
+  const der = Uint8Array.from(atob(sa.private_key.replace(/-----[^-]+-----/g, '').replace(/\s/g, '')), ch => ch.charCodeAt(0));
+  const key = await crypto.subtle.importKey('pkcs8', der, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(unsigned));
+  const res = await fetch(aud, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: `${unsigned}.${b64(sig)}` }),
+  });
+  if (!res.ok) { console.error('Firebase prijava nije uspela', res.status); return null; }
+  return { token: ((await res.json()) as { access_token: string }).access_token, projectId: sa.project_id };
 }

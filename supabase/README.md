@@ -32,9 +32,12 @@ Raspored `job-reminders` (svakog minuta) je u istoj migraciji.
 ## Push obaveštenja (notify-dispatch)
 Tabela `notifications` je outbox. Pri svakom novom obaveštenju (i pg_cron svakog minuta za odložena) baza poziva
 Edge Function `notify-dispatch` sa ključem iz Vault-a (iste tajne kao za kurs: `project_url`, `service_role_key`).
-Funkcija poštuje lična podešavanja (push, vreme slanja, vrste događaja) i šalje preko Expo push servisa;
-tokeni telefona su u `push_tokens`. Email još nije povezan.
+Funkcija poštuje lična podešavanja (push, vreme slanja, vrste događaja); tokeni telefona su u `push_tokens`.
+Android šalje direktno preko Firebase-a (FCM HTTP v1, bez expo.dev): ključ servisnog naloga iz Firebase konzole
+(Project settings → Service accounts) je tajna `FCM_SERVICE_ACCOUNT`. Expo push token (iOS, kasnije) ide preko Expo push servisa.
+Email još nije povezan.
 ```bash
+supabase secrets set FCM_SERVICE_ACCOUNT="$(cat putanja/do/kljuca.json)"
 supabase functions deploy notify-dispatch
 ```
 

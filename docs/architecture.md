@@ -31,7 +31,7 @@ web (Next.js) ── @poznan/api (web adapter) ───── Supabase JS + Rea
 | Web | Next.js App Router, `@supabase/ssr`, TanStack Query, Supabase Realtime, hosting na Vercel-u |
 | Backend | Supabase (EU, Frankfurt): Postgres, Auth (email + lozinka, bez registracije), Storage, Edge Functions, pg_cron, Realtime |
 | Validacija | zod šeme u `@poznan/shared`, iste za forme, API i Edge Functions |
-| Push | `expo-notifications` + Expo Push API |
+| Push | `expo-notifications`; Android direktno preko Firebase-a (FCM HTTP v1 iz `notify-dispatch`), iOS kasnije preko Expo Push API |
 | Email | Resend iz Edge Function-a |
 | Glas | `expo-speech-recognition` (sr-RS) + Edge Function `voice-parse` (Claude Haiku, tool use) |
 | Testovi | Vitest (shared, api), pgTAP (RLS, triggeri), Playwright (web), Maestro (mobile) |
