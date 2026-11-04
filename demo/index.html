@@ -237,6 +237,8 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:
 .notif .row-main small{display:block}
 .notif-text{color:var(--fg)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dot-unread{width:10px;height:10px;border-radius:50%;background:var(--accent);flex:none}
+.notif-wrap{position:relative}.notif-wrap .notif{padding-right:60px}
+.notif-read{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--accent)}
 .cmt{transition:box-shadow .3s}
 .cmt.cmt-hl{box-shadow:0 0 0 2px var(--accent)}
 .btn.danger-fill{background:var(--bad);border-color:var(--bad);color:var(--accent-fg)}
@@ -1603,6 +1605,7 @@ const A={
   closeInvoice:()=>{$('#invoiceRoot').innerHTML='';render();},
   printInvoice:()=>window.print(),
   openNotifs:()=>notifSheet(),
+  readNotif:el=>{const n=(S.notifs||[]).find(x=>x.id===el.dataset.id);if(n){n.read=true;save();render();notifSheet();}},
   readAllNotifs:()=>{myNotifs().forEach(n=>n.read=true);save();render();notifSheet();},
   openNotif:el=>{const n=(S.notifs||[]).find(x=>x.id===el.dataset.id);if(!n)return;n.read=true;save();closeSheet();
     if(n.companyId){const c=company(n.companyId);if(!c){render();toast('Firma je obrisana.');return;}go('firma',c.id);}
@@ -1921,7 +1924,7 @@ const myNotifs=()=>(S.notifs||[]).filter(n=>n.to===S.session).sort((a,b)=>b.ts-a
 function bellBtn(){const n=myNotifs().filter(x=>!x.read).length;return `<button class="icon-btn bell-btn" data-act="openNotifs" aria-label="Obaveštenja${n?`, ${n} nepročitanih`:''}">${ic('bell')}${n?`<span class="badge">${n>9?'9+':n}</span>`:''}</button>`;}
 function notifSheet(){const list=myNotifs().filter(n=>!n.read),unread=list.length; // prikazuju se samo nepročitana
   openSheet('Obaveštenja',`<div class="form">${unread?`<button type="button" class="btn sm" data-act="readAllNotifs" style="align-self:flex-end">${ic('check',16)} Označi sve kao pročitano</button>`:''}
-  ${list.length?`<div class="list">${list.map(n=>{const nk=notifKind(n),o=cmtOwner(nk,n[CMT[nk].key]),what=n.type==='reply'?'je odgovorio na komentar':`je komentarisao ${CMT[nk].noun}`;return `<button class="row notif${n.read?'':' unread'}" data-act="openNotif" data-id="${n.id}"><span class="av-sm av-${n.from}">${esc(initials(userName(n.from)))}</span><div class="row-main"><b>${n.type==='task_assigned'?`${esc(userName(n.from))} ti je dodelio zadatak`:n.type==='reminder'?`Podsetnik: čeka se uplata${n.from!==S.session?` (postavio ${esc(userName(n.from))})`:''}`:`${esc(userName(n.from))} ${what}`}</b><small>${esc(o?cmtTitle(nk,o):'Obrisano')}</small>${n.type==='task_assigned'?'':`<small class="notif-text">„${esc(n.text)}“</small>`}<small>${fmtDT(n.ts)}</small></div>${n.read?'':'<span class="dot-unread" aria-label="Nepročitano"></span>'}</button>`;}).join('')}</div>`:'<div class="card empty">Nema novih obaveštenja.</div>'}</div>`);}
+  ${list.length?`<div class="list">${list.map(n=>{const nk=notifKind(n),o=cmtOwner(nk,n[CMT[nk].key]),what=n.type==='reply'?'je odgovorio na komentar':`je komentarisao ${CMT[nk].noun}`;return `<div class="notif-wrap"><button class="row notif${n.read?'':' unread'}" data-act="openNotif" data-id="${n.id}"><span class="av-sm av-${n.from}">${esc(initials(userName(n.from)))}</span><div class="row-main"><b>${n.type==='task_assigned'?`${esc(userName(n.from))} ti je dodelio zadatak`:n.type==='reminder'?`Podsetnik: čeka se uplata${n.from!==S.session?` (postavio ${esc(userName(n.from))})`:''}`:`${esc(userName(n.from))} ${what}`}</b><small>${esc(o?cmtTitle(nk,o):'Obrisano')}</small>${n.type==='task_assigned'?'':`<small class="notif-text">„${esc(n.text)}“</small>`}<small>${fmtDT(n.ts)}</small></div></button><button type="button" class="icon-btn notif-read" data-act="readNotif" data-id="${n.id}" aria-label="Označi kao pročitano">${ic('check',18)}</button></div>`;}).join('')}</div>`:'<div class="card empty">Nema novih obaveštenja.</div>'}</div>`);}
 /* Otvaranje zadatka označava njegova obaveštenja kao pročitana */
 function readNotifsFor(key,id){let ch=false;(S.notifs||[]).forEach(n=>{if(n.to===S.session&&n[key]===id&&!n.read){n.read=true;ch=true;}});if(ch)save();return ch;}
 function readTaskNotifs(taskId){if(readNotifsFor('taskId',taskId))render();}
