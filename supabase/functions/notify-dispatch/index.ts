@@ -24,7 +24,7 @@ function minutesUntil(from: string, now: string): number {
   return d > 0 ? d : d + 1440;
 }
 /** Vrsta obaveštenja → podešavanje „Šta šaljemo“ (komentari i podsetnici idu uvek). */
-const EVENT: Record<string, string | null> = { comment: null, reply: null, reminder: null, job_start: 'start', task_due: 'tasks', task_assigned: 'tasks', limit: 'limit', tx_income: 'promet', tx_expense: 'promet' };
+const EVENT: Record<string, string | null> = { comment: null, reply: null, reminder: null, job_start: 'start', task_due: 'tasks', task_assigned: 'tasks', limit: 'limit', tx_income: 'promet', tx_expense: 'promet', tx_transfer: 'promet', tx_contribution: 'promet', tx_edit: 'promet', tx_delete: 'promet' };
 
 function titleOf(n: Notif, from: string): string {
   switch (n.type) {
@@ -37,6 +37,10 @@ function titleOf(n: Notif, from: string): string {
     case 'limit': return 'Limit firme';
     case 'tx_income': return `${from} je uneo prihod`;
     case 'tx_expense': return `${from} je uneo trošak`;
+    case 'tx_transfer': return `${from} je uneo prenos`;
+    case 'tx_contribution': return `${from} je uneo ulog`;
+    case 'tx_edit': return `${from} je izmenio promet`;
+    case 'tx_delete': return `${from} je obrisao promet`;
     default: return 'Poznan';
   }
 }
@@ -84,7 +88,7 @@ Deno.serve(async req => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(batch.map(m => ({
-        to: m.to, title: m.title, body: m.body, sound: 'default',
+        to: m.to, title: m.title, body: m.body, sound: 'default', priority: 'high', channelId: 'default',
         data: { notificationId: m.n.id, target: m.n.target_type, targetId: m.n.target_id },
       }))),
     });
