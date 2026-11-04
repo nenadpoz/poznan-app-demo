@@ -13,6 +13,7 @@ export const keys = {
   transactions: (f: object = {}) => ['transactions', f] as const,
   comments: (target: string, id: string) => ['comments', target, id] as const,
   notifications: ['notifications'] as const,
+  notificationsSeen: ['notifications', 'seen'] as const,
   settings: ['settings'] as const,
   accounts: ['accounts'] as const,
   balances: ['account_balances'] as const,

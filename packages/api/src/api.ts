@@ -82,6 +82,8 @@ export interface PoznanApi {
   };
   notifications: {
     unread(): Promise<Notification[]>;
+    /** Već viđena (pročitana) obaveštenja, najnovije prvo (poslednjih `limit`, podrazumevano 100). */
+    seen(limit?: number): Promise<Notification[]>;
     markRead(ids: string[]): Promise<void>;
     markAllRead(): Promise<void>;
     markReadFor(target: Comment['target'], targetId: string): Promise<void>;

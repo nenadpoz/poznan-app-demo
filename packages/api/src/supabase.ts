@@ -205,6 +205,9 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
       async unread() {
         return check(await sb.from('notifications').select('*').is('read_at', null).order('created_at', { ascending: false })).map(r => fromRow('notifications', r));
       },
+      async seen(limit = 100) {
+        return check(await sb.from('notifications').select('*').not('read_at', 'is', null).order('created_at', { ascending: false }).limit(limit)).map(r => fromRow('notifications', r));
+      },
       async markRead(ids) { if (ids.length) ok(await sb.from('notifications').update({ read_at: now() }).in('id', ids)); },
       async markAllRead() { ok(await sb.from('notifications').update({ read_at: now() }).is('read_at', null)); },
       async registerPushToken(token, platform) {
