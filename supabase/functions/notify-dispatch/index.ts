@@ -5,7 +5,7 @@
 // Ne prima podatke spolja: samo obradi redove koji čekaju.
 //
 // Za svakog primaoca poštuje lična podešavanja (profiles.notif): push uključen, vreme slanja (od–do,
-// po vremenu u Srbiji; van vremena se odlaže do početka) i vrste događaja (početak posla, zadaci, limit).
+// po vremenu u Srbiji; van vremena se odlaže do početka, osim podsetnika zadatka) i vrste događaja (početak posla, zadaci, limit).
 // Email još nije povezan (nema servisa za slanje), pa se email deo označava kao preskočen.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -26,7 +26,9 @@ function minutesUntil(from: string, now: string): number {
   return d > 0 ? d : d + 1440;
 }
 /** Vrsta obaveštenja → podešavanje „Šta šaljemo“ (komentari i podsetnici idu uvek). */
-const EVENT: Record<string, string | null> = { comment: null, reply: null, reminder: null, job_start: 'start', task_due: 'tasks', task_assigned: 'tasks', limit: 'limit', tx_income: 'promet', tx_expense: 'promet', tx_transfer: 'promet', tx_contribution: 'promet', tx_edit: 'promet', tx_delete: 'promet' };
+/** Podsetnici zadatka stižu u vreme koje je vlasnik izabrao (i u 06:00 na dan roka), i van vremena slanja. */
+const EXACT_TIME = new Set(['task_reminder', 'task_due']);
+const EVENT: Record<string, string | null> = { comment: null, reply: null, reminder: null, job_start: 'start', task_due: 'tasks', task_assigned: 'tasks', task_reminder: 'tasks', task_overdue: 'tasks', limit: 'limit', tx_income: 'promet', tx_expense: 'promet', tx_transfer: 'promet', tx_contribution: 'promet', tx_edit: 'promet', tx_delete: 'promet' };
 
 function titleOf(n: Notif, from: string): string {
   switch (n.type) {
@@ -34,7 +36,9 @@ function titleOf(n: Notif, from: string): string {
     case 'reply': return `${from} je odgovorio`;
     case 'reminder': return 'Podsetnik za uplatu';
     case 'job_start': return 'Posao počinje';
-    case 'task_due': return 'Zadatak za danas';
+    case 'task_due': return 'Rok zadatka je danas';
+    case 'task_reminder': return 'Podsetnik za zadatak';
+    case 'task_overdue': return 'Da li je zadatak završen?';
     case 'task_assigned': return `${from} ti je dodelio zadatak`;
     case 'limit': return 'Limit firme';
     case 'tx_income': return `${from} je uneo prihod`;
@@ -71,7 +75,7 @@ Deno.serve(async req => {
     const ev = EVENT[n.type];
     if (p.push === false || (ev && p.ev?.[ev] === false)) { await set(n.id, { push_state: 'skipped', email_state: 'skipped' }); continue; }
     const win = p.pushWin ?? { from: '07:00', to: '21:00' };
-    if (!inWindow(now, win)) {
+    if (!EXACT_TIME.has(n.type) && !inWindow(now, win)) {
       // Van vremena slanja: stiže kad vreme počne
       await set(n.id, { send_after: new Date(Date.now() + minutesUntil(win.from, now) * 60_000).toISOString() });
       continue;

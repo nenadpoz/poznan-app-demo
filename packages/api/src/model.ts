@@ -36,6 +36,8 @@ export interface PendingItem extends Base { jobId: string; companyId: string | n
 export interface Task extends Base {
   title: string; assignee: Assignee; dueDate: string | null; status: TaskStatus; doneAt: string | null; doneBy: string | null;
   jobId: string | null; note: string | null;
+  /** Podsetnici (ISO); na dan roka u 06:00 stiže i podrazumevani. */
+  reminders: string[];
 }
 export interface Comment extends Base { target: CommentTarget; targetId: string; parentId: string | null; userId: string; text: string }
 export interface Transaction extends Base {

@@ -3,7 +3,7 @@ import {
   addDays, badgeCount, canInvoice, canInvoiceJobLine, channelsNow, clientSchema, cssVars, DEFAULT_NOTIFICATION_PREFS, defaultJobStatus,
   diffDays, filterTasks, fmtDate, formatInvoiceNo, hasStarted, incomeForYear, incomeLast12Months, inWindow, invoicePrefix,
   jobPaymentSchema, lightColors, limitUsage, money, nextStartPrompt, parseAmount, paymentSummary, pdvPeriod, periodRange, plural,
-  rsd, settingsSchema, sortJobs, taskGroup, totals, validatePayment, vatForMonth, weekday,
+  isTaskOverdue, rsd, settingsSchema, sortJobs, taskGroup, taskReminderError, taskRemindersError, taskReminderText, totals, validatePayment, vatForMonth, weekday,
 } from '../src';
 
 describe('format', () => {
@@ -183,5 +183,35 @@ describe('šeme i tema', () => {
     expect(css).toContain('--lc0:#B4531A;');
     expect(css).toContain('--av-a:#0A6B63;');
     expect(css).toContain('--bar-out:#B9C6C2;');
+  });
+});
+
+describe('podsetnici zadatka', () => {
+  const now = new Date(2026, 10, 5, 10, 0); // 5. nov 2026. 10:00
+  it('ne u prošlost, ne posle roka', () => {
+    expect(taskReminderError(new Date(2026, 10, 6, 9, 0), '2026-11-07', now)).toBeNull();
+    expect(taskReminderError(new Date(2026, 10, 7, 23, 59), '2026-11-07', now)).toBeNull();
+    expect(taskReminderError(new Date(2026, 10, 8, 0, 0), '2026-11-07', now)).toBe('Podsetnik ne može biti posle roka.');
+    expect(taskReminderError(new Date(2026, 10, 5, 9, 0), '2026-11-07', now)).toBe('Podsetnik ne može biti u prošlosti.');
+    expect(taskReminderError(new Date(2026, 10, 6, 9, 0), null, now)).toBe('Za podsetnik prvo izaberi rok.');
+  });
+  it('već poslat podsetnik ostaje', () => {
+    const sent = new Date(2026, 10, 4, 9, 0).toISOString();
+    const next = new Date(2026, 10, 6, 9, 0).toISOString();
+    expect(taskRemindersError([sent, next], [sent], '2026-11-07', now)).toBeNull();
+    expect(taskRemindersError([sent], [], '2026-11-07', now)).toBe('Podsetnik ne može biti u prošlosti.');
+    expect(taskRemindersError([next], [], '2026-11-05', now)).toBe('Podsetnik ne može biti posle roka.');
+  });
+  it('tekst', () => {
+    expect(taskReminderText('Organizovati bager', 2)).toBe('Ostalo je još 2 dana do završetka zadatka „Organizovati bager“');
+    expect(taskReminderText('X', 1)).toBe('Ostao je još 1 dan do završetka zadatka „X“');
+    expect(taskReminderText('X', 21)).toBe('Ostao je još 21 dan do završetka zadatka „X“');
+    expect(taskReminderText('X', 11)).toBe('Ostalo je još 11 dana do završetka zadatka „X“');
+    expect(taskReminderText('X', 0)).toBe('Danas je rok za zadatak „X“');
+  });
+  it('kasni', () => {
+    expect(isTaskOverdue({ status: 'cekanje', dueDate: '2026-11-04' }, '2026-11-05')).toBe(true);
+    expect(isTaskOverdue({ status: 'zavrseno', dueDate: '2026-11-04' }, '2026-11-05')).toBe(false);
+    expect(isTaskOverdue({ status: 'proces', dueDate: '2026-11-05' }, '2026-11-05')).toBe(false);
   });
 });

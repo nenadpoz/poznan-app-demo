@@ -44,7 +44,7 @@ export const CATEGORIES_OUT = ['Materijal', 'Gorivo', 'Knjigovođa', 'Porez i do
 export const COMMENT_TARGETS = ['task', 'job', 'company'] as const;
 export type CommentTarget = (typeof COMMENT_TARGETS)[number];
 
-export const NOTIFICATION_TYPES = ['comment', 'reply', 'reminder', 'job_start', 'task_due', 'task_assigned', 'limit', 'tx_income', 'tx_expense', 'tx_transfer', 'tx_contribution', 'tx_edit', 'tx_delete'] as const;
+export const NOTIFICATION_TYPES = ['comment', 'reply', 'reminder', 'job_start', 'task_due', 'task_assigned', 'limit', 'tx_income', 'tx_expense', 'tx_transfer', 'tx_contribution', 'tx_edit', 'tx_delete', 'task_reminder', 'task_overdue'] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
 export const CHANNELS = ['push', 'email'] as const;

@@ -101,6 +101,8 @@ export const taskSchema = z.object({
   assignee: assignee.default('oba'),
   jobId: id.nullable().optional(),
   status: z.enum(keys(TASK_STATUSES)).default('cekanje'),
+  /** Podsetnici (datum i vreme, ISO); proveru prema roku i današnjem danu radi taskRemindersError i baza. */
+  reminders: z.array(z.string().datetime({ offset: true })).max(10, 'Najviše 10 podsetnika.').default([]),
 });
 export type TaskInput = z.infer<typeof taskSchema>;
 
