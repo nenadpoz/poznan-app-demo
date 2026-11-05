@@ -10,6 +10,8 @@ export interface NotificationPrefs {
   email: boolean;
   pushWin: TimeWindow;
   emailWin: TimeWindow;
+  /** Vreme podsetnika na dan roka zadatka (HH:MM), ako zadatak nema svoje. */
+  taskTime?: string;
 }
 
 export const DEFAULT_WINDOWS: Record<Channel, TimeWindow> = { push: { from: '07:00', to: '21:00' }, email: { from: '08:00', to: '20:00' } };

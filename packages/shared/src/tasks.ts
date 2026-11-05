@@ -44,6 +44,10 @@ export function filterTasks<T extends TaskLike>(list: T[], f: TaskFilter): T[] {
 export const DEFAULT_TASK_REMINDER_TIME = '06:00';
 export const MAX_TASK_REMINDERS = 10;
 
+/** Vreme podrazumevanog podsetnika: vreme zadatka, inače lično podešavanje, inače 06:00. */
+export const taskDueTime = (taskTime: string | null | undefined, myTime?: string | null) =>
+  taskTime || myTime || DEFAULT_TASK_REMINDER_TIME;
+
 /** Kraj dana roka (ponoć posle roka, lokalno vreme). Podsetnik mora biti pre toga. */
 export function taskDueEnd(dueIso: string): Date {
   const [y, m, d] = dueIso.split('-').map(Number);

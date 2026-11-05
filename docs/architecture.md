@@ -52,7 +52,7 @@ Sve tabele: `id uuid`, `created_at`, `updated_at`, `updated_by`, i `deleted_at` 
 | `job_pending_items` | očekivane stavke: `job_id, company_id` (null = keš), `amount, description, invoice_no` |
 | `job_reminders` | `job_id, remind_at, audience` (`me`/`both`), `created_by, note, fired_at` |
 | `job_photos` | `job_id, storage_path` |
-| `tasks` | `title, assignee, due, status, done_at, done_by, job_id, notes, reminders` (bez klijenta; `task_alerts` beleži poslate podsetnike, pg_cron `fire_task_alerts` svakog minuta) |
+| `tasks` | `title, assignee, due, status, done_at, done_by, job_id, notes, reminders, due_time` (bez klijenta; `task_alerts` beleži poslate podsetnike, pg_cron `fire_task_alerts` svakog minuta) |
 | `comments` | `target_type` (`task`/`job`/`company`), `target_id, parent_id, user_id, text` |
 | `transactions` | `type, amount` (RSD), `amount_original, currency, fx_rate, account_id, created_by, date, company_id` (izvodi se iz računa), `client_id, category, vat, description` (u aplikaciji „Komentar“), `job_id, invoice_no, salary_to` (plata vlasniku), `pending_client` (čeka klijenta) |
 | `owner_contributions` | ulog vlasnika: `owner, account_id, amount` (RSD), `amount_original, currency, fx_rate, date, note, created_by`; nije prihod, ulazi u stanje računa |

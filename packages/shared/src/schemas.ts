@@ -103,6 +103,8 @@ export const taskSchema = z.object({
   status: z.enum(keys(TASK_STATUSES)).default('cekanje'),
   /** Podsetnici (datum i vreme, ISO); proveru prema roku i današnjem danu radi taskRemindersError i baza. */
   reminders: z.array(z.string().datetime({ offset: true })).max(10, 'Najviše 10 podsetnika.').default([]),
+  /** Vreme podsetnika na dan roka samo za ovaj zadatak; null = po podešavanjima. */
+  dueTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Vreme upiši kao 08:00.').nullable().default(null),
 });
 export type TaskInput = z.infer<typeof taskSchema>;
 

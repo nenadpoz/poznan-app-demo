@@ -3,7 +3,7 @@ import {
   addDays, badgeCount, canInvoice, canInvoiceJobLine, channelsNow, clientSchema, cssVars, DEFAULT_NOTIFICATION_PREFS, defaultJobStatus,
   diffDays, filterTasks, fmtDate, formatInvoiceNo, hasStarted, incomeForYear, incomeLast12Months, inWindow, invoicePrefix,
   jobPaymentSchema, lightColors, limitUsage, money, nextStartPrompt, parseAmount, paymentSummary, pdvPeriod, periodRange, plural,
-  isTaskOverdue, rsd, settingsSchema, sortJobs, taskGroup, taskReminderError, taskRemindersError, taskReminderText, totals, validatePayment, vatForMonth, weekday,
+  isTaskOverdue, rsd, settingsSchema, sortJobs, taskGroup, taskDueTime, taskReminderError, taskRemindersError, taskReminderText, taskSchema, totals, validatePayment, vatForMonth, weekday,
 } from '../src';
 
 describe('format', () => {
@@ -208,6 +208,13 @@ describe('podsetnici zadatka', () => {
     expect(taskReminderText('X', 21)).toBe('Ostao je još 21 dan do završetka zadatka „X“');
     expect(taskReminderText('X', 11)).toBe('Ostalo je još 11 dana do završetka zadatka „X“');
     expect(taskReminderText('X', 0)).toBe('Danas je rok za zadatak „X“');
+  });
+  it('vreme podsetnika na dan roka', () => {
+    expect(taskDueTime(null)).toBe('06:00');
+    expect(taskDueTime(null, '08:00')).toBe('08:00');
+    expect(taskDueTime('07:15', '08:00')).toBe('07:15');
+    expect(taskSchema.parse({ title: 'X', dueDate: '2026-11-07' }).dueTime).toBeNull();
+    expect(taskSchema.safeParse({ title: 'X', dueDate: '2026-11-07', dueTime: '8:00' }).success).toBe(false);
   });
   it('kasni', () => {
     expect(isTaskOverdue({ status: 'cekanje', dueDate: '2026-11-04' }, '2026-11-05')).toBe(true);

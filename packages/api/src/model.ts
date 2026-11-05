@@ -38,6 +38,8 @@ export interface Task extends Base {
   jobId: string | null; note: string | null;
   /** Podsetnici (ISO); na dan roka u 06:00 stiže i podrazumevani. */
   reminders: string[];
+  /** Vreme podsetnika na dan roka (HH:MM); null = po ličnom podešavanju (podrazumevano 06:00). */
+  dueTime: string | null;
 }
 export interface Comment extends Base { target: CommentTarget; targetId: string; parentId: string | null; userId: string; text: string }
 export interface Transaction extends Base {
