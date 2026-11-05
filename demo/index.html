@@ -249,6 +249,7 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:
 .cmt.cmt-hl{box-shadow:0 0 0 2px var(--accent)}
 .btn.danger-fill{background:var(--bad);border-color:var(--bad);color:var(--accent-fg)}
 .cmt-sec{gap:8px}
+.tx-cmts{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
 .cmt-list{display:flex;flex-direction:column;gap:8px}
 .cmt{display:flex;gap:10px;align-items:flex-start;background:var(--surface-2);border-radius:12px;padding:10px 12px}
 .cmt .av-xs{border:0;flex:none}
@@ -845,7 +846,7 @@ function balanceCard(){const a=accounts(),tot=a.reduce((s,x)=>s+balanceOf(x.id),
   <div class="kv bal-tot"><span>Ukupno</span><b>${rsd(tot)}</b></div>${lastMove()}</section>`;}
 function ulogRow(u){return `<button class="row" data-act="editUlog" data-id="${u.id}"><div class="row-main"><b>Ulog vlasnika · ${esc(userName(u.owner))}</b><small>${fmtDate(u.date)} ${u.to==='kes'?'<span class="tag kes">keš</span>':`<span class="tag">${esc(acctName(u.to))}</span>`} <span class="tag">ulog</span>${u.note?' · '+esc(u.note):''}</small></div>
   <div class="row-amt tr">+${amt(u.amount)}${u.currency!==dispCur()?`<small>uneto ${curAmt(u.amountOriginal,u.currency)}</small>`:'<small>nije prihod</small>'}</div></button>`;}
-function transferRow(x){return `<button class="row" data-act="delTransfer" data-id="${x.id}"><div class="row-main"><b>${esc(acctName(x.from))} → ${esc(acctName(x.to))}</b><small>${fmtDate(x.date)} <span class="tag">prenos</span>${x.note?' · '+esc(x.note):''}</small></div>
+function transferRow(x){return `<button class="row" data-act="transferSheet" data-id="${x.id}"><div class="row-main"><b>${esc(acctName(x.from))} → ${esc(acctName(x.to))}</b><small>${fmtDate(x.date)} <span class="tag">prenos</span>${x.note?' · '+esc(x.note):''}</small></div>
   <div class="row-amt tr">${amt(x.amount)}${x.currency!==dispCur()?`<small>uneto ${curAmt(x.amountOriginal,x.currency)}</small>`:'<small>prenos</small>'}</div></button>`;}
 // Stanje se prikazuje u valuti izabranoj u formi prenosa (pickCur).
 let pickCur='EUR';
@@ -1550,7 +1551,7 @@ function txForm(t={},voice=false){
     <label class="check-row"><input type="checkbox" name="newClient">Dodaj novog klijenta u sledećem koraku</label><small id="clientHint">Nije obavezno.</small></div>
   <label class="fld"><span>Komentar</span><textarea id="t-desc" name="description" rows="2" placeholder="Nije obavezno">${esc(t.description)}</textarea></label>
   ${t.invoiceNo?`<p class="small muted" style="margin:0">Faktura: ${esc(t.invoiceNo)}</p>`:''}
-  <div class="form-actions">${t._ulog?`<button type="button" class="btn danger" data-act="delUlog" data-id="${t._ulog}">Obriši</button>`:t.id?`<button type="button" class="btn danger" data-act="delTx" data-id="${t.id}">Obriši</button>`:`<button type="button" class="btn" data-act="closeSheet">Otkaži</button>`}<button class="btn primary" type="submit">Sačuvaj</button></div></form>`);
+  <div class="form-actions">${t._ulog?`<button type="button" class="btn danger" data-act="delUlog" data-id="${t._ulog}">Obriši</button>`:t.id?`<button type="button" class="btn danger" data-act="delTx" data-id="${t.id}">Obriši</button>`:`<button type="button" class="btn" data-act="closeSheet">Otkaži</button>`}<button class="btn primary" type="submit">Sačuvaj</button></div></form>${(()=>{const o=t._ulog?CMT.ulog.get(t._ulog):t.id?CMT.tx.get(t.id):null;return o?`<div class="form tx-cmts">${commentSection(o,t._ulog?'ulog':'tx')}</div>`:'';})()}`);
   updTxForm(true);
 }
 function updTxForm(init){
@@ -1665,6 +1666,9 @@ const A={
   delUlog:el=>{const u=(S.ulozi||[]).find(x=>x.id===el.dataset.id);if(!u)return;confirmSheet('Obriši ulog?',`Ulog vlasnika ${userName(u.owner)}, ${curAmt(u.amountOriginal,u.currency)} od ${fmtDate(u.date)} biće obrisan.`,'Obriši',()=>{S.ulozi=S.ulozi.filter(x=>x.id!==u.id);log('transakcija','obrisano',`Ulog vlasnika · ${userName(u.owner)} ${rsdFix(u.amount)} · ${acctName(u.to)}`);save();render();toast('Ulog je obrisan.');});},
   payDiff:el=>{const a=+el.dataset.rsd,c=dispCur(),r=fxRate();txForm({type:'trosak',salaryTo:el.dataset.to,category:'Plata',currency:c,amount:Math.round(a*100)/100,amountOriginal:c==='EUR'?Math.round(a/r*100)/100:Math.round(a),description:'Isplata razlike u platama ('+el.dataset.period+')'});},
   newUlog:()=>txForm({type:'prihod',ulogOwner:S.session}),
+  transferSheet:el=>{const x=CMT.transfer.get(el.dataset.id);if(!x)return;const r=(k,v)=>`<div class="small"><span class="muted">${k}:</span> ${esc(v)}</div>`;
+    openSheet('Prenos',`<div class="form">${r('Iznos',curAmt(x.amountOriginal,x.currency))}${r('Datum',fmtDate(x.date))}${r('Sa računa',acctName(x.from))}${r('Na račun',acctName(x.to))}${x.note?r('Komentar',x.note):''}${r('Uneo',userName(x.by))}
+      ${commentSection(x,'transfer')}<div class="form-actions"><button type="button" class="btn danger" data-act="delTransfer" data-id="${x.id}">Obriši</button><button type="button" class="btn primary" data-act="closeSheet">Zatvori</button></div></div>`);},
   delTransfer:el=>{const x=(S.transfers||[]).find(y=>y.id===el.dataset.id);if(!x)return;confirmSheet('Obriši prenos?',`${acctName(x.from)} → ${acctName(x.to)}, ${curAmt(x.amountOriginal,x.currency)} od ${fmtDate(x.date)} (uneo: ${userName(x.by)}).`,'Obriši',()=>{S.transfers=S.transfers.filter(y=>y.id!==x.id);log('transakcija','obrisano',`Prenos ${acctName(x.from)} → ${acctName(x.to)} · ${rsdFix(x.amount)}`);save();render();toast('Prenos je obrisan.');});},
   go:el=>{if(el.dataset.v==='poslovi'&&el.closest('.nav'))ui.clientArch=false;go(el.dataset.v,el.dataset.p||null);},
   posTab:el=>{ui.posTab=el.dataset.v;render();},
@@ -1684,6 +1688,7 @@ const A={
   openNotif:el=>{const n=(S.notifs||[]).find(x=>x.id===el.dataset.id);if(!n)return;n.read=true;save();closeSheet();
     if(n.companyId){const c=company(n.companyId);if(!c){render();toast('Firma je obrisana.');return;}go('firma',c.id);}
     else if(n.jobId){const p=posao(n.jobId);if(!p){render();toast('Posao je obrisan.');return;}ui.posFrom={v:'poslovi'};go('posao',p.id);}
+    else if(n.txId||n.ulogId||n.transferId){const k=notifKind(n),o=CMT[k].get(n[CMT[k].key]);if(!o){render();toast('Unos je obrisan.');return;}go('promet');A[k==='tx'?'editTx':k==='ulog'?'editUlog':'transferSheet']({dataset:{id:o.id}});}
     else{const t=S.tasks.find(x=>x.id===n.taskId);if(!t){render();toast('Zadatak je obrisan.');return;}go('zadaci');taskDetail(t);}
     if(!n.commentId)return; // podsetnik: samo otvori posao
     setTimeout(()=>{const c=document.getElementById('cmt-'+n.commentId);if(c){c.scrollIntoView({behavior:'smooth',block:'center'});c.classList.add('cmt-hl');setTimeout(()=>c.classList.remove('cmt-hl'),2200);}else toast('Komentar je obrisan.');},260);},
@@ -1979,11 +1984,12 @@ const formSig=f=>JSON.stringify([...new FormData(f)].map(([k,v])=>[k,typeof v===
 function dirtyCheck(f){const b=f.querySelector('button[type=submit]');if(b)b.disabled=formSig(f)===f.dataset.sig;}
 function trackDirty(f){if(!f)return;f.dataset.sig=formSig(f);dirtyCheck(f);}
 /* Komentari na zadatku ili poslu: ko, kada, tekst, odgovori (jedan nivo). Svako briše samo svoje. */
-/* Komentari postoje na zadacima, poslovima i firmama */
-const CMT={task:{get:id=>S.tasks.find(x=>x.id===id),title:o=>o.title,ent:'zadatak',key:'taskId',noun:'zadatak'},job:{get:id=>posao(id),title:o=>posLabel(o),ent:'posao',key:'jobId',noun:'posao'},company:{get:id=>company(id),title:o=>o.name,ent:'firma',key:'companyId',noun:'firmu'}};
+/* Komentari postoje na zadacima, poslovima, firmama i svakom unosu u Prometu (prihod/trošak, ulog, prenos) */
+const trTitle=x=>`Prenos ${acctName(x.from)} → ${acctName(x.to)}`;
+const CMT={tx:{get:id=>S.tx.find(x=>x.id===id),title:o=>o.description||(o.salaryTo?'Plata · '+userName(o.salaryTo):o.category),ent:'transakcija',key:'txId',noun:'unos'},ulog:{get:id=>(S.ulozi||[]).find(x=>x.id===id),title:o=>`Ulog vlasnika · ${userName(o.owner)}`,ent:'transakcija',key:'ulogId',noun:'ulog'},transfer:{get:id=>(S.transfers||[]).find(x=>x.id===id),title:trTitle,ent:'transakcija',key:'transferId',noun:'prenos'},task:{get:id=>S.tasks.find(x=>x.id===id),title:o=>o.title,ent:'zadatak',key:'taskId',noun:'zadatak'},job:{get:id=>posao(id),title:o=>posLabel(o),ent:'posao',key:'jobId',noun:'posao'},company:{get:id=>company(id),title:o=>o.name,ent:'firma',key:'companyId',noun:'firmu'}};
 const cmtOwner=(kind,id)=>CMT[kind].get(id);
 const cmtTitle=(kind,o)=>CMT[kind].title(o);
-const notifKind=n=>n.companyId?'company':n.jobId?'job':'task';
+const notifKind=n=>n.companyId?'company':n.jobId?'job':n.txId?'tx':n.ulogId?'ulog':n.transferId?'transfer':'task';
 function oneCmt(kind,o,c,isReply){return `<div class="cmt${isReply?' reply':''}" id="cmt-${c.id}"><span class="av-xs av-${c.user}">${esc(initials(userName(c.user)))}</span><div class="cmt-body"><div class="cmt-meta"><b>${esc(userName(c.user))}</b><span>${fmtDT(c.ts)}</span>${c.user===S.session?`<button type="button" class="cmt-del" data-act="delComment" data-kind="${kind}" data-oid="${o.id}" data-id="${c.id}" aria-label="Obriši komentar">${ic('x',14)}</button>`:''}</div><p>${esc(c.text)}</p>
   <button type="button" class="link cmt-reply" data-act="replyComment" data-id="${isReply?c.parentId:c.id}" data-name="${esc(userName(c.user))}">Odgovori</button></div></div>`;}
 function commentsHtml(o,kind='task'){const cs=o.comments||[],top=cs.filter(c=>!c.parentId);
