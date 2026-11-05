@@ -239,7 +239,7 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:
 .av-sys{background:var(--accent-soft);color:var(--accent)}
 .rem-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
 .rem-row>svg{color:var(--accent);flex:none}.rem-row.sent>svg,.rem-row.sent b{color:var(--muted)}
-#tk-rem .tk-rem-body{display:flex;flex-direction:column;gap:8px}#tk-rem .btn.sm{align-self:flex-start}
+#tk-rem .tk-rem-body{display:flex;flex-direction:column;gap:8px}.tk-due-row{display:grid;grid-template-columns:3fr 2fr;gap:8px}.tk-due-row input[hidden]{display:none}.tk-due-row:has(input[hidden]){grid-template-columns:1fr}.tk-add{display:flex;flex-direction:column;gap:8px;border-color:var(--accent)}#tk-rem .btn.sm{align-self:flex-start}
 .overdue-q{border-color:var(--bad);display:flex;flex-direction:column;gap:10px}.overdue-q>b{display:flex;gap:8px;align-items:center}.overdue-q>b svg{color:var(--bad);flex:none}
 .notif-text{color:var(--fg)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dot-unread{width:10px;height:10px;border-radius:50%;background:var(--accent);flex:none}
@@ -1978,8 +1978,7 @@ function taskForm(t={}){
   <label class="fld"><span>Šta treba uraditi</span><input id="tk-title" name="title" value="${esc(t.title)}" placeholder="npr. Kupiti PVC cevi"></label>
   <fieldset class="fld"><legend>Ko je zadužen</legend>${whoSeg('assignee',t.assignee||S.session)}</fieldset>
   <fieldset class="fld"><legend>Status</legend><div class="seg">${ST.map(([v,l])=>`<label><input type="radio" name="status" value="${v}" ${taskStatus(t)===v?'checked':''}>${l}</label>`).join('')}</div></fieldset>
-  <label class="fld"><span>Rok</span><input id="tk-due" type="date" name="due" value="${t.due||''}"></label>
-  <label class="fld" id="tk-dt" ${t.due?'':'hidden'}><span>Podsetnik na dan roka</span><input type="time" name="dueTime" value="${esc(dueTimeFor(t,S.session))}"><small></small></label>
+  <div class="fld" id="tk-dt"><span>Rok</span><div class="tk-due-row"><input id="tk-due" type="date" name="due" value="${t.due||''}"><input type="time" name="dueTime" value="${esc(dueTimeFor(t,S.session))}" aria-label="Vreme podsetnika na dan roka" ${t.due?'':'hidden'}></div><small></small></div>
   <div class="fld" id="tk-rem"><span>Podsetnici</span><input type="hidden" name="reminders" value="${esc(JSON.stringify(t.reminders||[]))}" data-before="${esc(JSON.stringify(t.reminders||[]))}"><div class="tk-rem-body"></div></div>
   <div class="fld"><span>Vezan za posao</span>${combo('jobId',jobs.map(p=>({v:p.id,label:posLabel(p),sub:p.startDate?'Početak '+startTxt(p):'Početak nije određen',q:posLabel(p)+' '+(p.description||'')})),t.jobId,'Počni da kucaš, pretražujem poslove')}<small>Nije obavezno.</small></div>
   <label class="fld"><span>Napomena</span><textarea id="tk-notes" name="notes" rows="2">${esc(t.notes)}</textarea></label>
@@ -1996,14 +1995,16 @@ const daysTo=(fromIso,toIso)=>Math.round((pd(toIso)-pd(fromIso))/864e5);
 const taskRemText=(title,days)=>days<=0?`Danas je rok za zadatak „${title}“`:days%10===1&&days%100!==11?`Ostao je još ${days} dan do završetka zadatka „${title}“`:`Ostalo je još ${days} dana do završetka zadatka „${title}“`;
 function tkRem(f){if(!f)return;const due=f.elements.due.value,h=f.elements.reminders,list=JSON.parse(h.value||'[]'),w=f.querySelector('.tk-rem-body');
   const who=f.elements.assignee?.value,whom=who==='oba'?'obojici':who==='nenad'?userName('nenad')+'u':userName('jovan')+'u';
-  const dt=f.querySelector('#tk-dt'),dtv=f.elements.dueTime.value||taskTimeOf(S.session);dt.hidden=!due;
-  dt.querySelector('small').textContent=dtv!==taskTimeOf(S.session)?'Vreme samo za ovaj zadatak.':'Vreme iz podešavanja (Obaveštenja). Promeni ga ovde samo za ovaj zadatak.';
-  if(!due){w.innerHTML='<small>Izaberi rok da bi dodao podsetnike.</small>';return;}
+  const dt=f.querySelector('#tk-dt'),dtv=f.elements.dueTime.value||taskTimeOf(S.session);f.elements.dueTime.hidden=!due;
+  dt.querySelector('small').textContent=!due?'Nije obavezno.':dtv!==taskTimeOf(S.session)?'Vreme podsetnika na dan roka, samo za ovaj zadatak.':'Vreme podsetnika na dan roka, iz podešavanja (Obaveštenja). Promeni ga ovde samo za ovaj zadatak.';
+  if(!due){w.innerHTML='<small>Izaberi rok da bi dobio podsetnik.</small>';return;}
   const now=nowLocal(),left=r=>{const n=daysTo(r.slice(0,10),due);return n<=0?'na dan roka':n===1?'dan pre roka':`${n} dana pre roka`;};
-  w.innerHTML=`${list.map(r=>`<div class="rem-row${r<now?' sent':''}">${ic('bell',16)}<div class="row-main"><b>${remTxt(r)}</b><small>${r<now?'Poslat':left(r)}</small></div><button type="button" class="cmt-del" data-act="tkDelRem" data-v="${r}" aria-label="Ukloni podsetnik">${ic('x',14)}</button></div>`).join('')}
-  ${due>=TODAY_ISO?`<div class="grid2"><input type="date" class="tk-rd" value="${due}" min="${TODAY_ISO}" max="${due}" aria-label="Datum podsetnika"><input type="time" class="tk-rt" value="09:00" aria-label="Vreme podsetnika"></div>
-  <button type="button" class="btn sm" data-act="tkAddRem">${ic('bell',16)} Dodaj podsetnik</button>`:'<small>Rok je prošao. Promeni rok da bi dodao podsetnik.</small>'}
-  <small>Stiže kao obaveštenje ${esc(whom)}. Na dan roka u ${esc(dtv)} stiže podsetnik i bez dodavanja.</small>`;}
+  w.innerHTML=`${due>=TODAY_ISO?`<div class="rem-row">${ic('bell',16)}<div class="row-main"><b>${fmtDate(due)} u ${esc(dtv)}</b><small>Na dan roka · vreme menjaš pored roka</small></div></div>`:''}${list.map(r=>`<div class="rem-row${r<now?' sent':''}">${ic('bell',16)}<div class="row-main"><b>${remTxt(r)}</b><small>${r<now?'Poslat':left(r)}</small></div><button type="button" class="cmt-del" data-act="tkDelRem" data-v="${r}" aria-label="Ukloni podsetnik">${ic('x',14)}</button></div>`).join('')}
+  ${due<TODAY_ISO?'<small>Rok je prošao. Promeni rok da bi dodao podsetnik.</small>':f.dataset.adding?`<div class="tk-add card"><small>Dodatni podsetnik, od danas do roka.</small>
+  <div class="grid2"><input type="date" class="tk-rd" value="${TODAY_ISO}" min="${TODAY_ISO}" max="${due}" aria-label="Datum podsetnika"><input type="time" class="tk-rt" value="09:00" aria-label="Vreme podsetnika"></div>
+  <div class="form-actions"><button type="button" class="btn sm" data-act="tkAddCancel">Otkaži</button><button type="button" class="btn sm primary" data-act="tkAddRem">${ic('bell',16)} Dodaj</button></div></div>`
+  :`<button type="button" class="btn sm" data-act="tkAddOpen">${ic('plus',16)} Dodaj podsetnik</button>`}
+  <small>Stižu kao obaveštenje ${esc(whom)}.</small>`;}
 function tkSetRem(f,list){f.elements.reminders.value=JSON.stringify([...new Set(list)].sort());tkRem(f);dirtyCheck(f);}
 const TASK_F=[['title','Zadatak'],['assignee','Zadužen',whoName],['due','Rok',v=>v?fmtDate(v):'bez roka'],['reminders','Podsetnici',v=>(v||[]).map(remTxt).join(', ')||'—'],['dueTime','Podsetnik na dan roka',v=>v||'po podešavanjima'],['jobId','Posao',v=>{const j=posao(v);return j?posLabel(j):'—';}],['notes','Napomena']];
 Object.assign(A,{
@@ -2046,7 +2047,9 @@ Object.assign(A,{
   taskEdit:el=>taskForm(S.tasks.find(t=>t.id===el.dataset.id)),
   tkAddRem:el=>{const f=el.closest('form'),due=f.elements.due.value,d=f.querySelector('.tk-rd')?.value||due,tm=f.querySelector('.tk-rt')?.value;
     if(!d||!tm)return toast('Izaberi datum i vreme podsetnika.');const r=`${d}T${tm}`,err=remErr(r,due);if(err)return toast(err);
-    const list=JSON.parse(f.elements.reminders.value||'[]');if(list.length>=10)return toast('Najviše 10 podsetnika.');tkSetRem(f,[...list,r]);},
+    const list=JSON.parse(f.elements.reminders.value||'[]');if(list.length>=10)return toast('Najviše 10 podsetnika.');delete f.dataset.adding;tkSetRem(f,[...list,r]);},
+  tkAddOpen:el=>{const f=el.closest('form');f.dataset.adding='1';tkRem(f);},
+  tkAddCancel:el=>{const f=el.closest('form');delete f.dataset.adding;tkRem(f);},
   tkDelRem:el=>{const f=el.closest('form');tkSetRem(f,JSON.parse(f.elements.reminders.value||'[]').filter(x=>x!==el.dataset.v));},
   taskJob:el=>{closeSheet();ui.posFrom={v:ui.view};go('posao',el.dataset.id);},
   // Završavanje zadatka traži potvrdu; vraćanje u otvoren ide odmah
