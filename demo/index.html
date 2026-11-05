@@ -61,6 +61,7 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:
 .top-right{display:flex;gap:8px;align-items:center}
 .cur-tg{border:1px solid var(--line);background:var(--surface-2);color:var(--fg);border-radius:999px;padding:5px 10px;font-weight:700;font-size:13px;min-width:46px}
 .cur-tg:hover{background:var(--accent-soft)}
+.geo-list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden;margin-top:6px}.geo-opt{display:flex;align-items:center;gap:10px;padding:9px 12px;text-align:left;border:0;border-top:1px solid var(--line);background:transparent;color:var(--fg);width:100%}.geo-opt:first-child{border-top:0}.geo-opt:hover{background:var(--surface-2)}.geo-opt small{display:block;color:var(--muted)}
 .cur-menu{display:flex;flex-direction:column;gap:6px}.cur-opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left}.cur-opt.on{border-color:var(--accent)}.cur-code{min-width:46px;text-align:center;padding:3px 8px;border-radius:999px;background:var(--surface-2);font-weight:700;font-size:13px}.cur-opt.on .cur-code{background:var(--accent-soft);color:var(--accent)}
 .card.bal{display:flex;flex-direction:column;gap:6px;text-align:left;width:100%}
 .amt-row{align-items:end}.amt-row input{height:46px}
@@ -1334,7 +1335,7 @@ function vPromet(){
   <button class="btn block" data-act="newTransfer">${ic('swap',18)} Podigni ili položi keš</button>
   ${f.type!=='prenos'?`<div class="card tx-total">${(f.type==='sve'?['prihod','trosak']:[f.type]).map(k=>{const l=list.filter(t=>t.type===k);return `<div><span class="small muted">${k==='prihod'?'Ukupno prihoda':'Ukupno troškova'}</span><b class="num ${k==='prihod'?'pos':'neg'}">${k==='prihod'?'+':'−'}${rsd(sum(l))}</b><small class="muted">${l.length} ${l.length===1?'unos':'unosa'}</small></div>`;}).join('')}</div>`:''}
   ${keys.length?keys.map(k=>{const g=groups[k].sort((a,b)=>b.date.localeCompare(a.date)||(b.ts||0)-(a.ts||0));const inc=sum(g.filter(x=>x.type==='prihod')),out=sum(g.filter(x=>x.type==='trosak'));const [yy,mm]=k.split('-');
-    return `<section class="settings-sec" style="gap:8px"><div class="month-h"><b>${MONTHS_FULL[+mm-1]} ${yy}.</b><span class="small muted num">+${amt(inc)} / −${amt(out)}</span></div><div class="list">${g.map(t=>t._tr?transferRow(t):t._ul?ulogRow(t):txRow(t)).join('')}</div></section>`;}).join(''):'<div class="card empty">Nema unosa za izabrani filter.</div>'}`;
+    return `<section class="settings-sec" style="gap:8px"><div class="month-h"><b>${cap(MONTHS[+mm-1])} ${yy}.</b><span class="small muted num">+${amt(inc)} / −${amt(out)}</span></div><div class="list">${g.map(t=>t._tr?transferRow(t):t._ul?ulogRow(t):txRow(t)).join('')}</div></section>`;}).join(''):'<div class="card empty">Nema unosa za izabrani filter.</div>'}`;
 }
 const ACT={'završeno':'Završeno',komentar:'Komentar',odgovor:'Odgovor','obrisan komentar':'Obrisan komentar','vraćeno':'Vraćeno kao otvoreno',kreirano:'Kreirano',izmenjeno:'Izmenjeno',obrisano:'Obrisano',prijava:'Prijava','postavljena lozinka':'Lozinka postavljena','promenjena lozinka':'Lozinka promenjena','reset lozinke':'Reset lozinke','dodata slika':'Dodata slika','obrisana slika':'Obrisana slika'};
 function logEl(l){
@@ -1444,7 +1445,7 @@ const voiceNote=()=>`<div class="voice-note">${ic('mic',18)}<span>Popunjeno iz g
 const kindSeg=cur=>`<fieldset class="fld"><legend>Vrsta klijenta</legend><div class="seg">${Object.entries(KIND).map(([v,l])=>`<label><input type="radio" name="kind" value="${v}" ${(cur||'fizicko')===v?'checked':''}>${l}</label>`).join('')}</div></fieldset>`;
 const pravnoFields=k=>`<div class="grid2" id="pravnoWrap" ${k.kind==='pravno'?'':'hidden'}><label class="fld"><span>PIB</span><input id="k-pib" name="pib" inputmode="numeric" value="${esc(k.pib)}"><small>Nije obavezno.</small></label><label class="fld"><span>Matični broj</span><input id="k-mb" name="mb" inputmode="numeric" value="${esc(k.mb)}"><small>Nije obavezno.</small></label></div>`;
 const contactFields=k=>`<div class="grid2"><label class="fld"><span>Mesto</span><input id="k-city" name="city" value="${esc(k.city)}"></label><label class="fld"><span>Mobilni</span><input id="k-phone" name="phone" inputmode="tel" value="${esc(k.phone)}"></label></div>
-  <label class="fld"><span>Ulica i broj</span><input id="k-address" name="address" value="${esc(k.address)}"></label>
+  <label class="fld geo-fld"><span>Ulica i broj</span><input id="k-address" name="address" value="${esc(k.address)}" data-geo="k-city" autocomplete="off" placeholder="npr. Vojvode Mišića 5 Rakovac"><small>Kucaj ulicu i broj, pa izaberi predlog (popuni i mesto).</small></label>
   <label class="fld"><span>Email</span><input id="k-email" name="email" type="email" value="${esc(k.email)}"></label>`;
 /* Klijent: samo kontakt podaci */
 // Novi klijent za već sačuvan unos: posle čuvanja se odmah vezuje za unos.
@@ -1487,7 +1488,7 @@ function posaoForm(p={},pre={}){
   ${pravnoFields(k)}${contactFields(k)}</fieldset>
   <fieldset class="fld"><legend>Adresa posla</legend>
     <label class="check-row"><input type="checkbox" id="p-other" name="otherAddr" ${p.workAddress||p.workCity?'checked':''}>Posao je na drugoj adresi</label>
-    <div class="grid2" id="otherAddr" ${p.workAddress||p.workCity?'':'hidden'}><label class="fld"><span>Ulica i broj</span><input id="p-waddr" name="workAddress" value="${esc(p.workAddress)}" placeholder="npr. Kralja Petra I 20"></label><label class="fld"><span>Mesto</span><input id="p-wcity" name="workCity" value="${esc(p.workCity)}"></label></div>
+    <div class="grid2" id="otherAddr" ${p.workAddress||p.workCity?'':'hidden'}><label class="fld"><span>Ulica i broj</span><input id="p-waddr" name="workAddress" value="${esc(p.workAddress)}" placeholder="npr. Kralja Petra I 20" data-geo="p-wcity" autocomplete="off"></label><label class="fld"><span>Mesto</span><input id="p-wcity" name="workCity" value="${esc(p.workCity)}"></label></div>
     <small>Ako nije označeno, koristi se adresa klijenta. Ova adresa se otvara u navigaciji.</small></fieldset>
   <label class="fld"><span>Kategorija posla</span><select id="j-label" name="label"><option value="">Bez kategorije</option>${S.labels.map(l=>`<option value="${l.id}" ${p.label===l.id?'selected':''}>${esc(l.name)}</option>`).join('')}<option value="__new">+ Nova kategorija…</option></select></label>
   <label class="fld" id="newLabelWrap" hidden><span>Naziv nove kategorije</span><input id="j-newlabel" name="newLabel" placeholder="npr. Iskop kanala"></label>
@@ -1658,6 +1659,7 @@ function readImage(file,max=900,type='image/jpeg'){return new Promise((res,rej)=
 
 /* ---------- Akcije ---------- */
 const A={
+  geoPick:el=>{const a=document.getElementById(el.dataset.src),c=document.getElementById(el.dataset.city);if(a){a.value=el.dataset.a;a.dataset.geoSkip='1';a.dispatchEvent(new Event('input',{bubbles:true}));}if(c){c.value=el.dataset.c;c.dispatchEvent(new Event('input',{bubbles:true}));}el.closest('.geo-list')?.remove();},
   curMenu:()=>{const d=dispCur();openSheet('Prikaži iznose u',`<div class="cur-menu" role="radiogroup">${CURS.map(([c,l])=>`<button type="button" class="row cur-opt${c===d?' on':''}" role="radio" aria-checked="${c===d}" data-act="curSet" data-v="${c}"><span class="cur-code">${c}</span><div class="row-main"><b>${l}</b><small>${c==='RSD'?'bez preračuna':rateTxt(c)}</small></div>${c===d?ic('check',18):''}</button>`).join('')}</div>
     <p class="small muted" style="margin:10px 0 0">Srednji kurs NBS, lista od ${fmtDate((S.fx&&S.fx.date)||EUR_DEF.date)} Limiti, PDV i fakture ostaju u dinarima.</p>`);},
   curSet:el=>{const p=S.prefs[S.session]=S.prefs[S.session]||{};p.currency=el.dataset.v;save();closeSheet();render();toast(`Iznosi su prikazani u ${({RSD:'dinarima',EUR:'evrima',USD:'dolarima'})[p.currency]}.`);},
@@ -2256,6 +2258,22 @@ render();
 checkStartPrompts();
 setInterval(checkStartPrompts,60000);
 // Srednji kurs NBS za danas; ako mreža nije dostupna, ostaje poslednji sačuvan kurs
+/* Predlozi adrese dok se kuca (Photon/OpenStreetMap, kao u aplikaciji): ulica i broj + naselje (Rakovac, ne opština Beočin) */
+const CYR={а:'a',б:'b',в:'v',г:'g',д:'d',ђ:'đ',е:'e',ж:'ž',з:'z',и:'i',ј:'j',к:'k',л:'l',љ:'lj',м:'m',н:'n',њ:'nj',о:'o',п:'p',р:'r',с:'s',т:'t',ћ:'ć',у:'u',ф:'f',х:'h',ц:'c',ч:'č',џ:'dž',ш:'š'};
+const latinize=s=>[...s].map((ch,i,a)=>{const lo=ch.toLowerCase(),l=CYR[lo];if(l===undefined)return ch;if(ch===lo)return l;const n=a[i+1];return n&&n!==n.toLowerCase()||l.length===1?l.toUpperCase():l[0].toUpperCase()+l.slice(1);}).join('');
+const GEO_ADMIN=/^(општина|opština|opstina|град|grad|градска општина|gradska opština)\s/i,GEO_CITYOF=/^(city of|municipality of)\s+/i;
+function geoSuggest(feats,no){const out=[],seen=new Set();for(const {properties:p} of feats){if(p.countrycode!=='RS')continue;
+  const st=p.type==='street'&&p.osm_key==='highway'&&p.osm_value!=='bus_stop',hs=p.type==='house'&&p.street&&p.housenumber&&p.osm_key!=='highway'&&p.osm_key!=='amenity';if(!st&&!hs)continue;
+  const street=latinize((st?p.name:p.street)||'').trim(),pl=p.city&&!GEO_ADMIN.test(p.city)?p.city:(p.district||p.city||''),city=latinize(pl.replace(GEO_ADMIN,'').replace(GEO_CITYOF,'')).trim();if(!street||!city)continue;
+  const n=hs?p.housenumber:no,a=n?street+' '+n:street,k=(a+'|'+city).toLowerCase();if(seen.has(k))continue;seen.add(k);out.push({a,c:city});if(out.length>=5)break;}return out;}
+let geoT=0,geoCtl=null;
+document.addEventListener('input',e=>{const inp=e.target;if(!inp.dataset||!inp.dataset.geo)return;if(inp.dataset.geoSkip){delete inp.dataset.geoSkip;return;}
+  clearTimeout(geoT);const fld=inp.closest('.fld');const old=()=>fld.querySelector('.geo-list');
+  geoT=setTimeout(()=>{const m=inp.value.match(/(?:^|\s)(\d+[a-zA-Z]?(?:\/\d+)?)(?=\s|,|$)/),no=m?m[1]:null,q=(m?inp.value.slice(0,m.index)+' '+inp.value.slice(m.index+m[0].length):inp.value).replace(/\s+/g,' ').trim();
+    if(q.replace(/[^\p{L}]/gu,'').length<3){old()?.remove();return;}
+    geoCtl?.abort();geoCtl=new AbortController();
+    fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=15&lang=default&lat=45.25&lon=19.84`,{signal:geoCtl.signal}).then(r=>r.json()).then(j=>{const list=geoSuggest(j.features||[],no);old()?.remove();if(!list.length)return;
+      inp.insertAdjacentHTML('afterend',`<div class="geo-list" role="listbox">${list.map(x=>`<button type="button" class="geo-opt" role="option" data-act="geoPick" data-src="${inp.id}" data-city="${inp.dataset.geo}" data-a="${esc(x.a)}" data-c="${esc(x.c)}">${ic('pin',18)}<span><b>${esc(x.a)}</b><small>${esc(x.c)}</small></span></button>`).join('')}</div>`);}).catch(()=>{});},350);});
 Promise.all(['eur','usd'].map(c=>fetch(`https://kurs.resenje.org/api/v1/currencies/${c}/rates/today`).then(r=>r.json()))).then(([e,u])=>{if(e&&e.exchange_middle>0&&(!S.fx||S.fx.date!==e.date_from||S.fx.eur!==e.exchange_middle||!S.fx.usd)){S.fx={date:e.date_from,eur:e.exchange_middle,usd:u&&u.exchange_middle>0?u.exchange_middle:EUR_DEF.usd};save();if(!$('#sheetRoot').innerHTML)render();}}).catch(()=>{}); // ako je aplikacija otvorena kad dođe vreme početka
 </script>
 </body>
