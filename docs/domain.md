@@ -78,6 +78,7 @@ Tri kartice, tim redom:
 
 ## 6. Klijenti
 - Klijent je kontakt: **vrsta** (fizičko ili pravno lice), ime ili naziv firme, PIB i MB (za pravno lice, nisu obavezni), mesto, adresa, mobilni, email, napomena. Nezavisan od firmi.
+- **Adresa sa predlozima** (klijent, saradnik, adresa posla): dok se kuca ulica (i broj), ispod polja se nude ulice iz OpenStreetMap-a (Photon, bez ključa), najbliže Novom Sadu prve, samo u Srbiji, latinicom. Izbor popuni **Adresu** (ulica i broj) i **Mesto** (naselje, npr. Rakovac, a ne opština Beočin), pa Google mape vode na pravo mesto. Predlog nije obavezan: može se upisati bilo šta.
 - Stranica Klijenti: tabovi **Fizička lica: N** i **Pravna lica: N**, pretraga po imenu/mestu/telefonu, red sa mestom, telefonom, ukupno naplaćenim i dugmetom za poziv. „+“ dodaje klijenta izabrane vrste.
 - Kartica klijenta:
   - kontakt sa dugmićima: telefon (**poziv** + kopiraj), adresa (**Google mape** + kopiraj), email (**novi mejl** + kopiraj), PIB/MB za pravno lice (kopiraj PIB);
@@ -92,7 +93,7 @@ Tri kartice, tim redom:
 ## 7. Poslovi
 ### Podaci
 - Posao pripada jednom klijentu (jedan klijent može imati više poslova).
-- Polja: kategorija, datum i opciono vreme početka, **ko radi** (Nenad, Jovan, Obojica; podrazumevano Obojica), status, datum završetka, opis, slike, opciona **adresa posla** (ako nije upisana, koristi se adresa klijenta), komentari, podsetnici, očekivane stavke naplate, veza na prihode.
+- Polja: kategorija, datum i opciono vreme početka, **ko radi** (Nenad, Jovan, Obojica; podrazumevano Obojica), status, datum završetka, opis, slike, opciona **adresa i mesto posla** (ako nisu upisani, koristi se adresa klijenta), komentari, podsetnici, očekivane stavke naplate, veza na prihode.
 - Statusi: **Na čekanju → U procesu → Čeka uplatu → Završeno**. Novi posao je Na čekanju. Završeno ide u arhivu i dobija datum završetka.
 
 ### Forma „Novi posao“

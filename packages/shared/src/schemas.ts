@@ -81,6 +81,7 @@ export const jobSchema = z
   labelId: id.nullable().optional(),
   description: optText(2000),
   workAddress: optText(200), // adresa posla (za navigaciju), može se razlikovati od adrese klijenta
+  workCity: optText(100), // mesto posla (naselje), uz adresu posla
   startDate: isoDate.nullable(),
   startTime: hhmm.nullable().optional(),
   endTime: hhmm.nullable().optional(),

@@ -12,3 +12,4 @@ export * from './currency';
 export * from './accounts';
 export * from './owners';
 export * from './session';
+export * from './address';
