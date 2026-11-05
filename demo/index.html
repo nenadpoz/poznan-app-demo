@@ -69,7 +69,7 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:
 .sal-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .sal-sum > div{background:var(--surface-2);border-radius:12px;padding:10px 12px;min-width:0}
 .sal-sum span{display:block;font-size:12.5px;color:var(--muted)}.sal-sum b{display:block;font-variant-numeric:tabular-nums;font-size:15px;overflow-wrap:anywhere}
-.sal-t{display:grid;grid-template-columns:48px repeat(3,minmax(0,1fr));column-gap:8px;align-items:center;padding:10px 14px;border-top:1px solid var(--line);font-size:14px;font-variant-numeric:tabular-nums}
+.sal-t{display:grid;grid-template-columns:14px repeat(3,minmax(0,1fr));column-gap:8px;align-items:center;padding:10px 14px;border-top:1px solid var(--line);font-size:14px;font-variant-numeric:tabular-nums}
 .sal-t > :not(:first-child){text-align:right}.sal-t:not(.head) > *{white-space:nowrap}.sal-t small{display:block;font-size:11.5px;color:var(--muted)}
 .list > .sal-t:first-child{border-top:0}.sal-t.head{font-size:12px;color:var(--muted);font-weight:600;background:var(--surface-2)}.sal-t.tot{font-weight:700;background:var(--surface-2)}
 .sal-card{display:flex;flex-direction:column;gap:10px;text-align:left;width:100%;color:inherit;font:inherit;cursor:pointer}
@@ -945,7 +945,8 @@ function txRow(t,{showCompany=true}={}){
 }
 function chart(filterFn=()=>true){
   const keys=[];for(let i=5;i>=0;i--){const d=new Date(TODAY.getFullYear(),TODAY.getMonth()-i,1);keys.push([iso(d).slice(0,7),MONTHS[d.getMonth()]]);}
-  const data=keys.map(([k,l])=>{const t=S.tx.filter(x=>x.date.startsWith(k)&&filterFn(x));return {l,inc:sum(t.filter(x=>x.type==='prihod')),out:sum(t.filter(x=>x.type==='trosak'))};});
+  const cr=curRate(dispCur()); // skala u valuti prikaza
+  const data=keys.map(([k,l])=>{const t=S.tx.filter(x=>x.date.startsWith(k)&&filterFn(x));return {l,inc:sum(t.filter(x=>x.type==='prihod'))/cr,out:sum(t.filter(x=>x.type==='trosak'))/cr};});
   const raw=Math.max(1,...data.map(d=>Math.max(d.inc,d.out)));
   const mag=Math.pow(10,Math.floor(Math.log10(raw))),nr=raw/mag; const max=(nr<=1?1:nr<=2?2:nr<=2.5?2.5:nr<=5?5:10)*mag;
   const W=330,H=180,x0=44,x1=W-6,y0=12,y1=H-26,ph=y1-y0,gw=(x1-x0)/6;
@@ -954,8 +955,8 @@ function chart(filterFn=()=>true){
   [0,.5,1].forEach(f=>{const v=max*f;s+=`<line class="grid" x1="${x0}" x2="${x1}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${x0-6}" y="${y(v)+3}" text-anchor="end">${short(v)}</text>`;});
   const pts=[];
   data.forEach((d,i)=>{const cx=x0+gw*i+gw/2,bw=gw*.3;
-    s+=`<rect class="b-in" x="${cx-bw-1}" y="${y(d.inc)}" width="${bw}" height="${y1-y(d.inc)}" rx="2"><title>${d.l}: prihod ${rsd(d.inc)}</title></rect>`;
-    s+=`<rect class="b-out" x="${cx+1}" y="${y(d.out)}" width="${bw}" height="${y1-y(d.out)}" rx="2"><title>${d.l}: troškovi ${rsd(d.out)}</title></rect>`;
+    s+=`<rect class="b-in" x="${cx-bw-1}" y="${y(d.inc)}" width="${bw}" height="${y1-y(d.inc)}" rx="2"><title>${d.l}: prihod ${rsd(d.inc*cr)}</title></rect>`;
+    s+=`<rect class="b-out" x="${cx+1}" y="${y(d.out)}" width="${bw}" height="${y1-y(d.out)}" rx="2"><title>${d.l}: troškovi ${rsd(d.out*cr)}</title></rect>`;
     s+=`<text class="axis" x="${cx}" y="${H-8}" text-anchor="middle">${d.l}</text>`;
     pts.push([cx,y(Math.max(0,d.inc-d.out))]);});
   s+=`<polyline class="p-line" points="${pts.map(p=>p.join(',')).join(' ')}"/>`;
@@ -1040,7 +1041,7 @@ const ulSum=(list,u)=>list.filter(x=>x.owner===u).reduce((a,x)=>a+x.amount,0);
 function ownStats(pf){const sl=salTx().filter(t=>pf(t.date)),ul=(S.ulozi||[]).filter(x=>pf(x.date));
   return Object.fromEntries(OWNERS.map(o=>{const pl=salSum(sl,o),u=ulSum(ul,o);return [o,{pl,ul:u,net:pl-u}];}));}
 const ownHead=()=>`<div class="sal-t head"><span></span><span>Isplaćena plata</span><span>Uložio</span><span>Neto</span></div>`;
-const ownRows=st=>OWNERS.map(o=>`<div class="sal-t"><span>${esc(userName(o))}</span><span>${amt(st[o].pl)}</span><span>${st[o].ul?amt(st[o].ul):'—'}</span><b>${amt(st[o].net)}</b></div>`).join('');
+const ownRows=st=>OWNERS.map(o=>`<div class="sal-t"><b title="${esc(userName(o))}" aria-label="${esc(userName(o))}">${esc(userName(o).charAt(0))}</b><span>${amt(st[o].pl)}</span><span>${st[o].ul?amt(st[o].ul):'—'}</span><b>${amt(st[o].net)}</b></div>`).join('');
 const ownDiff=st=>{const d=salDiff(st.nenad.net,st.jovan.net,rsd);return `<b>${d.v}</b> <span class="small muted">${esc(d.who)}</span>`;};
 // Kartica na Pregledu: samo poslednji mesec tekuće godine sa platom ili ulogom (inače tekući mesec); detalji na ekranu Plate i ulozi
 // Pregled: plate i ulozi za tekuću godinu; dodir otvara ekran plata na istoj godini
