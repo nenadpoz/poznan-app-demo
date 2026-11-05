@@ -3,15 +3,15 @@
  * mobile preko lokalnog adaptera nad SQLite/PowerSync (offline), sa istim potpisima.
  */
 import type {
-  ClientInput, CompanyInput, JobInput, OwnerContributionInput, TaskInput, TransactionInput, TransferInput, TxCategoryInput,
+  ClientInput, CompanyInput, JobInput, OwnerContributionInput, SupplierInput, TaskInput, TransactionInput, TransferInput, TxCategoryInput,
 } from '@poznan/shared';
-import type { PaymentLine } from '@poznan/shared';
+import type { PaymentLine, PhotoTarget } from '@poznan/shared';
 import type {
-  Account, AccountBalance, FxRateRow, Transfer, AuditEntry, Client, Comment, Company, CompanyHistoryItem, Job, Label, Notification, OwnerContribution, PendingItem, TxCategory, Profile, Settings, Task, Transaction,
+  Account, AccountBalance, FxRateRow, Transfer, AuditEntry, Client, Comment, Company, CompanyHistoryItem, Job, Label, Notification, OwnerContribution, PendingItem, TxCategory, Profile, Settings, Photo, Supplier, Task, Transaction,
 } from './model';
 
 export interface ListOpts { includeDeleted?: boolean }
-export interface TxFilter { from?: string; to?: string; companyId?: string | null; jobId?: string; clientId?: string }
+export interface TxFilter { from?: string; to?: string; companyId?: string | null; jobId?: string; clientId?: string; supplierId?: string }
 
 export interface Crud<T, I> {
   list(opts?: ListOpts): Promise<T[]>;
@@ -44,6 +44,8 @@ export interface PoznanApi {
     changePhase(companyId: string, phase: Company['phase'], date: string, note?: string | null): Promise<void>;
   };
   clients: Crud<Client, ClientInput>;
+  /** Saradnici (od koga kupujemo ili tražimo uslugu). */
+  suppliers: Crud<Supplier, SupplierInput>;
   labels: Crud<Label, { name: string; color: number }>;
   /** Kategorije prometa (prihodi i troškovi). */
   txCategories: Crud<TxCategory, TxCategoryInput>;
@@ -75,6 +77,12 @@ export interface PoznanApi {
   /** Srednji kurs NBS (1 EUR = x RSD). */
   fx: { latest(): Promise<FxRateRow | null>; forDate(date: string): Promise<FxRateRow | null> };
   invoices: { assign(kind: 'transaction' | 'pending', id: string): Promise<string> };
+  /** Slike: dodavanje (jedna po pozivu) i uklanjanje. Mobile šalje već smanjenu sliku (JPEG). */
+  photos: {
+    list(target: PhotoTarget, targetId: string): Promise<Photo[]>;
+    add(target: PhotoTarget, targetId: string, file: { data: ArrayBuffer; contentType: string }): Promise<Photo>;
+    remove(id: string): Promise<void>;
+  };
   comments: {
     list(target: Comment['target'], targetId: string): Promise<Comment[]>;
     add(target: Comment['target'], targetId: string, text: string, parentId?: string | null): Promise<Comment>;

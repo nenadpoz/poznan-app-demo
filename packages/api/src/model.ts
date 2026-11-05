@@ -1,6 +1,6 @@
 /** Redovi kako ih vide ekrani (camelCase). Adapter prevodi iz/u kolone baze. */
 import type {
-  Assignee, BusinessForm, ClientKind, CommentTarget, CompanyIcon, CompanyPhase, HistoryKind, JobStatus, TaskStatus, TxType, UserId,
+  Assignee, BusinessForm, ClientKind, PhotoTarget, CommentTarget, CompanyIcon, CompanyPhase, HistoryKind, JobStatus, TaskStatus, TxType, UserId,
 } from '@poznan/shared';
 import type { AccountKind, Currency, NotificationPrefs } from '@poznan/shared';
 
@@ -22,6 +22,13 @@ export interface Client extends Base {
   kind: ClientKind; name: string; pib: string | null; mb: string | null; contactPerson: string | null;
   city: string | null; address: string | null; phone: string | null; email: string | null; note: string | null;
 }
+/** Saradnik (dobavljač, majstor, prevoznik…); `service` je šta radi ili prodaje. */
+export interface Supplier extends Base {
+  kind: ClientKind; name: string; service: string | null; pib: string | null; mb: string | null; contactPerson: string | null;
+  city: string | null; address: string | null; phone: string | null; email: string | null; note: string | null;
+}
+/** Slika uz klijenta, saradnika, posao ili zadatak. `url` je privremeni potpisani link (važi sat vremena). */
+export interface Photo { id: string; target: PhotoTarget; targetId: string; storagePath: string; url: string; createdAt: string; createdBy: string | null }
 export interface Label extends Base { name: string; color: number }
 /** Kategorija prometa; unos čuva naziv. */
 export interface TxCategory extends Base { type: TxType; name: string; sort: number }
@@ -49,6 +56,8 @@ export interface Transaction extends Base {
   accountId: string | null; currency: Currency; amountOriginal: number; fxRate: number; createdBy: string | null;
   /** Isplata plate vlasniku (trošak, kategorija „Plata“). */
   salaryTo: UserId | null;
+  /** Saradnik kod koga je trošak. */
+  supplierId: string | null;
   /** Trošak plaćen iz novčanika vlasnika (uz njega postoji ulog) i id plaćanja iz više izvora. */
   paidBy: UserId | null; splitId: string | null;
   /** Čeka da se doda klijent („Podseti me kasnije“). */

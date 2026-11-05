@@ -1,7 +1,7 @@
 /** React sloj: ApiProvider + hookovi. Isti kod na webu (Next.js) i mobilnom (Expo). */
 import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { ClientInput, Currency, JobInput, OwnerContributionInput, PaymentLine, TaskInput, TransactionInput, TransferInput, TxCategoryInput } from '@poznan/shared';
+import type { ClientInput, Currency, JobInput, OwnerContributionInput, PaymentLine, PhotoTarget, SupplierInput, TaskInput, TransactionInput, TransferInput, TxCategoryInput } from '@poznan/shared';
 import type { PoznanApi, TxFilter } from './api';
 import { keys, tablesToRefresh } from './keys';
 import type { Comment, Profile } from './model';
@@ -28,6 +28,23 @@ const useRefresh = () => {
 
 export const useCompanies = () => { const a = useApi(); return useQuery({ queryKey: keys.companies, queryFn: () => a.companies.list() }); };
 export const useCompanyHistory = (id: string) => { const a = useApi(); return useQuery({ queryKey: keys.companyHistory(id), queryFn: () => a.companies.history(id) }); };
+export const usePhotos = (target: PhotoTarget, id: string | undefined) => {
+  const a = useApi();
+  // Potpisani linkovi važe sat vremena; osvežavaju se pre isteka
+  return useQuery({ queryKey: keys.photos(target, id ?? ''), queryFn: () => a.photos.list(target, id!), enabled: !!id, staleTime: 30 * 60_000, refetchInterval: 50 * 60_000 });
+};
+export function useAddPhoto() {
+  const a = useApi(), refresh = useRefresh();
+  return useMutation({
+    mutationFn: (v: { target: PhotoTarget; targetId: string; data: ArrayBuffer; contentType: string }) => a.photos.add(v.target, v.targetId, { data: v.data, contentType: v.contentType }),
+    onSuccess: () => refresh('photos'),
+  });
+}
+export function useRemovePhoto() {
+  const a = useApi(), refresh = useRefresh();
+  return useMutation({ mutationFn: (id: string) => a.photos.remove(id), onSuccess: () => refresh('photos') });
+}
+export const useSuppliers = () => { const a = useApi(); return useQuery({ queryKey: keys.suppliers, queryFn: () => a.suppliers.list() }); };
 export const useClients = () => { const a = useApi(); return useQuery({ queryKey: keys.clients, queryFn: () => a.clients.list() }); };
 /** Kategorije prometa, po redosledu pa nazivu. */
 export const useTxCategories = () => { const a = useApi(); return useQuery({ queryKey: keys.txCategories, queryFn: async () => (await a.txCategories.list()).sort((x, y) => x.sort - y.sort || x.name.localeCompare(y.name, 'sr')) }); };
@@ -121,6 +138,11 @@ export function useCreateTask() {
 export function useCreateClient() {
   const a = useApi(), refresh = useRefresh();
   return useMutation({ mutationFn: (v: ClientInput) => a.clients.create(v), onSuccess: () => refresh('clients') });
+}
+
+export function useCreateSupplier() {
+  const a = useApi(), refresh = useRefresh();
+  return useMutation({ mutationFn: (v: SupplierInput) => a.suppliers.create(v), onSuccess: () => refresh('suppliers') });
 }
 
 export function useCreateTransfer() {

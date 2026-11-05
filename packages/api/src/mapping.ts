@@ -4,6 +4,7 @@ const RENAMES: Record<string, Record<string, string>> = {
   tasks: { due: 'dueDate', notes: 'note' },
   comments: { target_type: 'target' },
   notifications: { target_type: 'target' },
+  photos: { target_type: 'target' },
   audit_log: { table_name: 'table' },
 };
 

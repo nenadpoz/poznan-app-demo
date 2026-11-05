@@ -4,6 +4,8 @@ export const keys = {
   company: (id: string) => ['companies', id] as const,
   companyHistory: (id: string) => ['company_history', id] as const,
   clients: ['clients'] as const,
+  suppliers: ['suppliers'] as const,
+  photos: (target: string, id: string) => ['photos', target, id] as const,
   labels: ['labels'] as const,
   txCategories: ['tx_categories'] as const,
   jobs: ['jobs'] as const,

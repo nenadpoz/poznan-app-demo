@@ -2,7 +2,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { PoznanApi, Crud, ListOpts } from './api';
 import { fromRow, linesToJson, toRow } from './mapping';
-import type { Account, AccountBalance, Client, Company, FxRateRow, Job, Label, Task, Transaction, Transfer, OwnerContribution, TxCategory, Profile, Settings } from './model';
+import type { Account, AccountBalance, Client, Company, FxRateRow, Job, Label, Photo, Supplier, Task, Transaction, Transfer, OwnerContribution, TxCategory, Profile, Settings } from './model';
 
 class ApiError extends Error {
   constructor(message: string, readonly code?: string) { super(message); }
@@ -23,6 +23,7 @@ function check<T>(res: Res<T>): T {
 }
 
 const now = () => new Date().toISOString();
+const newId = () => (globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`);
 
 export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
   const crud = <T, I>(table: string, order: string, ascending = true): Crud<T, I> => ({
@@ -117,6 +118,31 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
       },
     },
     clients: crud<Client, never>('clients', 'name'),
+    suppliers: crud<Supplier, never>('suppliers', 'name'),
+    photos: {
+      async list(target, targetId) {
+        const rows = check(await sb.from('photos').select('*').eq('target_type', target).eq('target_id', targetId).is('deleted_at', null).order('created_at'))
+          .map(r => fromRow<Omit<Photo, 'url'>>('photos', r));
+        if (!rows.length) return [];
+        const signed = check(await sb.storage.from('photos').createSignedUrls(rows.map(r => r.storagePath), 3600));
+        return rows.map((r, i) => ({ ...r, url: signed[i]?.signedUrl ?? '' }));
+      },
+      async add(target, targetId, file) {
+        const ext = file.contentType === 'image/png' ? 'png' : file.contentType === 'image/webp' ? 'webp' : 'jpg';
+        const path = `${target}/${targetId}/${newId()}.${ext}`;
+        ok(await sb.storage.from('photos').upload(path, file.data, { contentType: file.contentType }));
+        const row = await sb.from('photos').insert({ target_type: target, target_id: targetId, storage_path: path, client_at: now() }).select().single();
+        // Bez reda u tabeli fajl ne treba da ostane
+        if (row.error) { await sb.storage.from('photos').remove([path]); ok(row); }
+        const p = fromRow<Omit<Photo, 'url'>>('photos', check(row));
+        const s = await sb.storage.from('photos').createSignedUrl(path, 3600);
+        return { ...p, url: s.data?.signedUrl ?? '' };
+      },
+      async remove(id) {
+        const r = check(await sb.from('photos').update({ deleted_at: now(), client_at: now() }).eq('id', id).select('storage_path').single()) as { storage_path: string };
+        await sb.storage.from('photos').remove([r.storage_path]);
+      },
+    },
     labels: crud<Label, never>('labels', 'name'),
     txCategories: crud<TxCategory, never>('tx_categories', 'sort'),
     jobs: {
@@ -142,6 +168,7 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
         else if (f.companyId) q = q.eq('company_id', f.companyId);
         if (f.jobId) q = q.eq('job_id', f.jobId);
         if (f.clientId) q = q.eq('client_id', f.clientId);
+        if (f.supplierId) q = q.eq('supplier_id', f.supplierId);
         return check(await q).map(r => fromRow<Transaction>('transactions', r));
       },
       async createMany(inputs) {

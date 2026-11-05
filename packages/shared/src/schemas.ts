@@ -56,6 +56,25 @@ export const clientSchema = z
   .refine(c => c.kind === 'pravno' || (!c.pib && !c.mb), { message: 'PIB i MB su samo za pravna lica', path: ['pib'] });
 export type ClientInput = z.infer<typeof clientSchema>;
 
+/** Saradnik: od koga kupujemo materijal ili tražimo uslugu. Nezavisan od klijenata; bira se pri unosu troška. */
+export const supplierSchema = z
+  .object({
+    kind: z.enum(keys(CLIENT_KINDS)),
+    name: text(120).min(1, 'Unesi ime ili naziv'),
+    /** Šta radi ili prodaje, npr. „PVC cevi“, „Iskop bagerom“. */
+    service: optText(120),
+    phone: optText(40),
+    email: optText(120).refine(v => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), 'Email nije ispravan'),
+    address: optText(160),
+    city: optText(80),
+    pib: optText(9),
+    mb: optText(8),
+    contactPerson: optText(120),
+    note: optText(1000),
+  })
+  .refine(c => c.kind === 'pravno' || (!c.pib && !c.mb), { message: 'PIB i MB su samo za pravna lica', path: ['pib'] });
+export type SupplierInput = z.infer<typeof supplierSchema>;
+
 export const jobSchema = z
   .object({
   clientId: id,
@@ -129,6 +148,8 @@ const transactionBase = z.object({
   accountId: id.nullable(),
   date: isoDate,
   clientId: id.nullable().optional(),
+  /** Saradnik kod koga je trošak (samo trošak). */
+  supplierId: id.nullable().optional(),
   jobId: id.nullable().optional(),
   category: text(60).min(1),
   description: optText(300),
@@ -144,6 +165,7 @@ const transactionBase = z.object({
 export const transactionSchema = transactionBase
   .refine(t => !t.salaryTo || t.type === 'trosak', { message: 'Plata je trošak', path: ['salaryTo'] })
   .refine(t => !t.salaryTo || !t.clientId, { message: 'Plata nema klijenta', path: ['clientId'] })
+  .refine(t => !t.supplierId || (t.type === 'trosak' && !t.salaryTo), { message: 'Saradnik je samo uz trošak', path: ['supplierId'] })
   .refine(t => !t.paidBy || (t.type === 'trosak' && !t.salaryTo), { message: 'Vlasnik može da plati samo trošak', path: ['paidBy'] })
   .refine(t => !!t.accountId !== !!t.paidBy, { message: 'Izaberi odakle je plaćeno', path: ['accountId'] });
 export type TransactionInput = z.infer<typeof transactionSchema>;

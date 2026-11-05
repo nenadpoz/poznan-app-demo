@@ -3,7 +3,7 @@ import {
   addDays, badgeCount, canInvoice, canInvoiceJobLine, channelsNow, clientSchema, cssVars, DEFAULT_NOTIFICATION_PREFS, defaultJobStatus,
   diffDays, filterTasks, fmtDate, formatInvoiceNo, hasStarted, incomeForYear, incomeLast12Months, inWindow, invoicePrefix,
   jobPaymentSchema, lightColors, limitUsage, money, nextStartPrompt, parseAmount, paymentSummary, pdvPeriod, periodRange, plural,
-  isTaskOverdue, rsd, settingsSchema, sortJobs, taskGroup, taskDueTime, taskReminderError, taskRemindersError, taskReminderText, taskSchema, totals, validatePayment, vatForMonth, weekday,
+  isTaskOverdue, rsd, settingsSchema, sortJobs, supplierSchema, transactionSchema, taskGroup, taskDueTime, taskReminderError, taskRemindersError, taskReminderText, taskSchema, totals, validatePayment, vatForMonth, weekday,
 } from '../src';
 
 describe('format', () => {
@@ -220,5 +220,18 @@ describe('podsetnici zadatka', () => {
     expect(isTaskOverdue({ status: 'cekanje', dueDate: '2026-11-04' }, '2026-11-05')).toBe(true);
     expect(isTaskOverdue({ status: 'zavrseno', dueDate: '2026-11-04' }, '2026-11-05')).toBe(false);
     expect(isTaskOverdue({ status: 'proces', dueDate: '2026-11-05' }, '2026-11-05')).toBe(false);
+  });
+});
+
+describe('saradnici', () => {
+  it('šema', () => {
+    expect(supplierSchema.parse({ kind: 'fizicko', name: 'Marko bager', service: 'Iskop' }).service).toBe('Iskop');
+    expect(supplierSchema.safeParse({ kind: 'fizicko', name: '' }).success).toBe(false);
+    expect(supplierSchema.safeParse({ kind: 'fizicko', name: 'X', pib: '123456789' }).success).toBe(false);
+  });
+  it('samo uz trošak', () => {
+    const base = { amountOriginal: 1000, currency: 'RSD', accountId: '00000000-0000-4000-8000-000000000001', date: '2026-11-05', category: 'Materijal', supplierId: '00000000-0000-4000-8000-000000000002' } as const;
+    expect(transactionSchema.safeParse({ ...base, type: 'trosak' }).success).toBe(true);
+    expect(transactionSchema.safeParse({ ...base, type: 'prihod' }).success).toBe(false);
   });
 });

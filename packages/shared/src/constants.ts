@@ -44,6 +44,13 @@ export const CATEGORIES_OUT = ['Materijal', 'Gorivo', 'Knjigovođa', 'Porez i do
 export const COMMENT_TARGETS = ['task', 'job', 'company'] as const;
 export type CommentTarget = (typeof COMMENT_TARGETS)[number];
 
+/** Slike: uz klijenta, saradnika, posao i zadatak. */
+export const PHOTO_TARGETS = ['client', 'supplier', 'job', 'task'] as const;
+export type PhotoTarget = (typeof PHOTO_TARGETS)[number];
+/** Najviše slika po stavci i najveća veličina jedne slike (posle smanjenja na telefonu). */
+export const MAX_PHOTOS = 20;
+export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+
 export const NOTIFICATION_TYPES = ['comment', 'reply', 'reminder', 'job_start', 'task_due', 'task_assigned', 'limit', 'tx_income', 'tx_expense', 'tx_transfer', 'tx_contribution', 'tx_edit', 'tx_delete', 'task_reminder', 'task_overdue'] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
