@@ -1208,7 +1208,9 @@ function fireReminders(){const n=new Date(),now=`${iso(n)} ${pad(n.getHours())}:
   const push=(t,type,text)=>people(t).forEach(u=>(S.notifs=S.notifs||[]).push({id:uid(),to:u,from:null,ts:Date.now(),type,kind:'task',taskId:t.id,text,read:false}));
   (S.tasks||[]).forEach(t=>{if(t.done||!t.due)return;const f=t.remFired=t.remFired||[];
     (t.reminders||[]).forEach(r=>{if(r>nl||f.includes(r))return;f.push(r);ch=true;push(t,'task_reminder',taskRemText(t.title,daysTo(r.slice(0,10),t.due)));});
-    const d6=`${t.due}T06:00`;if(t.due===TODAY_ISO&&hm>='06:00'&&!f.includes(d6)){f.push(d6);ch=true;push(t,'task_due',taskRemText(t.title,0));}
+    // Podrazumevani na dan roka: svako u svoje vreme (ili vreme zadatka)
+    if(t.due===TODAY_ISO)people(t).forEach(u=>{const tm=dueTimeFor(t,u),k=`${t.due}T${tm}:${u}`;if(hm<tm||f.includes(k))return;f.push(k);ch=true;
+      (S.notifs=S.notifs||[]).push({id:uid(),to:u,from:null,ts:Date.now(),type:'task_due',kind:'task',taskId:t.id,text:taskRemText(t.title,0),read:false});});
     const ov='rok:'+t.due;if(t.due<TODAY_ISO&&t.due>=addD(TODAY_ISO,-2)&&hm>='08:00'&&!f.includes(ov)){f.push(ov);ch=true;
       push(t,'task_overdue',`Rok za zadatak „${t.title}“ je bio ${t.due===addD(TODAY_ISO,-1)?'juče':'pre '+daysTo(t.due,TODAY_ISO)+' dana'}. Ako je završen, označi ga. Ako nije, promeni rok.`);}});
   if(ch){save();if(S.session)render();}}
@@ -1333,6 +1335,9 @@ const NOTIF_EV=[['start','Početak posla','Pitanje da li posao prelazi u „U pr
 const WIN_DEF={push:{from:'07:00',to:'21:00'},email:{from:'08:00',to:'20:00'}};
 const notifOf=u=>{const p=S.prefs[u]=S.prefs[u]||{};const n=p.notif=p.notif||{push:true,email:false,emailTo:'',ev:{start:true,tasks:true,limit:true}};
   n.pushWin=n.pushWin||{...WIN_DEF.push};n.emailWin=n.emailWin||{...WIN_DEF.email};return n;};
+/* Vreme podsetnika na dan roka: lično podešavanje (podrazumevano 06:00); zadatak može imati svoje (t.dueTime) */
+const taskTimeOf=u=>notifOf(u).taskTime||'06:00';
+const dueTimeFor=(t,u)=>t.dueTime||taskTimeOf(u);
 /* Vreme slanja: obaveštenje van ovog vremena čeka do početka vremena */
 const winFields=(pre,w)=>`<div class="grid2"><label class="fld"><span>Šalji od</span><input type="time" name="${pre}From" value="${esc(w.from)}"></label><label class="fld"><span>do</span><input type="time" name="${pre}Till" value="${esc(w.to)}"></label></div>`;
 const notifSummary=()=>{const n=notifOf(S.session);return [n.push&&'Push',n.email&&'Email'].filter(Boolean).join(' i ')||'Isključeno';};
@@ -1349,6 +1354,7 @@ function vObavestenja(){
     <p class="small muted sw-note">Obaveštenje koje nastane van izabranog vremena stiže kad to vreme počne.</p>
   </div></section>
   <section class="settings-sec"><span class="label">Šta šaljemo</span><div class="list">${NOTIF_EV.map(([k,l,s])=>swRow('ev_'+k,l,s,n.ev[k]!==false)).join('')}</div></section>
+  <section class="settings-sec"><span class="label">Zadaci</span><div class="list"><div class="sw-extra"><label class="fld"><span>Podsetnik na dan roka</span><input type="time" name="taskTime" value="${esc(taskTimeOf(S.session))}"><small>U ovo vreme stiže podsetnik za zadatke kojima je rok danas, za sve zadatke koji nemaju svoje vreme. U zadatku možeš izabrati drugo vreme samo za taj zadatak.</small></label></div></div></section>
   <p class="small muted" style="margin:0">U demou se obaveštenja ne šalju, samo se čuva izbor. Svako od vas podešava svoja obaveštenja i svoj email.</p>
   <button class="btn primary block" type="submit">Sačuvaj</button></form>`;
 }
@@ -1957,7 +1963,7 @@ function taskDetail(t){
   <div>${stPill(t.done?'zavrseno':taskStatus(t))}</div>
   ${late?`<div class="card overdue-q"><b>${ic('alert',18)} Rok je bio ${fmtDate(t.due)} Da li je zadatak završen?</b><div class="form-actions"><button class="btn primary" data-act="toggleTaskYes" data-id="${t.id}">${ic('check',18)} Završen je</button><button class="btn" data-act="taskEdit" data-id="${t.id}">${ic('calendar',18)} Promeni rok</button></div></div>`:''}
   <dl class="facts"><dt>Zadužen</dt><dd>${esc(whoName(t.assignee))}</dd><dt>Rok</dt><dd class="${late?'late':''}">${t.due?`${late?'Kasni · ':''}${fmtDate(t.due)}`:'Bez roka'}</dd>
-  ${t.due&&!t.done&&t.due>=TODAY_ISO?`<dt>Podsetnici</dt><dd>${[...(t.reminders||[]).filter(r=>r>nowLocal()).map(remTxt),'Na dan roka u 06:00'].join('<br>')}</dd>`:''}
+  ${t.due&&!t.done&&t.due>=TODAY_ISO?`<dt>Podsetnici</dt><dd>${[...(t.reminders||[]).filter(r=>r>nowLocal()).map(remTxt),`Na dan roka u ${dueTimeFor(t,S.session)}`].join('<br>')}</dd>`:''}
   <dt>Posao</dt><dd>${j?`<a href="#" data-act="taskJob" data-id="${j.id}">${esc(posLabel(j))}</a>`:'—'}</dd><dt>Napomena</dt><dd>${esc(t.notes)||'—'}</dd>
   ${t.done?`<dt>Završen</dt><dd>${esc(userName(t.doneBy))}${t.doneAt?' · '+fmtDate(iso(new Date(t.doneAt))):''}</dd>`:''}</dl>
   <button class="btn ${t.done?'':'primary'} block" data-act="toggleTask" data-id="${t.id}">${ic(t.done?'back':'check',18)} ${t.done?'Vrati kao otvoren':'Završi zadatak'}</button>
@@ -1973,6 +1979,7 @@ function taskForm(t={}){
   <fieldset class="fld"><legend>Ko je zadužen</legend>${whoSeg('assignee',t.assignee||S.session)}</fieldset>
   <fieldset class="fld"><legend>Status</legend><div class="seg">${ST.map(([v,l])=>`<label><input type="radio" name="status" value="${v}" ${taskStatus(t)===v?'checked':''}>${l}</label>`).join('')}</div></fieldset>
   <label class="fld"><span>Rok</span><input id="tk-due" type="date" name="due" value="${t.due||''}"></label>
+  <label class="fld" id="tk-dt" ${t.due?'':'hidden'}><span>Podsetnik na dan roka</span><input type="time" name="dueTime" value="${esc(dueTimeFor(t,S.session))}"><small></small></label>
   <div class="fld" id="tk-rem"><span>Podsetnici</span><input type="hidden" name="reminders" value="${esc(JSON.stringify(t.reminders||[]))}" data-before="${esc(JSON.stringify(t.reminders||[]))}"><div class="tk-rem-body"></div></div>
   <div class="fld"><span>Vezan za posao</span>${combo('jobId',jobs.map(p=>({v:p.id,label:posLabel(p),sub:p.startDate?'Početak '+startTxt(p):'Početak nije određen',q:posLabel(p)+' '+(p.description||'')})),t.jobId,'Počni da kucaš, pretražujem poslove')}<small>Nije obavezno.</small></div>
   <label class="fld"><span>Napomena</span><textarea id="tk-notes" name="notes" rows="2">${esc(t.notes)}</textarea></label>
@@ -1980,7 +1987,8 @@ function taskForm(t={}){
   <div class="form-actions"><button class="btn primary" type="submit">${ic('save',18)} Sačuvaj zadatak</button><button type="button" class="btn" data-act="closeSheet">${ic('x',18)} Zatvori</button></div></form>`);
   const f=document.querySelector('[data-form=task]');tkRem(f);trackDirty(f);
 }
-/* Podsetnici zadatka: lokalni „GGGG-MM-DDTHH:MM“. Ne u prošlost, ne posle dana roka; na dan roka u 06:00 stiže i podrazumevani. */
+/* Podsetnici zadatka: lokalni „GGGG-MM-DDTHH:MM“. Ne u prošlost, ne posle dana roka (kalendar nudi samo dane od danas do roka);
+   na dan roka stiže i podrazumevani, u vreme iz podešavanja ili vreme zadatka. */
 const nowLocal=()=>{const n=new Date();return `${iso(n)}T${pad(n.getHours())}:${pad(n.getMinutes())}`;};
 const remTxt=r=>`${fmtDate(r.slice(0,10))} u ${r.slice(11,16)}`;
 const remErr=(r,due)=>!due?'Za podsetnik prvo izaberi rok.':r<nowLocal()?'Podsetnik ne može biti u prošlosti.':r.slice(0,10)>due?'Podsetnik ne može biti posle roka.':'';
@@ -1988,14 +1996,16 @@ const daysTo=(fromIso,toIso)=>Math.round((pd(toIso)-pd(fromIso))/864e5);
 const taskRemText=(title,days)=>days<=0?`Danas je rok za zadatak „${title}“`:days%10===1&&days%100!==11?`Ostao je još ${days} dan do završetka zadatka „${title}“`:`Ostalo je još ${days} dana do završetka zadatka „${title}“`;
 function tkRem(f){if(!f)return;const due=f.elements.due.value,h=f.elements.reminders,list=JSON.parse(h.value||'[]'),w=f.querySelector('.tk-rem-body');
   const who=f.elements.assignee?.value,whom=who==='oba'?'obojici':who==='nenad'?userName('nenad')+'u':userName('jovan')+'u';
+  const dt=f.querySelector('#tk-dt'),dtv=f.elements.dueTime.value||taskTimeOf(S.session);dt.hidden=!due;
+  dt.querySelector('small').textContent=dtv!==taskTimeOf(S.session)?'Vreme samo za ovaj zadatak.':'Vreme iz podešavanja (Obaveštenja). Promeni ga ovde samo za ovaj zadatak.';
   if(!due){w.innerHTML='<small>Izaberi rok da bi dodao podsetnike.</small>';return;}
   const now=nowLocal(),left=r=>{const n=daysTo(r.slice(0,10),due);return n<=0?'na dan roka':n===1?'dan pre roka':`${n} dana pre roka`;};
   w.innerHTML=`${list.map(r=>`<div class="rem-row${r<now?' sent':''}">${ic('bell',16)}<div class="row-main"><b>${remTxt(r)}</b><small>${r<now?'Poslat':left(r)}</small></div><button type="button" class="cmt-del" data-act="tkDelRem" data-v="${r}" aria-label="Ukloni podsetnik">${ic('x',14)}</button></div>`).join('')}
-  <div class="grid2"><input type="date" class="tk-rd" value="${due}" aria-label="Datum podsetnika"><input type="time" class="tk-rt" value="09:00" aria-label="Vreme podsetnika"></div>
-  <button type="button" class="btn sm" data-act="tkAddRem">${ic('bell',16)} Dodaj podsetnik</button>
-  <small>Stiže kao obaveštenje ${esc(whom)}. Na dan roka u 06:00 stiže podsetnik i bez dodavanja.</small>`;}
+  ${due>=TODAY_ISO?`<div class="grid2"><input type="date" class="tk-rd" value="${due}" min="${TODAY_ISO}" max="${due}" aria-label="Datum podsetnika"><input type="time" class="tk-rt" value="09:00" aria-label="Vreme podsetnika"></div>
+  <button type="button" class="btn sm" data-act="tkAddRem">${ic('bell',16)} Dodaj podsetnik</button>`:'<small>Rok je prošao. Promeni rok da bi dodao podsetnik.</small>'}
+  <small>Stiže kao obaveštenje ${esc(whom)}. Na dan roka u ${esc(dtv)} stiže podsetnik i bez dodavanja.</small>`;}
 function tkSetRem(f,list){f.elements.reminders.value=JSON.stringify([...new Set(list)].sort());tkRem(f);dirtyCheck(f);}
-const TASK_F=[['title','Zadatak'],['assignee','Zadužen',whoName],['due','Rok',v=>v?fmtDate(v):'bez roka'],['reminders','Podsetnici',v=>(v||[]).map(remTxt).join(', ')||'—'],['jobId','Posao',v=>{const j=posao(v);return j?posLabel(j):'—';}],['notes','Napomena']];
+const TASK_F=[['title','Zadatak'],['assignee','Zadužen',whoName],['due','Rok',v=>v?fmtDate(v):'bez roka'],['reminders','Podsetnici',v=>(v||[]).map(remTxt).join(', ')||'—'],['dueTime','Podsetnik na dan roka',v=>v||'po podešavanjima'],['jobId','Posao',v=>{const j=posao(v);return j?posLabel(j):'—';}],['notes','Napomena']];
 Object.assign(A,{
   navNew:el=>{const fn=A[el.dataset.new];if(fn)fn(el);},
   startYes:el=>{const id=el.dataset.id;markStartAsked(id);closeSheet();A.setJobStatus({dataset:{id,v:'proces'}});setTimeout(checkStartPrompts,300);},
@@ -2055,6 +2065,8 @@ Object.assign(F,{
     const before=JSON.parse(e.reminders.dataset.before||'[]');d.reminders=d.due?JSON.parse(e.reminders.value||'[]'):[];
     const rerr=d.reminders.map(r=>before.includes(r)&&r<nowLocal()?(r.slice(0,10)>d.due?'Podsetnik ne može biti posle roka.':''):remErr(r,d.due)).find(Boolean);
     if(rerr)return toast(rerr);
+    // Isto vreme kao u podešavanjima se ne čuva posebno, pa prati buduće promene podešavanja
+    d.dueTime=d.due&&e.dueTime.value&&e.dueTime.value!==taskTimeOf(S.session)?e.dueTime.value:null;
     d.clientId=d.jobId?posao(d.jobId)?.clientId||null:null; // zadatak nema svog klijenta, samo preko posla
     const stv=e.status.value;
     if(id){const t=S.tasks.find(x=>x.id===id);const ch=diff(t,d,TASK_F);const was=taskStatus(t),prevA=t.assignee;if(stv!==was)ch.push({field:'Status',from:ST_NAME[was],to:ST_NAME[stv]});if(ch.length){Object.assign(t,d);if(t.assignee!==prevA)notifyAssigned(t);applyTaskStatus(t,stv);log('zadatak','izmenjeno',t.title,ch);save();}closeSheet();render();taskDetail(t);toast(ch.length?'Zadatak je sačuvan.':'Nema izmena.');}
@@ -2096,7 +2108,7 @@ Object.assign(F,{
     save();closeSheet();render();toast(`Podsetnik: ${fmtDate(r.date)} u ${r.time}.`);fireReminders();},
   notif:f=>{const e=f.elements,u=S.session,n=notifOf(u),onOff=v=>v?'uključeno':'isključeno';
     const d={push:e.push.checked,email:e.email.checked,emailTo:e.emailTo.value.trim(),ev:Object.fromEntries(NOTIF_EV.map(([k])=>[k,e['ev_'+k].checked])),
-      pushWin:{from:e.pushFrom.value||WIN_DEF.push.from,to:e.pushTill.value||WIN_DEF.push.to},emailWin:{from:e.emailFrom.value||WIN_DEF.email.from,to:e.emailTill.value||WIN_DEF.email.to}};
+      pushWin:{from:e.pushFrom.value||WIN_DEF.push.from,to:e.pushTill.value||WIN_DEF.push.to},emailWin:{from:e.emailFrom.value||WIN_DEF.email.from,to:e.emailTill.value||WIN_DEF.email.to},taskTime:e.taskTime.value||'06:00'};
     if(d.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.emailTo))return toast('Upiši ispravan email za obaveštenja.');
     if(d.pushWin.from===d.pushWin.to||d.emailWin.from===d.emailWin.to)return toast('Vreme „od“ i „do“ ne može biti isto.');
     const winTxt=w=>`${w.from}–${w.to}`;
@@ -2104,6 +2116,7 @@ Object.assign(F,{
     if(d.emailTo!==n.emailTo)ch.push({field:'Email adresa',from:n.emailTo,to:d.emailTo});
     if(winTxt(d.pushWin)!==winTxt(n.pushWin))ch.push({field:'Vreme za push',from:winTxt(n.pushWin),to:winTxt(d.pushWin)});
     if(winTxt(d.emailWin)!==winTxt(n.emailWin))ch.push({field:'Vreme za email',from:winTxt(n.emailWin),to:winTxt(d.emailWin)});
+    if(d.taskTime!==taskTimeOf(u))ch.push({field:'Podsetnik na dan roka',from:taskTimeOf(u),to:d.taskTime});
     NOTIF_EV.forEach(([k,l])=>{if(d.ev[k]!==(n.ev[k]!==false))ch.push({field:l,from:onOff(n.ev[k]!==false),to:onOff(d.ev[k])});});
     if(ch.length){S.prefs[u].notif=d;save();}
     go('vise');toast(ch.length?'Obaveštenja su sačuvana.':'Nema izmena.');},
@@ -2125,7 +2138,7 @@ document.addEventListener('input',e=>{if(e.target.hasAttribute?.('data-req')){co
   if(k==='pYear'){ui.pyear=+v;render();return;}
   if(k==='clientQ')ui.clientQ=v;else if(k==='kontaktQ')ui.kq=v;else if(k==='clientCat')ui.clientCat=v;else if(k==='txCompany')ui.tx.company=v;else if(k==='logQ')ui.lf.q=v;else if(k==='lfUser')ui.lf.user=v;else if(k==='lfDays')ui.lf.days=v;render();});
 document.addEventListener('change',async e=>{
-  const t=e.target;if(t.form?.dataset.form==='task'&&(t.name==='due'||t.name==='assignee')){tkRem(t.form);dirtyCheck(t.form);return;}if(t.form&&t.form.id==='txForm'){updTxForm(false);return;}
+  const t=e.target;if(t.form?.dataset.form==='task'&&(t.name==='due'||t.name==='assignee'||t.name==='dueTime')){tkRem(t.form);dirtyCheck(t.form);return;}if(t.form&&t.form.id==='txForm'){updTxForm(false);return;}
   if(t.name==='currency'&&t.form&&t.form.id==='trForm'){const e=t.form.elements;$('#trPicks').innerHTML=trPicks(e.from.value,e.to.value,t.value);fxHint(t.form);return;}
   if(t.id==='j-label'){const w=$('#newLabelWrap');w.hidden=t.value!=='__new';if(!w.hidden)$('#j-newlabel').focus();return;}
   if(t.name==='icon'&&t.form?.dataset.form==='company'){updLogoPrev(t.form);return;}
