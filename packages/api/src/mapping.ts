@@ -10,7 +10,7 @@ const RENAMES: Record<string, Record<string, string>> = {
 
 const camel = (s: string) => s.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase());
 const snake = (s: string) => s.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`);
-const NUMERIC = new Set(['amount', 'amount_original', 'fx_rate', 'eur', 'balance', 'opening_balance', 'vat', 'pausal_limit', 'pdv_threshold', 'warn_pct', 'crit_pct', 'monthly_fee']);
+const NUMERIC = new Set(['amount', 'amount_original', 'fx_rate', 'eur', 'usd', 'balance', 'opening_balance', 'vat', 'pausal_limit', 'pdv_threshold', 'warn_pct', 'crit_pct', 'monthly_fee']);
 
 export function fromRow<T>(table: string, row: Record<string, unknown>): T {
   const ren = RENAMES[table] ?? {};

@@ -42,7 +42,7 @@ Sve tabele: `id uuid`, `created_at`, `updated_at`, `updated_by`, i `deleted_at` 
 | Tabela | Ključna polja |
 |---|---|
 | `admins` | `user_id` |
-| `profiles` | `user_id`, `slug` (`nenad`/`jovan`), `name`, `currency` (prikaz, podrazumevano EUR), `theme`, `bar_colors jsonb`, `notif jsonb` (kanali, email, vremena, vrste) |
+| `profiles` | `user_id`, `slug` (`nenad`/`jovan`), `name`, `currency` (prikaz EUR/USD/RSD, podrazumevano EUR), `theme`, `bar_colors jsonb`, `notif jsonb` (kanali, email, vremena, vrste) |
 | `settings` | jedan red: `pausal_limit`, `pdv_threshold`, `warn_pct`, `crit_pct` |
 | `companies` | `name, form, phase, address, pib, mb, activity, founded, monthly_fee, notes, icon, logo_path` |
 | `company_history` | `company_id, kind` (`phase`/`form`/`edit`), `from_value, to_value, changes jsonb, effective_date, note` |
@@ -60,7 +60,7 @@ Sve tabele: `id uuid`, `created_at`, `updated_at`, `updated_by`, i `deleted_at` 
 | `owner_contributions` | ulog vlasnika: `owner, account_id, amount` (RSD), `amount_original, currency, fx_rate, date, note, created_by`; nije prihod, ulazi u stanje računa |
 | `accounts` | račun firme (`company_id`) ili jedna zaliha keša (`kind = cash`); `opening_balance, opening_date` |
 | `transfers` | podizanje/polaganje: `from_account_id, to_account_id, amount` (RSD), `amount_original, currency, fx_rate, date, note, created_by` |
-| `fx_rates` | `date, eur` (srednji kurs NBS), puni Edge Function `fx-rates` |
+| `fx_rates` | `date, eur, usd` (srednji kurs NBS), puni Edge Function `fx-rates` |
 | `account_balances` (view) | stanje = početno + prihodi − troškovi ± prenosi |
 | `invoice_counters` | `company_id, year, last_no` (brojevi faktura bez preskakanja) |
 | `notifications` | `to_user, from_user, type` (`comment`/`reply`/`reminder`/`job_start`/`task_due`/`task_reminder`/`task_overdue`/`task_assigned`/`limit`/`tx_*`), `target_type, target_id, comment_id, text, read_at, push_state, email_state, send_after` |

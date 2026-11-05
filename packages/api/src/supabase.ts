@@ -205,12 +205,12 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
     },
     fx: {
       async latest() {
-        const r = await sb.from('fx_rates').select('date, eur').order('date', { ascending: false }).limit(1).maybeSingle();
+        const r = await sb.from('fx_rates').select('date, eur, usd').order('date', { ascending: false }).limit(1).maybeSingle();
         ok(r);
         return r.data ? fromRow<FxRateRow>('fx_rates', r.data) : null;
       },
       async forDate(date) {
-        const r = await sb.from('fx_rates').select('date, eur').lte('date', date).order('date', { ascending: false }).limit(1).maybeSingle();
+        const r = await sb.from('fx_rates').select('date, eur, usd').lte('date', date).order('date', { ascending: false }).limit(1).maybeSingle();
         ok(r);
         return r.data ? fromRow<FxRateRow>('fx_rates', r.data) : null;
       },

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  accountFieldLabel, balances, checkTransfer, fmtCurrency, fmtDisplay, fmtRate, fromRsd, money2, rateFor, sortAccounts, toRsd, totalBalance,
+  accountFieldLabel, balances, checkTransfer, fmtCurrency, fmtDisplay, fmtRate, fromRsd, money2, rateFor, rateOf, sortAccounts, toRsd, totalBalance,
   transactionSchema, transferSchema,
 } from '../src';
 
@@ -26,6 +26,20 @@ describe('valuta', () => {
     expect(fmtDisplay(117536.7, 'RSD', 117.5367)).toBe('117.537 RSD');
     expect(fmtDisplay(5000, 'EUR', undefined)).toBe('5.000 RSD'); // bez kursa ostaje u dinarima
     expect(fmtRate(117.5367)).toBe('1 EUR = 117,5367 RSD');
+  });
+  it('USD', () => {
+    const fx = { eur: 117.6018, usd: 104.405 };
+    expect(rateOf(fx, 'USD')).toBe(104.405);
+    expect(rateOf(fx, 'EUR')).toBe(117.6018);
+    expect(rateOf(fx, 'RSD')).toBe(1);
+    expect(rateOf({ eur: 117.6, usd: null }, 'USD')).toBeUndefined(); // stara lista bez dolara
+    expect(rateOf(null, 'EUR')).toBeUndefined();
+    expect(toRsd(100, 'USD', 104.405)).toBe(10440.5);
+    expect(fmtCurrency(1234.5, 'USD')).toBe('1.234,50 USD');
+    expect(fmtDisplay(10440.5, 'USD', 104.405)).toBe('100,00 USD');
+    expect(fmtDisplay(10440.5, 'USD', undefined)).toBe('10.441 RSD');
+    expect(fmtRate(104.405, 'USD')).toBe('1 USD = 104,4050 RSD');
+    expect(transactionSchema.safeParse({ type: 'trosak', amountOriginal: 50, currency: 'USD', accountId: 'kes', date: '2026-11-05', category: 'Gorivo' }).success).toBe(true);
   });
 });
 
@@ -65,7 +79,7 @@ describe('računi', () => {
     expect(accountFieldLabel('trosak')).toBe('Plaćeno sa');
     const tx = { type: 'trosak', amountOriginal: 50, currency: 'EUR', accountId: 'kes', date: '2026-11-02', category: 'Gorivo' };
     expect(transactionSchema.safeParse(tx).success).toBe(true);
-    expect(transactionSchema.safeParse({ ...tx, currency: 'USD' }).success).toBe(false);
+    expect(transactionSchema.safeParse({ ...tx, currency: 'GBP' }).success).toBe(false);
     expect(transferSchema.safeParse({ fromAccountId: 'dr', toAccountId: 'dr', amountOriginal: 1, currency: 'RSD', date: '2026-11-02' }).success).toBe(false);
   });
 });

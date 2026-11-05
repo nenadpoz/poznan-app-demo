@@ -4,8 +4,8 @@
 - `seed.sql`: primer podataka za `supabase db reset`.
 - `functions/`: Edge Functions.
 
-## Kurs EUR (fx-rates)
-Srednji kurs NBS se upisuje u `fx_rates` jednom dnevno. EUR transakcija za dan bez kursa se odbija,
+## Kurs EUR i USD (fx-rates)
+Srednji kurs NBS za EUR i USD se upisuje u `fx_rates` jednom dnevno (kolone `eur`, `usd`). Devizna transakcija za dan bez kursa se odbija,
 zato kurs mora da postoji pre unosa (funkcija uzima poslednju listu pre traženog dana, npr. za vikend petkovu).
 
 ```bash

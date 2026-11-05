@@ -77,7 +77,7 @@ export interface Transfer extends Base {
   fromAccountId: string; toAccountId: string; amount: number; currency: Currency; amountOriginal: number; fxRate: number;
   date: string; note: string | null; createdBy: string | null;
 }
-export interface FxRateRow { date: string; eur: number }
+export interface FxRateRow { date: string; eur: number; usd: number | null }
 export interface Notification {
   id: string; createdAt: string; fromUser: string | null; type: string;
   /** Na šta se odnosi (dodir otvara tu stavku); `transaction` = prihod ili trošak, `transfer` = prenos, `contribution` = ulog. */

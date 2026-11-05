@@ -69,7 +69,7 @@ Tri kartice, tim redom:
 - Iznose i rokove proveriti sa knjigovođom na početku svake godine.
 
 ## 5. Promet (transakcije)
-- **Detalji unosa**: dodir na stavku u Prometu (i na obaveštenje) otvara pregled: iznos (u valuti unosa, uz dinare i kurs za EUR), datum, odakle je plaćeno, kategorija, klijent i posao (sa linkom), komentar, delovi plaćanja iz više izvora, komentari i istorija (ko je uneo i menjao, i koja polja). Izmena je na ikonici gore desno; prenos ima samo brisanje. Kartice u Prometu ne prikazuju ko je uneo (to je u istoriji na detaljima). Iznad liste je ukupno prihoda i ukupno troškova za izabrani filter (tip i firma).
+- **Detalji unosa**: dodir na stavku u Prometu (i na obaveštenje) otvara pregled: iznos (u valuti unosa, uz dinare i kurs za EUR ili USD), datum, odakle je plaćeno, kategorija, klijent i posao (sa linkom), komentar, delovi plaćanja iz više izvora, komentari i istorija (ko je uneo i menjao, i koja polja). Izmena je na ikonici gore desno; prenos ima samo brisanje. Kartice u Prometu ne prikazuju ko je uneo (to je u istoriji na detaljima). Iznad liste je ukupno prihoda i ukupno troškova za izabrani filter (tip i firma).
 - **Detalji zadatka**: dodir na zadatak (u listi, na kartici posla ili na obaveštenje) otvara pregled: naziv, status, ko je zadužen, rok, posao, napomena, dugme Završi zadatak ili Vrati kao otvoren, komentari i istorija. Izmena i brisanje su na ikonicama gore desno; forma zadatka nema komentare ni brisanje.
 - Polja: tip (`prihod` | `trosak`), iznos (RSD, bez PDV-a), datum, firma (opciono), klijent (opciono), kategorija, PDV stopa (samo PDV firma), opis, veza na posao (opciono), broj fakture (opciono).
 - Firma se bira **karticama** (kao radio dugme): prva je **Bez firme (keš)** sa ikonicom novca i podrazumevana je; ostale su otvorene firme sa ikonicom ili logom.
@@ -163,7 +163,7 @@ Tri kartice, tim redom:
 ## 13. Logovi (audit)
 - Zapis: vreme, korisnik, entitet (`posao`, `termin`, `zadatak`, `klijent`, `firma`, `transakcija`, `podesavanja`, `backup`, `nalog`), akcija, naziv, lista promena (polje, staro, novo).
 - Prikaz po danima, filteri po entitetu, korisniku, periodu i tekstu.
-- Ne beleže se lična podešavanja prikaza na nalogu (valuta prikaza EUR/RSD, tema, boje traka limita, obaveštenja): menjaju samo izgled za tog korisnika. Izmena imena i emaila se beleži.
+- Ne beleže se lična podešavanja prikaza na nalogu (valuta prikaza EUR/USD/RSD, tema, boje traka limita, obaveštenja): menjaju samo izgled za tog korisnika. Izmena imena i emaila se beleži.
 
 ## 14. Backup
 - Svake noći na Google Drive (folder „Poznan backup“), čuva se poslednjih 30 dana. Sadrži kompletan dump baze (uloge, šema, svi podaci uključujući naloge i logove) i posebno podatke aplikacije za brzo vraćanje.
@@ -186,16 +186,16 @@ Zahtev vlasnika od 2. nov 2026. Urađeno u core-u (v0.2.0), mobilnoj aplikaciji 
 - Uz svaku promenu piše **ko je izvršio** transakciju (Nenad ili Jovan) i kada.
 - Početno stanje računa i keša se unosi jednom (ili kasnije kao korekcija, koja ide u logove).
 
-**Valuta EUR / RSD**
-- Prikaz je podrazumevano u **evrima**. Jednim klikom (prekidač u zaglavlju) se ceo prikaz prebacuje EUR ↔ RSD. Izbor se pamti po nalogu.
+**Valuta EUR / USD / RSD**
+- Prikaz je podrazumevano u **evrima**. Dugme valute u zaglavlju otvara meni: **RSD, EUR, USD**, uz današnji kurs za EUR i USD; izbor preračunava ceo prikaz (stanja, zbirove, listu prometa). Izbor se pamti po nalogu.
 - Kurs je **srednji kurs NBS za taj dan** (preuzima se automatski jednom dnevno; ako za danas još nema kursa, koristi se poslednji objavljeni).
-- Pri unosu prihoda ili troška bira se valuta iznosa (dinari ili evri). Čuva se originalni iznos i valuta, plus kurs tog dana, da se stari iznosi ne menjaju kad se kurs promeni.
-- **Paušal limit i PDV prag se uvek računaju u dinarima** (zakonski su u RSD), bez obzira na izabrani prikaz. Format: `1.234.567 RSD` (bez decimala) i `1.234,56 EUR` (dve decimale). Izvor kursa: kurs.resenje.org (prenosi kursnu listu NBS). Za vikend i praznike važi poslednja lista pre tog dana. EUR unos za dan za koji još nema nijedne liste se odbija.
+- Pri unosu prihoda ili troška bira se valuta iznosa (dinari, evri ili dolari); isto važi za prenos i ulog vlasnika. Čuva se originalni iznos i valuta, plus kurs tog dana, da se stari iznosi ne menjaju kad se kurs promeni.
+- **Paušal limit i PDV prag se uvek računaju u dinarima** (zakonski su u RSD), bez obzira na izabrani prikaz. Format: `1.234.567 RSD` (bez decimala) i `1.234,56 EUR` / `1.234,56 USD` (dve decimale). Izvor kursa: kurs.resenje.org (prenosi kursnu listu NBS). Za vikend i praznike važi poslednja lista pre tog dana. Devizni unos (EUR ili USD) za dan za koji još nema nijedne liste sa tom valutom se odbija.
 
 **Uticaj na model (za implementaciju)**
 - Nova tabela `accounts` (firma ili keš) i `transfers` (podizanje/polaganje).
-- `transactions`: `account_id` (izvor/odredište), `currency` (`RSD`/`EUR`), `amount_original`, `fx_rate`, iznos u RSD za limite; `created_by` se prikazuje uz stavku.
-- `fx_rates` (datum, EUR srednji kurs), puni ga Edge Function iz pg_cron-a.
+- `transactions`: `account_id` (izvor/odredište), `currency` (`RSD`/`EUR`/`USD`), `amount_original`, `fx_rate`, iznos u RSD za limite; `created_by` se prikazuje uz stavku.
+- `fx_rates` (datum, srednji kurs EUR i USD), puni ga Edge Function iz pg_cron-a.
 - `profiles.currency` za izabrani prikaz.
 - Trošak može da se plati iz više izvora odjednom: račun firme, keš i novčanik vlasnika (npr. Jovan 400 €, Nenad 500 €). Svaki izvor je jedan red troška sa istim id-jem plaćanja. Deo koji plati vlasnik nema račun ni firmu (novac nije izašao ni sa firme ni iz keša) i baza mu automatski upisuje ulog istog iznosa, takođe bez računa: stanje nijednog računa se ne menja, trošak ulazi u profit, a ulog u plate i uloge. Izmena ili brisanje troška menja i taj ulog.
 - Stanje računa = početno stanje + prihodi − troškovi ± prenosi + ulozi (view u bazi). Bez početnog stanja broji se sav promet, i unet unazad; uz početno stanje broji se promet od njegovog datuma.
@@ -206,5 +206,5 @@ Urađeno u HTML demou, core-u (v0.3.0) i mobilnoj aplikaciji.
 - **Ulog vlasnika**: kod prihoda polje **Ulog vlasnika (sopstveni novac)**, bira se ko je uložio i na koji račun (firma ili keš). Nije prihod: ne ulazi u limite, PDV ni profit, samo povećava stanje računa. U Prometu se vidi pod **Sve** i **Prenosi**, sa oznakom „ulog“.
 - **Neto** po vlasniku = plate − ulozi. **Razlika** poredi neto iznose (ko je neto dobio više).
 - Pregled ima karticu **Vlasnici: plate i ulozi** za poslednji mesec tekuće godine (isplaćena plata, uložio, neto, razlika). Klik otvara ekran **Plate i ulozi** sa filterom **Mesec / Godina / Sve** (strelice za prethodni i sledeći period) i jednom tabelom za izabrani period, sa dugmadima **Isplati platu** i **Dodaj ulog**. Kad neto iznosi nisu jednaki, dugme **Isplati razliku [vlasniku]** otvara isplatu plate onome ko je dobio manje, sa iznosom razlike za izabrani period.
-- Iznosi se prikazuju u izabranoj valuti (EUR/RSD).
+- Iznosi se prikazuju u izabranoj valuti (EUR/USD/RSD).
 - Za bazu: `transactions.salary_to`, nova tabela `owner_contributions` (vlasnik, račun, iznos, valuta, kurs, datum, komentar, ko je uneo); stanje računa je uključuje.

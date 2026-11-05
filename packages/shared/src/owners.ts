@@ -28,7 +28,7 @@ export function ownerStats(txs: SalaryLike[], contributions: ContributionLike[],
 }
 
 /** Najmanja razlika koja se vidi u prikazu: 1 RSD ili 0,01 EUR (u dinarima). Manje od toga je „jednako“. */
-export const ownerTolerance = (display: 'RSD' | 'EUR', eurRate?: number) => (display === 'EUR' && eurRate ? eurRate * 0.01 : 1);
+export const ownerTolerance = (display: 'RSD' | 'EUR' | 'USD', rate?: number) => (display !== 'RSD' && rate ? rate * 0.01 : 1);
 
 /**
  * Ko je neto dobio više i za koliko (RSD). `payTo` je vlasnik kome treba isplatiti razliku
