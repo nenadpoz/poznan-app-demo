@@ -55,7 +55,7 @@ Sve tabele: `id uuid`, `created_at`, `updated_at`, `updated_by`, i `deleted_at` 
 | `photos` | `target_type` (`client`/`supplier`/`job`/`task`), `target_id, storage_path, created_by`; fajl u privatnom Storage bucketu `photos` (`<vrsta>/<id>/<uuid>.jpg`) |
 | `job_photos` | ne koristi se (zamenjena tabelom `photos`) |
 | `tasks` | `title, assignee, due, status, done_at, done_by, job_id, notes, reminders, due_time` (bez klijenta; `task_alerts` beleži poslate podsetnike, pg_cron `fire_task_alerts` svakog minuta) |
-| `comments` | `target_type` (`task`/`job`/`company`), `target_id, parent_id, user_id, text` |
+| `comments` | `target_type` (`task`/`job`/`company`/`transaction`/`transfer`/`contribution`), `target_id, parent_id, user_id, text` |
 | `transactions` | `type, amount` (RSD), `amount_original, currency, fx_rate, account_id, created_by, date, company_id` (izvodi se iz računa), `client_id, category, vat, description` (u aplikaciji „Komentar“), `job_id, invoice_no, salary_to` (plata vlasniku), `pending_client` (čeka klijenta) |
 | `owner_contributions` | ulog vlasnika: `owner, account_id, amount` (RSD), `amount_original, currency, fx_rate, date, note, created_by`; nije prihod, ulazi u stanje računa |
 | `accounts` | račun firme (`company_id`) ili jedna zaliha keša (`kind = cash`); `opening_balance, opening_date` |

@@ -69,7 +69,7 @@ Tri kartice, tim redom:
 - Iznose i rokove proveriti sa knjigovođom na početku svake godine.
 
 ## 5. Promet (transakcije)
-- **Detalji unosa**: dodir na stavku u Prometu (i na obaveštenje) otvara pregled: iznos (u valuti unosa, uz dinare i kurs za EUR), datum, odakle je plaćeno, kategorija, klijent i posao (sa linkom), komentar, delovi plaćanja iz više izvora i istorija (ko je uneo i menjao, i koja polja). Izmena je na ikonici gore desno; prenos ima samo brisanje. Kartice u Prometu ne prikazuju ko je uneo (to je u istoriji na detaljima). Iznad liste je ukupno prihoda i ukupno troškova za izabrani filter (tip i firma).
+- **Detalji unosa**: dodir na stavku u Prometu (i na obaveštenje) otvara pregled: iznos (u valuti unosa, uz dinare i kurs za EUR), datum, odakle je plaćeno, kategorija, klijent i posao (sa linkom), komentar, delovi plaćanja iz više izvora, komentari i istorija (ko je uneo i menjao, i koja polja). Izmena je na ikonici gore desno; prenos ima samo brisanje. Kartice u Prometu ne prikazuju ko je uneo (to je u istoriji na detaljima). Iznad liste je ukupno prihoda i ukupno troškova za izabrani filter (tip i firma).
 - **Detalji zadatka**: dodir na zadatak (u listi, na kartici posla ili na obaveštenje) otvara pregled: naziv, status, ko je zadužen, rok, posao, napomena, dugme Završi zadatak ili Vrati kao otvoren, komentari i istorija. Izmena i brisanje su na ikonicama gore desno; forma zadatka nema komentare ni brisanje.
 - Polja: tip (`prihod` | `trosak`), iznos (RSD, bez PDV-a), datum, firma (opciono), klijent (opciono), kategorija, PDV stopa (samo PDV firma), opis, veza na posao (opciono), broj fakture (opciono).
 - Firma se bira **karticama** (kao radio dugme): prva je **Bez firme (keš)** sa ikonicom novca i podrazumevana je; ostale su otvorene firme sa ikonicom ili logom.
@@ -143,7 +143,7 @@ Tri kartice, tim redom:
 - **Rok je prošao**: dan posle roka u 08:00 (po vremenu slanja), ako zadatak nije završen, zaduženi dobija obaveštenje „Da li je zadatak završen?“. Dodir otvara zadatak, gde gore stoji pitanje sa dugmićima **Završen je** i **Promeni rok** (otvara formu). Pitanje se šalje jednom po roku; posle promene roka ponovo, ako i novi rok prođe.
 
 ## 10. Komentari
-- Postoje na **zadacima, poslovima i firmama**.
+- Postoje na **zadacima, poslovima, firmama i svakom unosu u Prometu** (prihod, trošak, ulog vlasnika, prenos), na detaljima unosa iznad istorije.
 - Komentar: ko, kada, tekst. Na svaki komentar može da se **odgovori** (jedan nivo, uvučeno). Čuvaju se odmah. Svako briše samo svoje; brisanje komentara briše i odgovore. Sve ide u logove.
 - Svaki komentar i odgovor šalje obaveštenje drugom korisniku.
 

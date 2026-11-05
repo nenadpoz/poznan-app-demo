@@ -41,7 +41,7 @@ export type SalaryTarget = keyof typeof SALARY_TARGETS;
 export const CATEGORIES_OUT = ['Materijal', 'Gorivo', 'Knjigovođa', 'Porez i doprinosi', 'Oprema', 'Zakup', 'Alat', 'Ostalo'] as const;
 
 /** Šta može da se komentariše. */
-export const COMMENT_TARGETS = ['task', 'job', 'company'] as const;
+export const COMMENT_TARGETS = ['task', 'job', 'company', 'transaction', 'transfer', 'contribution'] as const;
 export type CommentTarget = (typeof COMMENT_TARGETS)[number];
 
 /** Slike: uz klijenta, saradnika, posao i zadatak. */
