@@ -26,6 +26,7 @@ describe('adrese', () => {
       f({ type: 'street', osm_key: 'highway', osm_value: 'tertiary', name: 'Војводе Мишића', city: 'Нови Сад', district: 'МЗ Стари град' }),
       f({ type: 'street', osm_key: 'highway', osm_value: 'tertiary', name: 'Војводе Мишића', city: 'Нови Сад' }), // isti deo ulice
       f({ type: 'house', osm_key: 'building', osm_value: 'yes', street: 'Војводе Мишића', housenumber: '7', city: 'Нови Сад' }),
+      f({ type: 'street', osm_key: 'highway', osm_value: 'residential', name: 'Војводе Мишића', city: 'City of Novi Sad' }), // isto kao Novi Sad
     ], '5');
     expect(list).toEqual([
       { address: 'Vojvode Živojina Mišića 5', city: 'Rakovac' },

@@ -51,6 +51,8 @@ export interface AddressSuggestion {
 
 /** Opština ili grad kao upravna jedinica nije naselje („Општина Беочин“), pa se tada uzima naselje iz `district`. */
 const ADMIN = /^(општина|opština|opstina|град|grad|градска општина|gradska opština)\s/i;
+/** Zvanični nazivi grada na engleskom („City of Novi Sad“) svode se na ime grada. */
+const CITY_OF = /^(city of|municipality of)\s+/i;
 
 /** Predlozi iz Photon odgovora: samo Srbija, samo ulice i zgrade (bez stajališta), bez duplikata, najviše `max`. */
 export function addressSuggestions(features: PhotonFeature[], number: string | null, max = 6): AddressSuggestion[] {
@@ -63,7 +65,7 @@ export function addressSuggestions(features: PhotonFeature[], number: string | n
     if (!isStreet && !isHouse) continue;
     const street = latinize((isStreet ? p.name : p.street) ?? '').trim();
     const placeRaw = p.city && !ADMIN.test(p.city) ? p.city : p.district ?? p.city ?? '';
-    const city = latinize(placeRaw.replace(ADMIN, '')).trim();
+    const city = latinize(placeRaw.replace(ADMIN, '').replace(CITY_OF, '')).trim();
     if (!street || !city) continue;
     const no = isHouse ? p.housenumber! : number;
     const address = no ? `${street} ${no}` : street;
