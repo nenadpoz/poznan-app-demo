@@ -21,6 +21,7 @@ Opšta pravila:
 ## 2. Navigacija
 - Donji meni: **Pregled, Promet, Poslovi, Zadaci, Klijenti**.
 - Kad je stavka menija aktivna, umesto njene ikonice stoji „+“ sa natpisom radnje: **Dodaj promet**, **Dodaj posao** (Poslovi, i na Listi i u Kalendaru), **Dodaj zadatak**, **Dodaj klijenta**.
+- Dole desno, iznad menija, na svim glavnim ekranima: dugme sa mikrofonom za **glasovnu komandu** (vidi §17).
 - Gore desno na svakom ekranu: **zvonce** sa crvenim brojem nepročitanih obaveštenja (broj se ne prikazuje kad je 0) i avatar koji otvara Podešavanja.
 
 ## 3. Pregled (početna)
@@ -135,8 +136,8 @@ Tri kartice, tim redom:
 - U demou su raniji termini pretvoreni u poslove (termini bez klijenta su izostavljeni).
 
 ## 9. Zadaci
-- Polja: naziv, ko je zadužen (Nenad, Jovan, Obojica), status (Na čekanju, U procesu, Završeno; kod završenog ko i kada), rok (opciono), **vezan za posao** (opciono, polje sa pretragom termina; podrazumevano ništa), napomena, komentari. Zadatak nema svog klijenta; vidi se preko posla.
-- Lista grupisana: kasni, danas, narednih 7 dana, kasnije, bez roka. Filteri u dva reda: **Osobe** (Svi, Nenad, Jovan, Zajednički) i **Statusi** (Svi, Na čekanju, U procesu, Završeno), sa brojevima.
+- Polja: naziv, ko je zadužen (Nenad, Jovan, Obojica), status (Na čekanju, U procesu, Završeno; kod završenog ko i kada), rok (opciono), **vezan za posao** (opciono; podrazumevano ništa; poslovi se prikazuju tek na dodir polja, kao padajuća lista koja se sužava dok se kuca, bez obzira na kvačice), napomena, komentari. Zadatak nema svog klijenta; vidi se preko posla.
+- Lista grupisana: kasni, danas, narednih 7 dana, kasnije, bez roka. Filteri u dva reda: **Osobe** (Svi, Nenad, Jovan, Zajednički) i **Statusi** (Svi, Na čekanju, U procesu, Završeno). Svaki red je niz segmenata iste širine sa nazivom i brojem ispod, pa sve opcije uvek staju u red; broj preko hiljadu se skraćuje („1,2 hilj.“, „12 hilj.“).
 - Kvačica na listi otvara potvrdu **„Završi zadatak?“**; vraćanje završenog ide bez pitanja.
 - Forma: dugmad **Obriši** (crveno, kanta) · **Sačuvaj zadatak** (zeleno) · **Zatvori**; čuvanje isključeno dok nema promene.
 - Na listi pored zadatka broj komentara.
@@ -209,3 +210,15 @@ Urađeno u HTML demou, core-u (v0.3.0) i mobilnoj aplikaciji.
 - Pregled ima karticu **Vlasnici: plate i ulozi** za poslednji mesec tekuće godine (isplaćena plata, uložio, neto, razlika). Klik otvara ekran **Plate i ulozi** sa filterom **Mesec / Godina / Sve** (strelice za prethodni i sledeći period) i jednom tabelom za izabrani period, sa dugmadima **Isplati platu** i **Dodaj ulog**. Kad neto iznosi nisu jednaki, dugme **Isplati razliku [vlasniku]** otvara isplatu plate onome ko je dobio manje, sa iznosom razlike za izabrani period.
 - Iznosi se prikazuju u izabranoj valuti (EUR/USD/RSD).
 - Za bazu: `transactions.salary_to`, nova tabela `owner_contributions` (vlasnik, račun, iznos, valuta, kurs, datum, komentar, ko je uneo); stanje računa je uključuje.
+
+## 17. Glasovna komanda
+Zahtev vlasnika od 6. nov 2026.
+- Dugme sa mikrofonom dole desno, iznad menija. Otvara prozor preko celog ekrana: veliko polje za tekst, mikrofon, **Obradi** i **Otkaži**, primeri komandi dok je polje prazno.
+- Diktat ide preko prepoznavača govora na telefonu (na Androidu Googleov, isti kao na tastaturi), srpski jezik. Tekst se pojavljuje dok se priča, a novi diktat se dodaje na kraj. Tekst može da se ispravi kucanjem. Ponovni dodir mikrofona zaustavlja slušanje.
+- **Obradi** šalje tekst AI-ju (Edge Function `voice-parse`, Claude Haiku). AI prepozna šta se traži: **novi klijent, novi posao, novi zadatak ili novi promet** (prihod ili trošak), i izvuče polja (imena i mesta u nominativu, adresa „ulica broj“, mesto posebno, telefon, iznos, valuta, firma ili keš, kategorija, datumi kao „sutra“ ili „u petak“).
+- Otvara se odgovarajuća forma, popunjena, sa napomenom „Popunjeno iz glasovne komande. Proveri podatke pre čuvanja.“ Ništa se ne čuva samo: vlasnik proveri i klikne **Sačuvaj**.
+- Klijent i saradnik se traže po imenu na telefonu (i u padežu: „Marka Ilića“ → Marko Ilić). Kad posao pominje klijenta koji ne postoji, forma nudi **+ Dodaj klijenta [ime]**, pa se posle čuvanja klijent sam izabere u poslu.
+- Promet ide na račun pomenute firme; keš ili kad firma nije rečena ide u keš.
+- AI dobija samo tekst, današnji datum i nazive firmi i kategorija. **Imena klijenata se ne šalju.**
+- Bez interneta obrada ne radi („Obrada komande nije uspela…“), a tekst ostaje. Kad AI ne prepozna nameru, piše šta može da se kaže.
+- Cena: oko 0,2 RSD po komandi. Model se menja samo u funkciji `voice-parse` (npr. lokalni model preko Ollama), aplikacija ostaje ista.

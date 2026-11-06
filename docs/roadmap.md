@@ -19,7 +19,7 @@
 - [ ] PowerSync (pun offline).
 - [ ] Ekrani: Pregled, Promet, Poslovi (lista, kalendar, kartica, naplata, faktura, podsetnici), Zadaci, Klijenti, Firme, Podešavanja, Logovi.
 - [ ] Push notifikacije (`expo-notifications`): komentari, odgovori, podsetnici, početak posla, rokovi, limit.
-- [ ] Glasovne komande.
+- [x] Glasovne komande (klijent, posao, zadatak, promet).
 - [ ] EAS interni build za oba telefona, zatim iOS.
 
 ## Faza 4: Web (poseban repo)

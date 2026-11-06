@@ -92,3 +92,11 @@ psql --single-transaction -v ON_ERROR_STOP=1 -f roles.sql -f schema.sql -c 'SET 
 ```
 
 GitHub isključuje zakazane poslove u javnom repou posle 60 dana bez ijednog commita (stigne email upozorenja); tada ga ponovo uključi u Actions → Backup baze.
+
+## Glasovna komanda (voice-parse)
+Aplikacija šalje izdiktiran tekst, a funkcija preko Claude Haiku-a vraća nameru i polja za formu (ništa ne čuva).
+Prima samo prijavljenog korisnika (JWT). Ključ Anthropic API-ja (console.anthropic.com → API Keys) je tajna `ANTHROPIC_API_KEY`:
+```bash
+supabase secrets set ANTHROPIC_API_KEY=...
+npx -y supabase@2.54.11 functions deploy voice-parse
+```
