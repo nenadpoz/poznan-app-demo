@@ -213,7 +213,7 @@ Urađeno u HTML demou, core-u (v0.3.0) i mobilnoj aplikaciji.
 
 ## 17. Glasovna komanda
 Zahtev vlasnika od 6. nov 2026.
-- Dugme sa mikrofonom dole desno, iznad menija. Svako ga može sakriti za svoj nalog (Podešavanja → Glasovna komanda; `profiles.voice_button`, ne ide u logove). Otvara prozor preko celog ekrana: veliko polje za tekst, mikrofon, **Obradi** i **Otkaži**, primeri komandi dok je polje prazno.
+- Dugme sa mikrofonom dole desno, iznad menija. Svako ga može sakriti za svoj nalog (Podešavanja → Glasovna komanda; `profiles.voice_button`, ne ide u logove). Dugme se pomera: posle 2 sekunde držanja se podigne (malo veće, sa okvirom), prevuče se i ostaje gde se pusti; mesto se pamti na tom telefonu i uvek ostaje na ekranu, iznad menija. Kratak dodir otvara glasovnu komandu. Otvara prozor preko celog ekrana: veliko polje za tekst, mikrofon, **Obradi** i **Otkaži**, primeri komandi dok je polje prazno.
 - Diktat ide preko prepoznavača govora na telefonu (na Androidu Googleov, isti kao na tastaturi), srpski jezik. Tekst se pojavljuje dok se priča, a novi diktat se dodaje na kraj. Tekst može da se ispravi kucanjem. Ponovni dodir mikrofona zaustavlja slušanje.
 - **Obradi** šalje tekst AI-ju (Edge Function `voice-parse`, Claude Haiku). AI prepozna šta se traži: **novi klijent, novi posao, novi zadatak ili novi promet** (prihod ili trošak), i izvuče polja (imena i mesta u nominativu, adresa „ulica broj“, mesto posebno, telefon, iznos, valuta, firma ili keš, kategorija, datumi kao „sutra“ ili „u petak“).
 - Otvara se odgovarajuća forma, popunjena, sa napomenom „Popunjeno iz glasovne komande. Proveri podatke pre čuvanja.“ Ništa se ne čuva samo: vlasnik proveri i klikne **Sačuvaj**.

@@ -100,6 +100,8 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:
 .nav button.nav-add > span:last-child{white-space:nowrap}
 .nav button.nav-add .nav-ic-badge{position:absolute;inset:0;display:grid;place-items:center;background:none;color:var(--fg)}
 .nav button.nav-add .nav-ic-badge .ic{opacity:1;width:22px;height:22px;color:var(--fg);background:none;padding:0}
+.fab.lifted{box-shadow:0 0 0 4px var(--accent-soft),0 14px 32px rgba(0,0,0,.32);scale:1.15}
+.fab{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:scale .15s}
 .fab{position:fixed;z-index:8;width:58px;height:58px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;box-shadow:0 8px 24px rgba(0,0,0,.22);bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom,0px));right:calc(max(16px, (100vw - var(--w)) / 2 + 16px) + env(safe-area-inset-right,0px))}
 
 /* Osnovni elementi */
@@ -1440,6 +1442,7 @@ function render(){
   const a=document.activeElement, id=a&&a.id&&$('#app').contains(a)?a.id:null; let pos=null; try{pos=a.selectionStart;}catch(e){}
   applyTheme();
   const V={dashboard:vDashboard,poslovi:vPoslovi,zadaci:vZadaci,vise:vVise,firme:vFirme,firma:vFirma,klijenti:vKontakti,klijent:vKlijent,saradnik:vSaradnik,posao:vPosao,promet:vPromet,plate:vPlate,logovi:vLogovi,kategorije:vKategorije,kategorijeProm:vKategorijeProm,lozinka:vLozinka,boje:vBoje,obavestenja:vObavestenja};
+  queueMicrotask(fabApply);
   $('#app').innerHTML=!S.session?vLogin():`<main class="screen">${(V[ui.view]||vDashboard)()}</main>${nav()}${S.prefs?.[S.session]?.voiceBtn===false?'':`<button class="fab" data-act="voice" aria-label="Glasovna komanda">${ic('mic',26)}</button>`}`;
   if(id){const n=document.getElementById(id);if(n){n.focus();try{if(pos!=null)n.setSelectionRange(pos,pos);}catch(e){}}}
 }
@@ -1605,6 +1608,32 @@ const VOICE_EX=[
   'Novi posao kod Marka Ilića, popravka ograde',
   'Zadatak: naruči materijal za bunar',
 ];
+
+/* ---------- Dugme glasovne komande: posle 2 s držanja se prevlači i ostaje gde se pusti (pamti se u ovom pregledaču) ---------- */
+const FAB_KEY='poznan-demo-fab';
+const fabGet=()=>{try{return JSON.parse(localStorage.getItem(FAB_KEY))||{x:0,y:0};}catch(e){return {x:0,y:0};}};
+function fabApply(){const b=$('.fab');if(b){const o=fabGet();b.style.translate=`${o.x}px ${o.y}px`;}}
+const fabDrag={t:null,lifted:false,moved:false,sx:0,sy:0,base:null,eat:false};
+document.addEventListener('pointerdown',e=>{const b=e.target.closest('.fab');if(!b)return;
+  Object.assign(fabDrag,{lifted:false,moved:false,sx:e.clientX,sy:e.clientY,base:fabGet()});clearTimeout(fabDrag.t);
+  fabDrag.t=setTimeout(()=>{fabDrag.lifted=true;b.classList.add('lifted');try{b.setPointerCapture(e.pointerId);}catch(err){}},2000);});
+document.addEventListener('pointermove',e=>{if(!fabDrag.base)return;const dx=e.clientX-fabDrag.sx,dy=e.clientY-fabDrag.sy,b=$('.fab');
+  if(fabDrag.lifted){if(b)b.style.translate=`${fabDrag.base.x+dx}px ${fabDrag.base.y+dy}px`;}
+  else if(Math.abs(dx)>8||Math.abs(dy)>8){fabDrag.moved=true;clearTimeout(fabDrag.t);}});
+function fabEnd(){clearTimeout(fabDrag.t);const b=$('.fab');if(!fabDrag.base)return;
+  if(fabDrag.lifted&&b){fabDrag.eat=true;b.classList.remove('lifted');
+    // Ostaje na ekranu i iznad menija
+    const r=b.getBoundingClientRect(),navH=$('.nav')?.getBoundingClientRect().height||0,o=(b.style.translate||'0px 0px').split(' ').map(parseFloat);
+    let x=o[0]||0,y=o[1]||0;
+    if(r.left<8)x+=8-r.left;if(r.right>innerWidth-8)x-=r.right-(innerWidth-8);
+    if(r.top<8)y+=8-r.top;if(r.bottom>innerHeight-navH-8)y-=r.bottom-(innerHeight-navH-8);
+    try{localStorage.setItem(FAB_KEY,JSON.stringify({x,y}));}catch(e){}fabApply();}
+  else if(fabDrag.moved)fabDrag.eat=true;
+  fabDrag.base=null;fabDrag.lifted=false;}
+document.addEventListener('pointerup',fabEnd);document.addEventListener('pointercancel',fabEnd);
+// Posle prevlačenja dugme se ne otvara
+document.addEventListener('click',e=>{if(fabDrag.eat&&e.target.closest('.fab')){e.stopPropagation();e.preventDefault();}fabDrag.eat=false;},true);
+document.addEventListener('contextmenu',e=>{if(e.target.closest('.fab'))e.preventDefault();});
 
 /* ---------- Glas: prepoznavanje + simulirani AI parser ---------- */
 let rec=null;
