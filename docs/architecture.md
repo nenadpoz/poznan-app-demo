@@ -33,7 +33,7 @@ web (Next.js) ── @poznan/api (web adapter) ───── Supabase JS + Rea
 | Validacija | zod šeme u `@poznan/shared`, iste za forme, API i Edge Functions |
 | Push | `expo-notifications`; Android direktno preko Firebase-a (FCM HTTP v1 iz `notify-dispatch`), iOS kasnije preko Expo Push API |
 | Email | Resend iz Edge Function-a |
-| Glas | `expo-speech-recognition` (sr-RS, na Androidu Googleov prepoznavač) + Edge Function `voice-parse` (Claude Haiku `claude-haiku-5-5`, JSON odgovor po šemi; `voiceResultSchema` i `matchClient` u `@poznan/shared`, `api.voice.parse`) |
+| Glas | `expo-speech-recognition` (sr-RS, na Androidu Googleov prepoznavač) + Edge Function `voice-parse` (Google Gemini `gemini-3.5-flash-lite` preko Interactions API-ja, besplatan nivo, `store: false`, JSON odgovor po šemi; `voiceResultSchema` i `matchClient` u `@poznan/shared`, `api.voice.parse`) |
 | Testovi | Vitest (shared, api), pgTAP (RLS, triggeri), Playwright (web), Maestro (mobile) |
 
 ## Model podataka (`supabase/migrations`)

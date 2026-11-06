@@ -1,10 +1,11 @@
 // Edge Function: glasovna komanda. Prima izdiktiran (i ispravljen) tekst i vraća nameru i polja za formu
 // (novi klijent, posao, zadatak ili promet). Ništa ne čuva: aplikacija otvara popunjenu formu za potvrdu.
 //
-// Model je Claude Haiku (strukturisan JSON odgovor po šemi ispod). Ključ je tajna ANTHROPIC_API_KEY u Supabase-u.
-// Za drugi model (npr. lokalni preko Ollama) menja se samo funkcija `ask`; oblik odgovora ostaje isti.
-// AI dobija tekst, današnji datum i nazive firmi i kategorija. Imena klijenata ne šalje: njih aplikacija poredi sama.
-import Anthropic from 'npm:@anthropic-ai/sdk@1.2.0';
+// Model je Google Gemini (gemini-3.5-flash-lite, besplatan nivo), JSON odgovor po šemi ispod, preko Interactions API-ja.
+// Ključ je tajna GEMINI_API_KEY u Supabase-u (aistudio.google.com → Get API key).
+// Razgovor se ne čuva kod Google-a (store: false). Na besplatnom nivou Google može da koristi poslate tekstove za
+// poboljšanje svojih modela; zato AI dobija samo tekst, današnji datum i nazive firmi i kategorija, bez spiska klijenata.
+// Za drugi model (Claude, lokalni preko Ollama) menja se samo funkcija `ask`; oblik odgovora ostaje isti.
 
 type Ctx = {
   today: string;
@@ -14,23 +15,22 @@ type Ctx = {
   jobLabels: string[];
 };
 
-const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY') });
-const MODEL = 'claude-haiku-5-5';
+const MODEL = 'gemini-3.5-flash-lite';
+const URL = 'https://generativelanguage.googleapis.com/v1beta/interactions';
 
+// Šema bez anyOf (Gemini preporučuje jednostavne šeme): prazno polje je null
 const str = { type: ['string', 'null'] };
-const obj = (props: Record<string, unknown>) => ({
-  anyOf: [{ type: 'object', properties: props, required: Object.keys(props), additionalProperties: false }, { type: 'null' }],
-});
-const who = { anyOf: [{ type: 'string', enum: ['nenad', 'jovan', 'oba'] }, { type: 'null' }] };
+const oneOf = (values: string[]) => ({ type: ['string', 'null'], enum: [...values, null] });
+const obj = (props: Record<string, unknown>) => ({ type: 'object', properties: props, required: Object.keys(props) });
+const who = oneOf(['nenad', 'jovan', 'oba']);
 
 const SCHEMA = {
   type: 'object',
-  additionalProperties: false,
   required: ['intent', 'client', 'job', 'task', 'tx'],
   properties: {
     intent: { type: 'string', enum: ['klijent', 'posao', 'zadatak', 'promet', 'nepoznato'] },
     client: obj({
-      kind: { anyOf: [{ type: 'string', enum: ['fizicko', 'pravno'] }, { type: 'null' }] },
+      kind: oneOf(['fizicko', 'pravno']),
       name: str, phone: str, email: str, address: str, city: str, pib: str, mb: str, contactPerson: str, note: str,
     }),
     job: obj({
@@ -38,9 +38,9 @@ const SCHEMA = {
     }),
     task: obj({ title: str, note: str, dueDate: str, assignee: who }),
     tx: obj({
-      type: { anyOf: [{ type: 'string', enum: ['prihod', 'trosak'] }, { type: 'null' }] },
+      type: oneOf(['prihod', 'trosak']),
       amount: { type: ['number', 'null'] },
-      currency: { anyOf: [{ type: 'string', enum: ['RSD', 'EUR', 'USD'] }, { type: 'null' }] },
+      currency: oneOf(['RSD', 'EUR', 'USD']),
       companyId: str, cash: { type: ['boolean', 'null'] }, category: str, clientName: str, note: str, date: str,
     }),
   },
@@ -59,7 +59,7 @@ Namere:
 - "zadatak": nešto što treba uraditi ili ne zaboraviti (popuni "task").
 - "promet": prihod (naplata, uplata) ili trošak (gorivo, materijal, plaćanje) (popuni "tx").
 - "nepoznato": ništa od toga.
-Ostala polja (za druge namere) su null.
+Objekti za druge namere ostaju, ali su im sva polja null.
 
 Pravila:
 - Imena ljudi i mesta piši u nominativu, latinicom, sa velikim početnim slovom: "Igora Petrovića" → "Igor Petrović", "u Sremskoj Mitrovici" → "Sremska Mitrovica", "iz Šapca" → "Šabac".
@@ -83,17 +83,28 @@ Kategorije poslova: ${ctx.jobLabels.join(', ') || 'nema'}`;
 
 /** Jedan poziv modela; vraća JSON po šemi. */
 async function ask(text: string, ctx: Ctx): Promise<unknown> {
-  const res = await anthropic.messages.create({
-    model: MODEL,
-    max_tokens: 4000,
-    output_config: { effort: 'low', format: { type: 'json_schema', schema: SCHEMA } },
-    system: system(ctx),
-    messages: [{ role: 'user', content: text }],
+  const key = Deno.env.get('GEMINI_API_KEY');
+  if (!key) throw new Error('Nema GEMINI_API_KEY');
+  const res = await fetch(URL, {
+    method: 'POST',
+    headers: { 'x-goog-api-key': key, 'Content-Type': 'application/json', 'Api-Revision': '2026-05-20' },
+    body: JSON.stringify({
+      model: MODEL,
+      system_instruction: system(ctx),
+      input: text,
+      response_format: { type: 'text', mime_type: 'application/json', schema: SCHEMA },
+      generation_config: { max_output_tokens: 2000 },
+      store: false,
+    }),
   });
-  if (res.stop_reason === 'refusal') throw new Error('Komanda nije obrađena');
-  const block = res.content.find(b => b.type === 'text');
-  if (!block || block.type !== 'text') throw new Error('Prazan odgovor');
-  return JSON.parse(block.text);
+  if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  const it = await res.json() as { status?: string; steps?: { type?: string; content?: { type?: string; text?: string }[] }[] };
+  if (it.status && it.status !== 'completed') throw new Error(`Gemini status ${it.status}`);
+  const out = (it.steps ?? []).filter(st => st.type === 'model_output')
+    .flatMap(st => st.content ?? []).filter(c => c.type === 'text').map(c => c.text ?? '').join('');
+  if (!out.trim()) throw new Error('Prazan odgovor');
+  // Za svaki slučaj: bez ```json okvira
+  return JSON.parse(out.trim().replace(/^```(?:json)?\s*/i, '').replace(/```$/, ''));
 }
 
 function jwtRole(token: string): string | null {
