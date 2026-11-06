@@ -134,6 +134,18 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:
 .seg label:has(input:checked),.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .seg label:has(input:disabled){opacity:.45}
 .seg label:has(input:focus-visible){outline:2px solid var(--accent)}
+/* Filter kao segmenti iste širine: naziv i broj ispod, sve opcije uvek u jednom redu */
+.fseg button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px;font-weight:400;min-width:0}
+.fseg button>span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px}
+.fseg button[aria-pressed="true"]{font-weight:600}
+.fseg .cnt{font-size:12px;font-weight:600}
+.fseg button[aria-pressed="true"] .cnt{color:var(--accent)}
+.sheet.full{top:0;max-height:none;border-radius:0;display:flex;flex-direction:column}
+.sheet.full .voice-form{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0}
+.voice-form textarea{flex:1;min-height:220px;font-size:17px;line-height:1.5;resize:none}
+.voice-form .ex{flex-direction:row;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+.voice-form .ex button{flex:0 0 220px;line-height:1.4;max-height:calc(4.2em + 18px);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;color:var(--muted);font-size:13px}
+.voice-form .mic-big{width:72px;height:72px}
 
 /* KPI */
 .kpi-hero{background:var(--accent);color:var(--accent-fg);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:14px}
@@ -848,7 +860,7 @@ function lastMove(){const all=[...S.tx.filter(t=>t.ts).map(t=>({ts:t.ts,by:t.by,
 function balanceCard(){const a=accounts(),tot=a.reduce((s,x)=>s+balanceOf(x.id),0);
   return `<section class="card bal" aria-label="Stanje novca"><div class="sec-h"><h2>Stanje novca</h2><span class="small muted">${dispCur()!=='RSD'?'kurs '+dispCur()+' '+curRate(dispCur()).toFixed(4).replace('.',','):'u dinarima'}</span></div>
   ${a.map(x=>{const b=balanceOf(x.id);return `<div class="kv"><span class="bal-n">${coIcon(x.c)}${esc(x.name)}</span><b class="${b<0?'neg':''}">${rsd(b)}</b></div>`;}).join('')}
-  <div class="kv bal-tot"><span>Ukupno</span><b>${rsd(tot)}</b></div>${lastMove()}</section>`;}
+  <div class="kv bal-tot"><span>Ukupno</span><b>${rsd(tot)}</b></div></section>`;}
 function ulogRow(u){return `<button class="row" data-act="editUlog" data-id="${u.id}"><div class="row-main"><b>Ulog vlasnika · ${esc(userName(u.owner))}</b><small>${fmtDate(u.date)} ${u.to==='kes'?'<span class="tag kes">keš</span>':`<span class="tag">${esc(acctName(u.to))}</span>`} <span class="tag">ulog</span>${u.note?' · '+esc(u.note):''}</small></div>
   <div class="row-amt tr">+${amt(u.amount)}${u.currency!==dispCur()?`<small>uneto ${curAmt(u.amountOriginal,u.currency)}</small>`:'<small>nije prihod</small>'}</div></button>`;}
 function transferRow(x){return `<button class="row" data-act="transferSheet" data-id="${x.id}"><div class="row-main"><b>${esc(acctName(x.from))} → ${esc(acctName(x.to))}</b><small>${fmtDate(x.date)} <span class="tag">prenos</span>${x.note?' · '+esc(x.note):''}</small></div>
@@ -1578,17 +1590,20 @@ function updTxForm(init){
   fxHint(f);
 }
 function voiceSheet(){
-  openSheet('Glasovna komanda',`<div class="form"><div class="mic-wrap"><button class="mic-big" id="micBtn" data-act="mic" aria-label="Počni snimanje">${ic('mic',36)}</button><p id="voiceStatus">Dodirni mikrofon i izgovori komandu.</p></div>
-  <label class="fld"><span>Tekst komande</span><textarea id="voiceText" rows="3" placeholder="…ili otkucaj komandu"></textarea></label>
-  <button class="btn primary block" data-act="voiceParse">Obradi komandu</button>
-  <div class="settings-sec" style="gap:8px"><span class="label">Primeri</span><div class="ex">${VOICE_EX.map((e,i)=>`<button data-act="voiceEx" data-i="${i}">${esc(e)}</button>`).join('')}</div></div>
-  <p class="small muted" style="margin:0">U demou komandu tumači jednostavan parser. U aplikaciji to radi AI model, a čuvanje uvek ide preko forme za potvrdu.</p></div>`);
+  openSheet('Glasovna komanda',`<div class="voice-form"><textarea id="voiceText" aria-label="Tekst komande" placeholder="Ovde se pojavljuje tekst dok pričaš. Možeš i da kucaš."></textarea>
+  <div class="ex" id="voiceEx">${VOICE_EX.map((e,i)=>`<button data-act="voiceEx" data-i="${i}">${esc(e)}</button>`).join('')}</div>
+  <p id="voiceStatus">Dodirni mikrofon i reci šta treba da uradim.</p>
+  <div class="mic-wrap"><button class="mic-big" id="micBtn" data-act="mic" aria-label="Počni snimanje">${ic('mic',36)}</button></div>
+  <button class="btn primary block" data-act="voiceParse">Obradi</button>
+  <p class="small muted" style="margin:0">U demou komandu tumači jednostavan parser. U aplikaciji to radi AI, a čuvanje uvek ide preko forme za potvrdu.</p></div>`);
+  $('#sheetRoot .sheet').classList.add('full');
 }
 const VOICE_EX=[
   'Kreiraj klijenta Petra Petrovića iz mesta Loznica, ulica Broza Tita 33, mobilni 065454455, u komentar stavi zainteresovan za zamenu stolarije na spratu.',
   'Dodaj trošak 12 hiljada dinara za gorivo za firmu Poznan Trans',
   'Unesi prihod 35000 dinara keš od klijenta Marka Ilića za popravku ograde',
-  'Dodaj klijentkinju Milenu Đorđević iz Šapca, telefon 064 123 4567',
+  'Novi posao kod Marka Ilića, popravka ograde',
+  'Zadatak: naruči materijal za bunar',
 ];
 
 /* ---------- Glas: prepoznavanje + simulirani AI parser ---------- */
@@ -1598,12 +1613,12 @@ function micToggle(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){vStatus('Ovaj pregledač ne podržava prepoznavanje govora. Otkucaj komandu ili izaberi primer.');return;}
   if(rec){rec.stop();return;}
-  rec=new SR();rec.lang='sr-RS';rec.interimResults=true;rec.continuous=false;
+  rec=new SR();rec.lang='sr-RS';rec.interimResults=true;rec.continuous=true;const base=($('#voiceText').value||'').trim();
   const btn=$('#micBtn');
-  rec.onresult=e=>{let t='';for(const r of e.results)t+=r[0].transcript;$('#voiceText').value=t;};
+  rec.onresult=e=>{let t='';for(const r of e.results)t+=r[0].transcript;$('#voiceText').value=[base,t.trim()].filter(Boolean).join(' ');};
   rec.onerror=e=>{vStatus(e.error==='not-allowed'||e.error==='service-not-allowed'?'Mikrofon nije dozvoljen ovde. Otkucaj komandu ili izaberi primer.':e.error==='no-speech'?'Nisam čuo ništa. Pokušaj ponovo.':'Prepoznavanje nije uspelo. Otkucaj komandu ili izaberi primer.');};
-  rec.onend=()=>{rec=null;btn&&btn.classList.remove('rec');if(($('#voiceText')?.value||'').trim())vStatus('Proveri tekst, pa dodirni „Obradi komandu“.');};
-  try{rec.start();btn.classList.add('rec');vStatus('Slušam…');}catch(e){rec=null;vStatus('Mikrofon nije dostupan. Otkucaj komandu ili izaberi primer.');}
+  rec.onend=()=>{rec=null;btn&&btn.classList.remove('rec');if(($('#voiceText')?.value||'').trim())vStatus('Proveri tekst (možeš da ga ispraviš), pa dodirni „Obradi“.');};
+  try{rec.start();btn.classList.add('rec');vStatus('Slušam… Dodirni mikrofon kad završiš.');}catch(e){rec=null;vStatus('Mikrofon nije dostupan. Otkucaj komandu ili izaberi primer.');}
 }
 const GEN={petra:'Petar',marka:'Marko',nikole:'Nikola',jovana:'Jovan',milana:'Milan',stefana:'Stefan',nenada:'Nenad',dragana:'Dragan',ivana:'Ivan',aleksandra:'Aleksandar',milosa:'Miloš',dusana:'Dušan',luke:'Luka',vladimira:'Vladimir',djordja:'Đorđe',zorana:'Zoran',nemanje:'Nemanja',bojana:'Bojan',gorana:'Goran',dejana:'Dejan'};
 const CITY={loznice:'Loznica',sapca:'Šabac',valjeva:'Valjevo',beograda:'Beograd','novog sada':'Novi Sad',nisa:'Niš',kragujevca:'Kragujevac',zvornika:'Zvornik',bijeljine:'Bijeljina','banje koviljace':'Banja Koviljača',krupnja:'Krupanj',ljubovije:'Ljubovija',uba:'Ub',obrenovca:'Obrenovac'};
@@ -1621,6 +1636,16 @@ function nomName(str){
 function nomCity(s){const n=norm(s.trim());if(CITY[n])return CITY[n];if(/ice$/.test(n))return cap(s.trim().slice(0,-1)+'a');return cap(s.trim());}
 function parseVoice(text){
   const t=text.trim().replace(/[„“”"]/g,'');const low=norm(t);
+  if(/^(zadatak|podseti|podsetnik)/.test(low)){
+    const title=cap(t.replace(/^(zadatak|podseti me|podsetnik)\s*(da\s+)?:?\s*/i,'').trim());
+    return title?{intent:'task',data:{title,due:/\bsutra\b/.test(low)?addD(TODAY_ISO,1):''}}:null;
+  }
+  if(/\bposao\b/.test(low)){
+    const km=t.match(/\bkod\s+([A-ZČĆŠŽĐ][\wčćšžđ]+\s+[A-ZČĆŠŽĐ][\wčćšžđ]+)/);
+    const nm=km?norm(nomName(km[1])):'',cl=nm?S.clients.find(k=>norm(k.name)===nm):null;
+    const dm=t.match(/,\s*([^,]+)$/);
+    return {intent:'job',data:{clientId:cl?.id||'',description:dm?cap(dm[1].trim()):'',startDate:/\bsutra\b/.test(low)?addD(TODAY_ISO,1):''}};
+  }
   if(/(prihod|trosak|troskov)/.test(low)){
     const type=/(trosak|troskov)/.test(low)?'trosak':'prihod';
     let amount=0;const m=t.match(/(\d[\d.\s]*(?:,\d+)?)\s*(hiljad\w*|hilj\.?|k\b|milion\w*)?/i);
@@ -1744,12 +1769,14 @@ const A={
   confirmYes:()=>{const f=confirmFn;closeSheet();f&&f();},
   voice:()=>voiceSheet(),
   mic:()=>micToggle(),
-  voiceEx:el=>{$('#voiceText').value=VOICE_EX[+el.dataset.i];vStatus('Primer je ubačen. Dodirni „Obradi komandu“.');},
+  voiceEx:el=>{$('#voiceText').value=VOICE_EX[+el.dataset.i];vStatus('Primer je ubačen. Dodirni „Obradi“.');},
   voiceParse:()=>{
     const text=($('#voiceText')?.value||'').trim();if(!text){vStatus('Prvo izgovori ili otkucaj komandu.');return;}
     const r=parseVoice(text);
-    if(!r){vStatus('Nisam razumeo komandu. Probaj sa „Kreiraj klijenta…“ ili „Dodaj trošak…“.');return;}
-    closeSheet(); if(r.intent==='client')clientForm(r.data,true); else txForm(r.data,true);
+    if(!r){vStatus('Nisam razumeo šta treba da uradim. Počni sa „Novi klijent…“, „Novi posao…“, „Zadatak…“, „Prihod…“ ili „Trošak…“.');return;}
+    closeSheet();
+    if(r.intent==='client')clientForm(r.data,true); else if(r.intent==='tx')txForm(r.data,true);
+    else{if(r.intent==='job')posaoForm(r.data);else taskForm(r.data);$('#sheetRoot form')?.insertAdjacentHTML('afterbegin',voiceNote());}
   },
   // promena faze firme uvek traži tačan datum kad se desila
   phase:el=>{const c=company(el.dataset.id),v=el.dataset.v;if(c.phase===v)return;
@@ -1938,6 +1965,8 @@ function vKalendar(){
   <div class="chips" role="group" aria-label="Ko radi">${[['svi','Svi'],['nenad',userName('nenad')],['jovan',userName('jovan')]].map(([k,l])=>`<button class="chip" data-act="calWho" data-v="${k}" aria-pressed="${c.who===k}">${esc(l)}</button>`).join('')}</div>
   ${c.mode==='mesec'?calMonth():c.mode==='nedelja'?calWeek():calDay()}`;
 }
+/** Broj u filteru: do hiljadu tačno, preko toga skraćeno („1,2 hilj.“). */
+const shortCnt=n=>n<1000?String(n):`${n<1e4?String(Math.floor(n/100)/10).replace('.',','):Math.floor(n/1000)} hilj.`;
 function vZadaci(){
   const f=ui.tk,me=S.session;
   const match=(t,k)=>k==='svi'||forWho(t.assignee,k==='moji'?me:k);
@@ -1950,8 +1979,8 @@ function vZadaci(){
   const stCnt={svi:open.length,cekanje:open.filter(t=>taskStatus(t)==='cekanje').length,proces:open.filter(t=>taskStatus(t)==='proces').length,zavrseno:done.length};
   const grouped=shown.length?groups.map(([g,fn,cl])=>{const it=shown.filter(fn).sort((a,b)=>(a.due||'').localeCompare(b.due||''));return it.length?`<section class="settings-sec" style="gap:8px"><div class="grp-h ${cl||''}"><span>${g}</span><span class="small muted">${it.length}</span></div><div class="list">${it.map(t=>taskRow(t)).join('')}</div></section>`:'';}).join(''):`<div class="card empty">Nema ${st==='svi'?'otvorenih zadataka':`zadataka sa statusom „${ST_NAME[st]}“`} za izabrani filter.</div>`;
   return topBar('Zadaci',{sub:`${open.length} otvorenih`})+`
-  <div class="filter-grp"><span class="label">Osobe</span><div class="chips" role="group" aria-label="Osobe">${[['svi','Svi'],['nenad',userName('nenad')],['jovan',userName('jovan')],['oba','Zajednički']].map(([k,l])=>`<button class="chip" data-act="tkWho" data-v="${k}" aria-pressed="${f.who===k}">${esc(l)} <span class="cnt">${cnt(k)}</span></button>`).join('')}</div></div>
-  <div class="filter-grp"><span class="label">Statusi</span><div class="chips" role="group" aria-label="Statusi">${[['svi','Svi'],...ST].map(([k,l])=>`<button class="chip" data-act="tkSt" data-v="${k}" aria-pressed="${st===k}">${esc(l)} <span class="cnt">${stCnt[k]}</span></button>`).join('')}</div></div>
+  <div class="filter-grp"><span class="label">Osobe</span><div class="seg fseg" role="group" aria-label="Osobe">${[['svi','Svi'],['nenad',userName('nenad')],['jovan',userName('jovan')],['oba','Zajednički']].map(([k,l])=>`<button data-act="tkWho" data-v="${k}" aria-pressed="${f.who===k}"><span>${esc(l)}</span><span class="cnt">${shortCnt(cnt(k))}</span></button>`).join('')}</div></div>
+  <div class="filter-grp"><span class="label">Statusi</span><div class="seg fseg" role="group" aria-label="Statusi">${[['svi','Svi'],...ST].map(([k,l])=>`<button data-act="tkSt" data-v="${k}" aria-pressed="${st===k}"><span>${esc(l)}</span><span class="cnt">${shortCnt(stCnt[k])}</span></button>`).join('')}</div></div>
   ${st==='zavrseno'?(done.length?`<div class="list">${done.map(t=>taskRow(t)).join('')}</div>`:'<div class="card empty">Nema završenih zadataka za izabrani filter.</div>'):grouped}
   ${st==='svi'?`<button class="chip" style="align-self:flex-start" data-act="tkDone" aria-pressed="${f.done}">Završeni <span class="cnt">${done.length}</span></button>
   ${f.done&&done.length?`<div class="list">${done.map(t=>taskRow(t)).join('')}</div>`:''}`:''}`;
