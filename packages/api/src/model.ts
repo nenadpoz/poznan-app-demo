@@ -84,6 +84,6 @@ export interface Notification {
   target: CommentTarget | null; targetId: string | null;
   commentId: string | null; text: string | null; readAt: string | null;
 }
-export interface Profile { userId: string; slug: UserId; name: string; theme: 'light' | 'dark' | 'system'; barColors: Record<string, number>; notif: NotificationPrefs; currency: Currency }
+export interface Profile { userId: string; slug: UserId; name: string; theme: 'light' | 'dark' | 'system'; barColors: Record<string, number>; notif: NotificationPrefs; currency: Currency; /** Dugme glasovne komande na ekranu (lično, podrazumevano da). */ voiceButton: boolean }
 export interface Settings { pausalLimit: number; pdvThreshold: number; warnPct: number; critPct: number; backupEveryDays: number }
 export interface AuditEntry { id: number; userId: string | null; table: string; rowId: string | null; action: 'insert' | 'update' | 'delete'; old: unknown; new: unknown; at: string; clientAt: string | null }
