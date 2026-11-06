@@ -5,7 +5,7 @@
 import type {
   ClientInput, CompanyInput, JobInput, OwnerContributionInput, SupplierInput, TaskInput, TransactionInput, TransferInput, TxCategoryInput,
 } from '@poznan/shared';
-import type { PaymentLine, PhotoTarget } from '@poznan/shared';
+import type { PaymentLine, PhotoTarget, VoiceContext, VoiceResult } from '@poznan/shared';
 import type {
   Account, AccountBalance, FxRateRow, Transfer, AuditEntry, Client, Comment, Company, CompanyHistoryItem, Job, Label, Notification, OwnerContribution, PendingItem, TxCategory, Profile, Settings, Photo, Supplier, Task, Transaction,
 } from './model';
@@ -100,6 +100,8 @@ export interface PoznanApi {
     unregisterPushToken(token: string): Promise<void>;
   };
   audit: { list(opts?: { table?: string; rowId?: string; limit?: number }): Promise<AuditEntry[]> };
+  /** Glasovna komanda: AI pročita tekst i vrati nameru i polja za formu (ništa ne čuva). Traži internet. */
+  voice: { parse(text: string, ctx: VoiceContext): Promise<VoiceResult> };
   /** Javlja izmene sa drugog uređaja (Realtime na webu, sync na mobilnom), da se osveže upiti. */
   subscribe(onChange: (table: string) => void): () => void;
 }

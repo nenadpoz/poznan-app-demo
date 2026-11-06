@@ -1,6 +1,7 @@
 /** Supabase adapter (web, i mobile dok je online). Jedino mesto koje zna za tabele i RPC-ove. */
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { PoznanApi, Crud, ListOpts } from './api';
+import { voiceResultSchema } from '@poznan/shared';
 import { fromRow, linesToJson, toRow } from './mapping';
 import type { Account, AccountBalance, Client, Company, FxRateRow, Job, Label, Photo, Supplier, Task, Transaction, Transfer, OwnerContribution, TxCategory, Profile, Settings } from './model';
 
@@ -251,6 +252,18 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
         if (o.table) q = q.eq('table_name', o.table);
         if (o.rowId) q = q.eq('row_id', o.rowId);
         return check(await q).map(r => fromRow('audit_log', r));
+      },
+    },
+    voice: {
+      async parse(text, context) {
+        const { data, error } = await sb.functions.invoke('voice-parse', { body: { text, context } });
+        if (error) {
+          // Poruka funkcije ({ error }) umesto opšte greške
+          let msg = 'Obrada komande nije uspela. Proveri internet i probaj ponovo.';
+          try { const b = await (error as { context?: Response }).context?.json(); if (b?.error) msg = b.error; } catch { /* ostaje opšta poruka */ }
+          throw new ApiError(msg, 'voice');
+        }
+        return voiceResultSchema.parse(data);
       },
     },
     subscribe(onChange) {
