@@ -157,7 +157,7 @@ Tri kartice, tim redom:
 - **Baner u aplikaciji**: novo obaveštenje dok je aplikacija otvorena pojavi se na vrhu ekrana (uživo preko Realtime-a, i bez push-a); dodir otvara stavku, sklanja se posle 6 s ili na ×.
 
 ## 12. Podešavanja
-- Firme, Logovi, Kategorije poslova, Kategorije prometa, Boje traka limita (lično), Obaveštenja (lično), Odjava.
+- Firme, Logovi, Kategorije poslova, Kategorije prometa, Boje traka limita (lično), Obaveštenja (lično), Odjava, **Glasovna komanda** (lično: prekidač „Prikaži dugme sa mikrofonom“, podrazumevano uključen).
 - U pravoj aplikaciji i: tema, lozinka, limiti i upozorenja, backup.
 - **Kategorije prometa**: dve liste, prihodi i troškovi; dodaju se i brišu u Podešavanjima. U formi prometa kategorija se bira iz padajuće liste. Unos čuva naziv, pa brisanje kategorije ne menja postojeće unose. „Plata“ nije u listi (postavlja je isplata plate). Tabela `tx_categories`.
 - **Kategorije poslova**: lista za poslove; naziv (jedinstven) i boja od šest. Brisanje kategorije ne briše poslove, samo im uklanja kategoriju.
@@ -213,7 +213,7 @@ Urađeno u HTML demou, core-u (v0.3.0) i mobilnoj aplikaciji.
 
 ## 17. Glasovna komanda
 Zahtev vlasnika od 6. nov 2026.
-- Dugme sa mikrofonom dole desno, iznad menija. Otvara prozor preko celog ekrana: veliko polje za tekst, mikrofon, **Obradi** i **Otkaži**, primeri komandi dok je polje prazno.
+- Dugme sa mikrofonom dole desno, iznad menija. Svako ga može sakriti za svoj nalog (Podešavanja → Glasovna komanda; `profiles.voice_button`, ne ide u logove). Otvara prozor preko celog ekrana: veliko polje za tekst, mikrofon, **Obradi** i **Otkaži**, primeri komandi dok je polje prazno.
 - Diktat ide preko prepoznavača govora na telefonu (na Androidu Googleov, isti kao na tastaturi), srpski jezik. Tekst se pojavljuje dok se priča, a novi diktat se dodaje na kraj. Tekst može da se ispravi kucanjem. Ponovni dodir mikrofona zaustavlja slušanje.
 - **Obradi** šalje tekst AI-ju (Edge Function `voice-parse`, Claude Haiku). AI prepozna šta se traži: **novi klijent, novi posao, novi zadatak ili novi promet** (prihod ili trošak), i izvuče polja (imena i mesta u nominativu, adresa „ulica broj“, mesto posebno, telefon, iznos, valuta, firma ili keš, kategorija, datumi kao „sutra“ ili „u petak“).
 - Otvara se odgovarajuća forma, popunjena, sa napomenom „Popunjeno iz glasovne komande. Proveri podatke pre čuvanja.“ Ništa se ne čuva samo: vlasnik proveri i klikne **Sačuvaj**.

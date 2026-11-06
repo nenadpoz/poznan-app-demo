@@ -1440,7 +1440,7 @@ function render(){
   const a=document.activeElement, id=a&&a.id&&$('#app').contains(a)?a.id:null; let pos=null; try{pos=a.selectionStart;}catch(e){}
   applyTheme();
   const V={dashboard:vDashboard,poslovi:vPoslovi,zadaci:vZadaci,vise:vVise,firme:vFirme,firma:vFirma,klijenti:vKontakti,klijent:vKlijent,saradnik:vSaradnik,posao:vPosao,promet:vPromet,plate:vPlate,logovi:vLogovi,kategorije:vKategorije,kategorijeProm:vKategorijeProm,lozinka:vLozinka,boje:vBoje,obavestenja:vObavestenja};
-  $('#app').innerHTML=!S.session?vLogin():`<main class="screen">${(V[ui.view]||vDashboard)()}</main>${nav()}<button class="fab" data-act="voice" aria-label="Glasovna komanda">${ic('mic',26)}</button>`;
+  $('#app').innerHTML=!S.session?vLogin():`<main class="screen">${(V[ui.view]||vDashboard)()}</main>${nav()}${S.prefs?.[S.session]?.voiceBtn===false?'':`<button class="fab" data-act="voice" aria-label="Glasovna komanda">${ic('mic',26)}</button>`}`;
   if(id){const n=document.getElementById(id);if(n){n.focus();try{if(pos!=null)n.setSelectionRange(pos,pos);}catch(e){}}}
 }
 function go(v,p=null){ui.replyTo=null;if(v==='posao'&&p)readNotifsFor('jobId',p);if(v==='firma'&&p)readNotifsFor('companyId',p);if(p!==ui.param)ui.tf='svi';if(v==='klijent'&&(ui.view==='poslovi'||ui.view==='klijenti'||ui.view==='posao'))ui.clientFrom=ui.view==='posao'?((ui.posFrom||{}).v==='klijent'?ui.clientFrom:'poslovi'):ui.view;if(v==='posao'&&ui.view!=='posao')ui.posFrom=ui.view==='klijent'?{v:'klijent',p:ui.param}:{v:'poslovi'};ui.view=v;ui.param=p;render();window.scrollTo(0,0);}
@@ -1989,6 +1989,7 @@ function vVise(){
   const it=[['firme','building','Firme',`${S.companies.length} firme, faze i limiti`],['logovi','list','Logovi','Ko je šta menjao i kada'],['kategorije','tag','Kategorije poslova',`${S.labels.length} kategorija`],['kategorijeProm','tag','Kategorije prometa',`${catsOf('prihod').length+catsOf('trosak').length} kategorija prihoda i troškova`],['boje','palette','Boje traka limita','Samo za tvoj nalog'],['obavestenja','bell','Obaveštenja',notifSummary()],['lozinka','user','Lozinka','Promeni lozinku svog naloga']];
   const th=S.prefs?.[S.session]?.theme||'system';
   return topBar('Podešavanja',{back:'dashboard'})+`<div class="list">${it.map(([v,i,l,s])=>`<button class="row" data-act="go" data-v="${v}"><div class="ini">${ic(i)}</div><div class="row-main"><b>${l}</b><small>${s}</small></div>${ic('fwd',18)}</button>`).join('')}<button class="row" data-act="logout"><div class="ini logout-ic">${ic('logout')}</div><div class="row-main"><b class="neg">Odjavi se</b><small>Prijavljen nalog: ${esc(userName(S.session))}</small></div></button></div>
+  <section class="settings-sec"><span class="label">Glasovna komanda (samo za tvoj nalog)</span><div class="list">${swRow('voiceBtn','Prikaži dugme sa mikrofonom','Dugme stoji dole desno, iznad menija. Kad je isključeno, glasovna komanda se ne prikazuje.',S.prefs?.[S.session]?.voiceBtn!==false).replace('name="voiceBtn"','name="voiceBtn" data-change="voiceBtn"')}</div></section>
   <section class="settings-sec"><span class="label">Tema (samo za tvoj nalog)</span><div class="seg" role="group" aria-label="Tema">${THEMES.map(([k,l])=>`<button data-act="setTheme" data-v="${k}" aria-pressed="${th===k}">${l}</button>`).join('')}</div></section>`;
 }
 const THEMES=[['light','Svetla'],['dark','Tamna'],['system','Sistemska']];
@@ -2257,6 +2258,7 @@ document.addEventListener('change',async e=>{
   if(t.id==='p-other'){$('#otherAddr').hidden=!t.checked;if(t.checked)$('#p-waddr').focus();return;}
   if(t.name==='kind'&&(t.form?.dataset.form==='client'||t.form?.dataset.form==='supplier'||t.form?.dataset.form==='posao')){const p=t.value==='pravno';$('#pravnoWrap').hidden=!p;$('#k-name-l').textContent=p?'Naziv firme':'Ime i prezime';if(t.form.dataset.form==='posao')acUpdate(t.form.elements.name);return;}
   const k=t.dataset.change;if(!k)return;
+  if(k==='voiceBtn'){(S.prefs[S.session]=S.prefs[S.session]||{}).voiceBtn=t.checked;save();render();return;}
   if(k==='logo'){const f=t.form,file=t.files[0];if(!file)return;try{f.elements.logo.value=await readImage(file,256,'image/png');updLogoPrev(f);}catch(err){toast('Logo nije mogao da se učita.');}t.value='';return;}
   if(k==='check'){const c=company(t.dataset.id),key=t.dataset.k;c.checklist={...(c.checklist||{}),[key]:t.checked};log('firma','izmenjeno',c.name,[{field:CHECK.find(x=>x[0]===key)[1],from:t.checked?'ne':'da',to:t.checked?'da':'ne'}]);save();render();}
   if(k==='photos'){const kind=t.dataset.kind||'posao',kl=PH_OWNER[kind](t.dataset.id),files=[...t.files].slice(0,Math.max(0,20-(kl.photos=kl.photos||[]).length));if(!files.length)return toast('Najviše 20 slika.');const before=kl.photos.length;toast('Obrađujem slike…');
