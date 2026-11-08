@@ -865,7 +865,7 @@ function balanceCard(){const a=accounts(),tot=a.reduce((s,x)=>s+balanceOf(x.id),
   <div class="kv bal-tot"><span>Ukupno</span><b>${rsd(tot)}</b></div></section>`;}
 function ulogRow(u){return `<button class="row" data-act="editUlog" data-id="${u.id}"><div class="row-main"><b>Ulog vlasnika · ${esc(userName(u.owner))}</b><small>${fmtDate(u.date)} ${u.to==='kes'?'<span class="tag kes">keš</span>':`<span class="tag">${esc(acctName(u.to))}</span>`} <span class="tag">ulog</span>${u.note?' · '+esc(u.note):''}</small></div>
   <div class="row-amt tr">+${amt(u.amount)}${u.currency!==dispCur()?`<small>uneto ${curAmt(u.amountOriginal,u.currency)}</small>`:'<small>nije prihod</small>'}</div></button>`;}
-function transferRow(x){return `<button class="row" data-act="transferSheet" data-id="${x.id}"><div class="row-main"><b>${esc(acctName(x.from))} → ${esc(acctName(x.to))}</b><small>${fmtDate(x.date)} <span class="tag">prenos</span>${x.note?' · '+esc(x.note):''}</small></div>
+function transferRow(x){return `<button class="row" data-act="transferSheet" data-id="${x.id}"><div class="row-main"><b>${esc(acctName(x.from))} → ${esc(acctName(x.to))}</b><small>${fmtDate(x.date)} <span class="tag">prenos</span>${x.note?' · '+linkify(x.note):''}</small></div>
   <div class="row-amt tr">${amt(x.amount)}${x.currency!==dispCur()?`<small>uneto ${curAmt(x.amountOriginal,x.currency)}</small>`:'<small>prenos</small>'}</div></button>`;}
 // Stanje se prikazuje u valuti izabranoj u formi prenosa (pickCur).
 let pickCur='EUR';
@@ -1205,7 +1205,7 @@ function vPosao(){
     ${p.archived?`<div class="contact">${ic('check',18)}<span>Završeno: ${p.endDate?fmtDate(p.endDate):'nije određeno'}</span></div>`:''}
     ${paidRow(p)}
   </section>
-  ${p.description?`<section class="card settings-sec"><span class="label">Komentar</span><p class="desc">${esc(p.description)}</p></section>`:''}
+  ${p.description?`<section class="card settings-sec"><span class="label">Komentar</span><p class="desc">${linkify(p.description)}</p></section>`:''}
   <section class="card">${commentSection(p,'job')}</section>
   ${photoSec('posao',p)}
   ${posaoTasks(p)}
@@ -1297,7 +1297,7 @@ function phaseHistory(c){const h=phaseRows(c);const cur=h.find(x=>!x.kind);if(!c
 /* Jedan red istorije: faza, oblik poslovanja ili bilo koja druga izmena podataka firme */
 function histRow(x,i){const cls=`ph-row${i?'':' cur'}`;
   if(x.kind==='edit')return `<div class="${cls}"><b>Izmena podataka</b><span>${fmtDT(x.ts)}</span><small>${esc(userName(x.by))}</small><ul class="ph-ch">${x.changes.map(ch=>`<li><b>${esc(ch.field)}:</b> ${ch.from?`<del>${esc(ch.from)}</del> → `:''}<ins>${esc(ch.to||'—')}</ins></li>`).join('')}</ul></div>`;
-  return `<div class="${cls}"><b>${x.kind==='form'?'Oblik: '+FORMS[x.to]:PHASE[x.to]}</b><span>od ${fmtDate(x.date)}</span><small>${x.kind==='form'?`Bilo: ${FORMS[x.from]||'—'} · `:''}${esc(userName(x.by))}${x.note?' · '+esc(x.note):''}</small></div>`;}
+  return `<div class="${cls}"><b>${x.kind==='form'?'Oblik: '+FORMS[x.to]:PHASE[x.to]}</b><span>od ${fmtDate(x.date)}</span><small>${x.kind==='form'?`Bilo: ${FORMS[x.from]||'—'} · `:''}${esc(userName(x.by))}${x.note?' · '+linkify(x.note):''}</small></div>`;}
 function phaseHistSheet(c){openSheet(`Istorija izmena · ${c.name}`,`<div class="phase-hist">${phaseRows(c).map(histRow).join('')}</div>`);}
 function vKlijent(){
   const k=client(ui.param); if(!k)return vKlijenti();
@@ -1310,7 +1310,7 @@ function vKlijent(){
     ${k.kind==='pravno'&&(k.pib||k.mb)?`<div class="contact">${ic('building',18)}<span>${[k.pib&&'PIB '+k.pib,k.mb&&'MB '+k.mb].filter(Boolean).map(esc).join(' · ')}</span>${k.pib?`<button class="icon-btn" data-act="copy" data-v="${esc(k.pib)}" aria-label="Kopiraj PIB">${ic('copy',16)}</button>`:''}</div>`:''}
     ${k.email?`<div class="contact">${ic('mail',18)}<span>${esc(k.email)}</span><div class="row-actions"><a class="call-btn" href="mailto:${esc(k.email)}" aria-label="Pošalji email: ${esc(k.email)}">${ic('mail',20)}</a><button class="icon-btn" data-act="copy" data-v="${esc(k.email)}" aria-label="Kopiraj email">${ic('copy',16)}</button></div></div>`:''}
   </section>
-  ${k.note?`<section class="card settings-sec"><span class="label">Napomena</span><p class="desc">${esc(k.note)}</p></section>`:''}
+  ${k.note?`<section class="card settings-sec"><span class="label">Napomena</span><p class="desc">${linkify(k.note)}</p></section>`:''}
   <div class="grid2"><div class="stat"><span class="label">Ukupno naplaćeno</span><b>${rsd(tt.all)}</b></div><div class="stat"><span class="label">Od toga keš</span><b>${rsd(tt.kes)}</b></div>
   ${Object.entries(by).map(([n,v])=>`<div class="stat wide" style="display:flex;justify-content:space-between;gap:10px;align-items:center"><span class="small">${esc(n)}</span><b style="margin:0">${rsd(v)}</b></div>`).join('')}</div>
   ${photoSec('klijent',k)}
@@ -1330,7 +1330,7 @@ function vSaradnik(){
     ${k.kind==='pravno'&&(k.pib||k.mb)?`<div class="contact">${ic('building',18)}<span>${[k.pib&&'PIB '+k.pib,k.mb&&'MB '+k.mb].filter(Boolean).map(esc).join(' · ')}</span>${k.pib?`<button class="icon-btn" data-act="copy" data-v="${esc(k.pib)}" aria-label="Kopiraj PIB">${ic('copy',16)}</button>`:''}</div>`:''}
     ${k.email?`<div class="contact">${ic('mail',18)}<span>${esc(k.email)}</span><div class="row-actions"><a class="call-btn" href="mailto:${esc(k.email)}" aria-label="Pošalji email: ${esc(k.email)}">${ic('mail',20)}</a></div></div>`:''}
   </section>
-  ${k.note?`<section class="card settings-sec"><span class="label">Napomena</span><p class="desc">${esc(k.note)}</p></section>`:''}
+  ${k.note?`<section class="card settings-sec"><span class="label">Napomena</span><p class="desc">${linkify(k.note)}</p></section>`:''}
   ${photoSec('saradnik',k)}
   <div class="grid2"><div class="stat"><span class="label">Ukupno plaćeno</span><b>${rsd(tt.all)}</b></div><div class="stat"><span class="label">Od toga keš</span><b>${rsd(tt.kes)}</b></div></div>
   <section class="settings-sec"><div class="sec-h"><h2>Troškovi</h2></div>${tt.t.length?`<div class="list">${tt.t.sort((x,y)=>y.date.localeCompare(x.date)).map(txRow).join('')}</div>`:'<div class="card empty">Još nema troškova kod ovog saradnika. Izaberi ga kad unosiš trošak.</div>'}</section>
@@ -2060,7 +2060,7 @@ const CMT={tx:{get:id=>S.tx.find(x=>x.id===id),title:o=>o.description||(o.salary
 const cmtOwner=(kind,id)=>CMT[kind].get(id);
 const cmtTitle=(kind,o)=>CMT[kind].title(o);
 const notifKind=n=>n.companyId?'company':n.jobId?'job':n.txId?'tx':n.ulogId?'ulog':n.transferId?'transfer':'task';
-function oneCmt(kind,o,c,isReply){return `<div class="cmt${isReply?' reply':''}" id="cmt-${c.id}"><span class="av-xs av-${c.user}">${esc(initials(userName(c.user)))}</span><div class="cmt-body"><div class="cmt-meta"><b>${esc(userName(c.user))}</b><span>${fmtDT(c.ts)}</span>${c.user===S.session?`<button type="button" class="cmt-del" data-act="delComment" data-kind="${kind}" data-oid="${o.id}" data-id="${c.id}" aria-label="Obriši komentar">${ic('x',14)}</button>`:''}</div><p>${esc(c.text)}</p>
+function oneCmt(kind,o,c,isReply){return `<div class="cmt${isReply?' reply':''}" id="cmt-${c.id}"><span class="av-xs av-${c.user}">${esc(initials(userName(c.user)))}</span><div class="cmt-body"><div class="cmt-meta"><b>${esc(userName(c.user))}</b><span>${fmtDT(c.ts)}</span>${c.user===S.session?`<button type="button" class="cmt-del" data-act="delComment" data-kind="${kind}" data-oid="${o.id}" data-id="${c.id}" aria-label="Obriši komentar">${ic('x',14)}</button>`:''}</div><p>${linkify(c.text)}</p>
   <button type="button" class="link cmt-reply" data-act="replyComment" data-id="${isReply?c.parentId:c.id}" data-name="${esc(userName(c.user))}">Odgovori</button></div></div>`;}
 function commentsHtml(o,kind='task'){const cs=o.comments||[],top=cs.filter(c=>!c.parentId);
   return top.length?top.map(c=>oneCmt(kind,o,c,false)+cs.filter(r=>r.parentId===c.id).map(r=>oneCmt(kind,o,r,true)).join('')).join(''):'<p class="small muted" style="margin:0">Još nema komentara.</p>';}
