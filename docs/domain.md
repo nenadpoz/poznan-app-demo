@@ -22,6 +22,7 @@ Opšta pravila:
 - Donji meni: **Pregled, Promet, Poslovi, Zadaci, Klijenti**.
 - Kad je stavka menija aktivna, umesto njene ikonice stoji „+“ sa natpisom radnje: **Dodaj promet**, **Dodaj posao** (Poslovi, i na Listi i u Kalendaru), **Dodaj zadatak**, **Dodaj klijenta**.
 - Dole desno, iznad menija, na svim glavnim ekranima: dugme sa mikrofonom za **glasovnu komandu** (vidi §17).
+- Na ekranima detalja (posao, klijent, saradnik, firma, zadatak, unos) gornji red ima samo dugmad: nazad, izmena, valuta, zvonce, profil. Naziv i oznake (kategorija, status) su u redu ispod, da se ime ne skraćuje. Zadatak nema naslov jer mu je naziv u prvoj kartici, a napomena zadatka ide ispod natpisa, preko cele širine.
 - Gore desno na svakom ekranu: **zvonce** sa crvenim brojem nepročitanih obaveštenja (broj se ne prikazuje kad je 0) i avatar koji otvara Podešavanja.
 
 ## 3. Pregled (početna)
