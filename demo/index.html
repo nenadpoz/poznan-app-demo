@@ -1995,6 +1995,8 @@ function vKalendar(){
   ${c.mode==='mesec'?calMonth():c.mode==='nedelja'?calWeek():calDay()}`;
 }
 /** Broj u filteru: do hiljadu tačno, preko toga skraćeno („1,2 hilj.“). */
+/** Tekst sa linkovima (https://…, www.…) koji se otvaraju u novom prozoru; interpunkcija na kraju nije deo linka. */
+const linkify=t=>esc(t||'').replace(/(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi,m=>{const tail=(m.match(/(?:[.,;:!?)\]}»“”]|&quot;|&#39;)+$/)||[''])[0],u=m.slice(0,m.length-tail.length);return `<a href="${/^https?:/i.test(u)?u:'https://'+u}" target="_blank" rel="noopener noreferrer">${u}</a>${tail}`;});
 const shortCnt=n=>n<1000?String(n):`${n<1e4?String(Math.floor(n/100)/10).replace('.',','):Math.floor(n/1000)} hilj.`;
 function vZadaci(){
   const f=ui.tk,me=S.session;
@@ -2098,7 +2100,7 @@ function taskDetail(t){
   ${late?`<div class="card overdue-q"><b>${ic('alert',18)} Rok je bio ${fmtDate(t.due)} Da li je zadatak završen?</b><div class="form-actions"><button class="btn primary" data-act="toggleTaskYes" data-id="${t.id}">${ic('check',18)} Završen je</button><button class="btn" data-act="taskEdit" data-id="${t.id}">${ic('calendar',18)} Promeni rok</button></div></div>`:''}
   <dl class="facts"><dt>Zadužen</dt><dd>${esc(whoName(t.assignee))}</dd><dt>Rok</dt><dd class="${late?'late':''}">${t.due?`${late?'Kasni · ':''}${fmtDate(t.due)}`:'Bez roka'}</dd>
   ${t.due&&!t.done&&t.due>=TODAY_ISO?`<dt>Podsetnici</dt><dd>${[...(t.reminders||[]).filter(r=>r>nowLocal()).map(remTxt),`Na dan roka u ${dueTimeFor(t,S.session)}`].join('<br>')}</dd>`:''}
-  <dt>Posao</dt><dd>${j?`<a href="#" data-act="taskJob" data-id="${j.id}">${esc(posLabel(j))}</a>`:'—'}</dd><dt>Napomena</dt><dd>${esc(t.notes)||'—'}</dd>
+  <dt>Posao</dt><dd>${j?`<a href="#" data-act="taskJob" data-id="${j.id}">${esc(posLabel(j))}</a>`:'—'}</dd><dt>Napomena</dt><dd>${linkify(t.notes)||'—'}</dd>
   ${t.done?`<dt>Završen</dt><dd>${esc(userName(t.doneBy))}${t.doneAt?' · '+fmtDate(iso(new Date(t.doneAt))):''}</dd>`:''}</dl>
   <button class="btn ${t.done?'':'primary'} block" data-act="toggleTask" data-id="${t.id}">${ic(t.done?'back':'check',18)} ${t.done?'Vrati kao otvoren':'Završi zadatak'}</button>
   ${photoSec('zadatak',t)}

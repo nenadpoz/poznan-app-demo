@@ -138,6 +138,7 @@ Tri kartice, tim redom:
 ## 9. Zadaci
 - Polja: naziv, ko je zadužen (Nenad, Jovan, Obojica), status (Na čekanju, U procesu, Završeno; kod završenog ko i kada), rok (opciono), **vezan za posao** (opciono; podrazumevano ništa; poslovi se prikazuju tek na dodir polja, kao padajuća lista koja se sužava dok se kuca, bez obzira na kvačice), napomena, komentari. Zadatak nema svog klijenta; vidi se preko posla.
 - Lista grupisana: kasni, danas, narednih 7 dana, kasnije, bez roka. Filteri u dva reda: **Osobe** (Svi, Nenad, Jovan, Zajednički) i **Statusi** (Svi, Na čekanju, U procesu, Završeno). Svaki red je niz segmenata iste širine sa nazivom i brojem ispod, pa sve opcije uvek staju u red; broj preko hiljadu se skraćuje („1,2 hilj.“, „12 hilj.“).
+- Linkovi u napomeni (https://…, www.…) su na kartici zadatka dodirljivi i otvaraju se u pregledaču.
 - Kvačica na listi otvara potvrdu **„Završi zadatak?“**; vraćanje završenog ide bez pitanja.
 - Forma: dugmad **Obriši** (crveno, kanta) · **Sačuvaj zadatak** (zeleno) · **Zatvori**; čuvanje isključeno dok nema promene.
 - Na listi pored zadatka broj komentara.
