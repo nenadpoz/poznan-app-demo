@@ -89,7 +89,7 @@ Tri kartice, tim redom:
   - **Poslovi** klijenta sa dugmetom **Novi posao** (klijent je već izabran);
   - **Obriši klijenta** (briše i njegove poslove; transakcije i zadaci ostaju bez veze).
 - **Saradnici** (treći tab na stranici Klijenti): od koga kupujemo materijal ili tražimo uslugu. Podaci kao kod klijenta (vrsta, ime ili naziv, PIB/MB, kontakt osoba, mesto, adresa, telefon, email, napomena) plus **Šta radi** (npr. „PVC cevi“, „Iskop bagerom“). Nezavisni od klijenata i firmi.
-  - Pri unosu **troška** bira se saradnik (opciono), bez obzira da li je plaćeno preko firme ili keš. Prihod nema saradnika.
+  - Forma troška **nema polje Saradnik** (zahtev vlasnika 9. nov 2026.); u formi ostaje Klijent. Trošak koji već ima saradnika ga zadržava i pri izmeni. Prihod nema saradnika.
   - Kartica saradnika: kontakt sa dugmićima kao kod klijenta, ukupno plaćeno saradniku i lista troškova kod njega.
 - **Slike**: klijent, saradnik, posao i zadatak mogu imati jednu ili više slika (do 20). Dodaju se u formi (galerija ili kamera) i na kartici; u izmeni se slika uklanja (×). Slike su privatne (samo vlasnici), a dodavanje i uklanjanje ide u logove.
 

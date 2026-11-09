@@ -1594,7 +1594,7 @@ function txForm(t={},voice=false){
   <p class="small muted fx-hint" style="margin:0"></p>
   <label class="fld" id="vatWrap"><span>PDV stopa (iznos je bez PDV-a)</span><select id="t-vat" name="vat">${[20,10,0].map(v=>`<option value="${v}" ${(t.vat??20)===v?'selected':''}>${v?v+'%':'Bez PDV-a'}</option>`).join('')}</select></label>
   <label class="fld" id="catWrap"><span>Kategorija</span><select id="t-cat" name="category" data-init="${esc(t.category||'')}"></select></label>
-  <div class="fld" id="supWrap"><span>Saradnik</span>${combo('supplierId',supplierItems(),t.supplierId,'Pretraži po imenu, usluzi ili telefonu')}<small>Od koga je kupljeno ili ko je uradio uslugu. Nije obavezno. Nove saradnike dodaješ u Klijenti → Saradnici.</small></div>
+  <input type="hidden" id="supWrap" name="supplierId" value="${esc(t.supplierId||'')}"><!-- Saradnik se ne bira u formi; postojeći ostaje -->
   <div class="fld" id="clientWrap"><span>Klijent</span><div id="clientPick">${combo('clientId',clientItems(),t.clientId,'Pretraži po imenu, mestu ili telefonu')}</div>
     <label class="check-row"><input type="checkbox" name="newClient">Dodaj novog klijenta u sledećem koraku</label><small id="clientHint">Nije obavezno.</small></div>
   <label class="fld"><span>Komentar</span><textarea id="t-desc" name="description" rows="2" placeholder="Nije obavezno">${esc(t.description)}</textarea></label>
