@@ -367,6 +367,7 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:
 .photos button{padding:0;border:0;border-radius:10px;overflow:hidden;aspect-ratio:1;background:var(--surface-2);max-width:100%}
 .photos img{width:100%;height:100%;object-fit:cover;display:block}
 .ini-sup{background:var(--accent-soft);color:var(--accent)}
+.tag.sup{background:var(--accent-soft);color:var(--accent);border-color:transparent;font-weight:600;vertical-align:middle}
 .add-photo{display:grid;place-items:center;gap:4px;color:var(--muted);font-size:12px;border:1.5px dashed var(--line) !important;background:none !important;cursor:pointer;aspect-ratio:1;border-radius:10px;text-align:center}
 .desc{white-space:pre-wrap;margin:0;font-size:14.5px}
 
@@ -832,6 +833,9 @@ function migrateCats(s){
 }
 function load(){try{const r=localStorage.getItem(KEY);if(r){const s=JSON.parse(r);if(s&&s.v===4){(s.companies||[]).forEach(c=>{if(c.phase==='osnivanje')c.phase='neaktivna';});if(!s.firmAddrV){const A0={c1:'Industrijska zona bb, Loznica',c2:'Šabačka 14, Loznica'};(s.companies||[]).forEach(c=>{if(c.address===undefined)c.address=A0[c.id]||'';});s.firmAddrV=1;}if(!s.notif2V)addJovanSamples(s);if(!s.notifV){s.notifs=s.notifs||[];const t=(s.tasks||[]).find(t=>t.id==='t1'),c=t&&(t.comments||[]).find(c=>c.id==='c2');if(c)s.notifs.push(SAMPLE_NOTIF());s.notifV=1;}if(!s.komentariV){const t=(s.tasks||[]).find(t=>t.id==='t1');if(t&&!t.comments)t.comments=SAMPLE_CMT();s.komentariV=1;}(s.poslovi||[]).forEach(p=>{if(!p.assignee)p.assignee='oba';});if(!s.adresaPoslaV){const p=(s.poslovi||[]).find(p=>p.id==='p2');if(p&&!p.workAddress&&!p.workCity){p.workAddress='Kralja Petra I 20';p.workCity='Loznica';}s.adresaPoslaV=1;}if(!s.pravnaDodata){s.clients.push(...PRAVNA_LICA().filter(p=>!s.clients.some(k=>k.id===p.id)));s.pravnaDodata=1;}(s.companies||[]).forEach(c=>{if(c.icon===undefined)c.icon={c1:'drill',c2:'truck'}[c.id]||'building';if(c.logo===undefined)c.logo='';});return supV(txCatsV(ulogV(jobsV(salaryV(moneyV(s))))));}}}catch(e){}return supV(txCatsV(ulogV(jobsV(salaryV(moneyV(addJovanSamples(migrateCats(seed()))))))));}
 let S=load();
+/* Saradnik je klijent sa oznakom: stari saradnici prelaze u klijente (isti id), troškovi kod njih dobijaju klijenta */
+if(!S.supMerged){(S.suppliers||[]).forEach(x=>{if(!S.clients.some(k=>k.id===x.id))S.clients.push({...x,supplier:true});});
+  S.tx.forEach(t=>{if(t.supplierId&&!t.clientId)t.clientId=t.supplierId;});S.suppliers=[];S.supMerged=1;}
 /* Računi: račun svake firme i zaliha keša. Račun prometa = firma, a bez firme = keš.
    Stanje = početno stanje (od datuma) + prihodi − troškovi ± prenosi. Prenos nije prihod ni trošak. */
 // Primeri isplata plata: tri prethodna meseca i tekući.
@@ -947,7 +951,7 @@ function topBar(title,{back=null,backP=null,backAct='go',sub='',right=''}={}){
   <div class="top-right">${right}<button class="cur-tg" data-act="curMenu" aria-haspopup="dialog" aria-label="Valuta prikaza: ${dispCur()}, promeni" title="Promeni valutu prikaza">${dispCur()}</button>${bellBtn()}<button class="avatar av-${S.session}" data-act="go" data-v="vise" aria-label="Podešavanja">${esc(initials(userName(S.session)))}</button></div></header>`;
 }
 const NAV_NEW={promet:['newTx','Dodaj promet'],zadaci:['newTask','Dodaj zadatak'],klijenti:['newContact','Dodaj klijenta']};
-const navNew=k=>k==='poslovi'?['newPosao','Dodaj posao']:k==='klijenti'&&ui.kKind==='saradnici'?['newSupplier','Dodaj saradnika']:NAV_NEW[k];
+const navNew=k=>k==='poslovi'?['newPosao','Dodaj posao']:NAV_NEW[k];
 function nav(){
   const v=ui.view, m={dashboard:'dashboard',promet:'promet',poslovi:'poslovi',zadaci:'zadaci',klijenti:'klijenti',klijent:ui.clientFrom==='klijenti'?'klijenti':'poslovi',saradnik:'klijenti',posao:(ui.posFrom||{}).v==='klijent'&&ui.clientFrom==='klijenti'?'klijenti':'poslovi',vise:'vise',boje:'vise',obavestenja:'vise',firme:'vise',firma:'vise',logovi:'vise',kategorije:'vise',kategorijeProm:'vise',lozinka:'vise'}[v];
   const it=[['dashboard','home','Pregled'],['promet','swap','Promet'],['poslovi','briefcase','Poslovi'],['zadaci','tasks','Zadaci'],['klijenti','users','Klijenti']];
@@ -1181,20 +1185,16 @@ const vPoslovi=()=>ui.posTab==='kalendar'?vKalendar():vKlijenti();
 const nKl=n=>`${n} ${n%10===1&&n%100!==11?'klijent':[2,3,4].includes(n%10)&&![12,13,14].includes(n%100)?'klijenta':'klijenata'}`;
 /* Klijenti: imenik svih klijenata po imenu, sa ukupno naplaćenim */
 function vKontakti(){
-  const q=norm(ui.kq),kk=ui.kKind,ofKind=k=>(k.kind||'fizicko')===kk;
-  const list=S.clients.filter(k=>ofKind(k)&&(!q||norm(k.name+' '+k.city+' '+k.phone).includes(q))).sort((a,b)=>a.name.localeCompare(b.name,'sr'));
-  const nOf=v=>v==='saradnici'?(S.suppliers||[]).length:S.clients.filter(k=>(k.kind||'fizicko')===v).length;
-  const tabs=`<div class="seg" role="tablist" aria-label="Vrsta klijenta">${[['fizicko','Fizička'],['pravno','Pravna'],['saradnici','Saradnici']].map(([v,l])=>`<button role="tab" data-act="kKind" data-v="${v}" aria-selected="${kk===v}" aria-pressed="${kk===v}">${l}: <span class="muted">${nOf(v)}</span></button>`).join('')}</div>`;
-  if(kk==='saradnici'){const sl=(S.suppliers||[]).filter(k=>!q||norm(k.name+' '+(k.service||'')+' '+k.city+' '+k.phone).includes(q)).sort((a,b)=>a.name.localeCompare(b.name,'sr'));
-    const sRow=k=>{const tel=String(k.phone||'').replace(/[^\d+]/g,'');return `<div class="row"><button class="row-link kontakt" data-act="go" data-v="saradnik" data-p="${k.id}"><div class="ini ini-sup">${esc(initials(k.name))}</div><div class="row-main"><b>${esc(k.name)}</b><small>${[k.service,k.phone].filter(Boolean).map(esc).join(' · ')||'—'}</small></div><div class="row-amt">${money(supTotals(k.id).all)}<small>plaćeno</small></div></button>${tel?`<div class="row-actions"><a class="call-btn" href="tel:${esc(tel)}" aria-label="Pozovi ${esc(k.name)}">${ic('phone',20)}</a></div>`:''}</div>`;};
-    return topBar('Klijenti',{sub:nKl(S.clients.length)})+tabs+`
-  <label class="search">${ic('search',18)}<input id="kontaktQ" data-input="kontaktQ" placeholder="Pretraži po imenu, usluzi, mestu ili telefonu" value="${esc(ui.kq)}" aria-label="Pretraga saradnika"></label>
-  ${sl.length?`<div class="list">${sl.map(sRow).join('')}</div>`:`<div class="card empty">${q?'Nema saradnika za ovu pretragu.':'Još nema saradnika. Dodaj one od kojih kupuješ materijal ili tražiš uslugu.'}</div>`}`;}
-  const rowOf=k=>{const tel=String(k.phone||'').replace(/[^\d+]/g,''),tot=clientTotals(k.id).all;
-    return `<div class="row"><button class="row-link kontakt" data-act="go" data-v="klijent" data-p="${k.id}"><div class="ini">${esc(initials(k.name))}</div><div class="row-main"><b>${esc(k.name)}</b><small>${[k.city,k.phone].filter(Boolean).map(esc).join(' · ')||'—'}</small></div><div class="row-amt">${money(tot)}<small>naplaćeno</small></div></button>${tel?`<div class="row-actions"><a class="call-btn" href="tel:${esc(tel)}" aria-label="Pozovi ${esc(k.name)}">${ic('phone',20)}</a></div>`:''}</div>`;};
+  const q=norm(ui.kq),kk=ui.kKind==='pravno'?'pravno':'fizicko',only=!!ui.kSup,ofKind=k=>(k.kind||'fizicko')===kk;
+  const list=S.clients.filter(k=>ofKind(k)&&(!only||k.supplier)&&(!q||norm(k.name+' '+k.city+' '+k.phone+' '+(k.service||'')).includes(q))).sort((a,b)=>a.name.localeCompare(b.name,'sr'));
+  const nOf=v=>S.clients.filter(k=>(k.kind||'fizicko')===v).length,nSup=S.clients.filter(k=>ofKind(k)&&k.supplier).length;
+  const tabs=`<div class="seg" role="tablist" aria-label="Vrsta klijenta">${[['fizicko','Fizička'],['pravno','Pravna']].map(([v,l])=>`<button role="tab" data-act="kKind" data-v="${v}" aria-selected="${kk===v}" aria-pressed="${kk===v}">${l}: <span class="muted">${nOf(v)}</span></button>`).join('')}</div>
+  <label class="check-row"><input type="checkbox" data-change="kSup" ${only?'checked':''}>Samo saradnici (${nSup})</label>`;
+  const rowOf=k=>{const tel=String(k.phone||'').replace(/[^\d+]/g,''),tot=clientTotals(k.id).all,sp=supTotals(k.id).all,showSp=k.supplier&&!tot;
+    return `<div class="row"><button class="row-link kontakt" data-act="go" data-v="klijent" data-p="${k.id}"><div class="ini${k.supplier?' ini-sup':''}">${esc(initials(k.name))}</div><div class="row-main"><b>${esc(k.name)}${k.supplier?' <span class="tag sup">saradnik</span>':''}</b><small>${[k.supplier?k.service:'',k.city,k.phone].filter(Boolean).map(esc).join(' · ')||'—'}</small></div><div class="row-amt">${amt(showSp?sp:tot)}<small>${showSp?'plaćeno':'naplaćeno'}</small></div></button>${tel?`<a class="call-btn" href="tel:${esc(tel)}" aria-label="Pozovi ${esc(k.name)}">${ic('phone',20)}</a>`:''}</div>`;};
   return topBar('Klijenti',{sub:nKl(S.clients.length)})+tabs+`
-  <label class="search">${ic('search',18)}<input id="kontaktQ" data-input="kontaktQ" placeholder="Pretraži po imenu, mestu ili telefonu" value="${esc(ui.kq)}" aria-label="Pretraga klijenata"></label>
-  ${list.length?`<div class="list">${list.map(rowOf).join('')}</div>`:`<div class="card empty">${q?'Nema klijenata za ovu pretragu.':kk==='pravno'?'Još nema pravnih lica.':'Još nema fizičkih lica.'}</div>`}`;
+  <label class="search">${ic('search',18)}<input id="kontaktQ" data-input="kontaktQ" placeholder="Pretraži po imenu, mestu, telefonu ili usluzi" value="${esc(ui.kq)}" aria-label="Pretraga klijenata"></label>
+  ${list.length?`<div class="list">${list.map(rowOf).join('')}</div>`:`<div class="card empty">${q?'Nema klijenata za ovu pretragu.':only?'Nema saradnika u ovom tabu. Označi „Ovo je saradnik“ kad dodaješ ili menjaš klijenta.':kk==='pravno'?'Još nema pravnih lica.':'Još nema fizičkih lica.'}</div>`}`;
 }
 function vKlijenti(){
   const q=norm(ui.clientQ),nm=p=>client(p.clientId)?.name||'';
@@ -1330,7 +1330,8 @@ function vKlijent(){
   const k=client(ui.param); if(!k)return vKlijenti();
   const tt=clientTotals(k.id); const by={};
   tt.t.forEach(x=>{if(!x.companyId)return;const n=company(x.companyId)?.name||'Obrisana firma';by[n]=(by[n]||0)+x.amount;});
-  return topBar(k.name,{back:ui.clientFrom||'poslovi',sub:[KIND[k.kind||'fizicko'],k.city].filter(Boolean).map(esc).join(' · '),right:`<button class="icon-btn" data-act="editClient" data-id="${k.id}" aria-label="Izmeni klijenta">${ic('edit')}</button>`})+`
+  const sp=supTotals(k.id);
+  return topBar(k.name,{back:ui.clientFrom||'poslovi',sub:[KIND[k.kind||'fizicko'],k.supplier?'saradnik'+(k.service?' · '+k.service:''):'',k.city].filter(Boolean).map(esc).join(' · '),right:`<button class="icon-btn" data-act="editClient" data-id="${k.id}" aria-label="Izmeni klijenta">${ic('edit')}</button>`})+`
   <section class="card">
     <div class="contact">${ic('phone',18)}<span>${esc(k.phone)||'—'}</span>${k.phone?`<div class="row-actions"><a class="call-btn" href="tel:${esc(String(k.phone).replace(/[^\d+]/g,''))}" aria-label="Pozovi ${esc(k.name)}">${ic('phone',20)}</a><button class="icon-btn" data-act="copy" data-v="${esc(k.phone)}" aria-label="Kopiraj broj">${ic('copy',16)}</button></div>`:''}</div>
     ${(()=>{const a=[k.address,k.city].filter(Boolean).join(', ');return `<div class="contact">${ic('pin',18)}<span>${esc(a)||'—'}</span>${a?`<div class="row-actions"><a class="call-btn" href="${mapsUrl(a)}" target="_blank" rel="noopener" aria-label="Otvori u Google mapi: ${esc(a)}">${ic('navigate',20)}</a><button class="icon-btn" data-act="copy" data-v="${esc(a)}" aria-label="Kopiraj adresu">${ic('copy',16)}</button></div>`:''}</div>`;})()}
@@ -1340,11 +1341,12 @@ function vKlijent(){
   ${k.note?`<section class="card settings-sec"><span class="label">Napomena</span><p class="desc">${linkify(k.note)}</p></section>`:''}
   <div class="grid2"><div class="stat"><span class="label">Ukupno naplaćeno</span><b>${rsd(tt.all)}</b></div><div class="stat"><span class="label">Od toga keš</span><b>${rsd(tt.kes)}</b></div>
   ${Object.entries(by).map(([n,v])=>`<div class="stat wide" style="display:flex;justify-content:space-between;gap:10px;align-items:center"><span class="small">${esc(n)}</span><b style="margin:0">${rsd(v)}</b></div>`).join('')}</div>
+  ${k.supplier||sp.t.length?`<div class="grid2"><div class="stat"><span class="label">Plaćeno saradniku</span><b>${rsd(sp.all)}</b></div><div class="stat"><span class="label">Troškova</span><b>${sp.t.length}</b></div></div>${sp.t.length?`<div class="list">${sp.t.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(t=>txRow(t)).join('')}</div>`:''}`:''}
   ${photoSec('klijent',k)}
   ${clientPoslovi(k)}
   <button class="btn block danger" data-act="delClient" data-id="${k.id}">Obriši klijenta</button>`;
 }
-function supTotals(id){const t=S.tx.filter(x=>x.supplierId===id&&x.type==='trosak');return {all:sum(t),kes:sum(t.filter(x=>!x.companyId)),t};}
+function supTotals(id){const t=S.tx.filter(x=>(x.clientId===id||x.supplierId===id)&&x.type==='trosak');return {all:sum(t),kes:sum(t.filter(x=>!x.companyId)),t};}
 /* Kartica saradnika: šta radi, kontakt, napomena, slike, plaćeno i troškovi kod njega */
 function vSaradnik(){
   const k=supplier(ui.param);if(!k){ui.kKind='saradnici';return vKontakti();}
@@ -1473,7 +1475,7 @@ function render(){
   $('#app').innerHTML=!S.session?vLogin():`<main class="screen">${(V[ui.view]||vDashboard)()}</main>${nav()}${S.prefs?.[S.session]?.voiceBtn===false?'':`<button class="fab" data-act="voice" aria-label="Glasovna komanda">${ic('mic',26)}</button>`}`;
   if(id){const n=document.getElementById(id);if(n){n.focus();try{if(pos!=null)n.setSelectionRange(pos,pos);}catch(e){}}}
 }
-function go(v,p=null){ui.replyTo=null;if(v==='posao'&&p)readNotifsFor('jobId',p);if(v==='firma'&&p)readNotifsFor('companyId',p);if(p!==ui.param)ui.tf='svi';if(v==='klijent'&&(ui.view==='poslovi'||ui.view==='klijenti'||ui.view==='posao'))ui.clientFrom=ui.view==='posao'?((ui.posFrom||{}).v==='klijent'?ui.clientFrom:'poslovi'):ui.view;if(v==='posao'&&ui.view!=='posao')ui.posFrom=ui.view==='klijent'?{v:'klijent',p:ui.param}:{v:'poslovi'};ui.view=v;ui.param=p;render();window.scrollTo(0,0);}
+function go(v,p=null){if(v==='saradnik')v='klijent'; /* saradnik je klijent sa oznakom */ui.replyTo=null;if(v==='posao'&&p)readNotifsFor('jobId',p);if(v==='firma'&&p)readNotifsFor('companyId',p);if(p!==ui.param)ui.tf='svi';if(v==='klijent'&&(ui.view==='poslovi'||ui.view==='klijenti'||ui.view==='posao'))ui.clientFrom=ui.view==='posao'?((ui.posFrom||{}).v==='klijent'?ui.clientFrom:'poslovi'):ui.view;if(v==='posao'&&ui.view!=='posao')ui.posFrom=ui.view==='klijent'?{v:'klijent',p:ui.param}:{v:'poslovi'};ui.view=v;ui.param=p;render();window.scrollTo(0,0);}
 let toastT;
 function toast(msg){clearTimeout(toastT);$('#toastRoot').innerHTML=`<div class="toast" role="status">${esc(msg)}</div>`;toastT=setTimeout(()=>{$('#toastRoot').innerHTML='';},2800);}
 
@@ -1501,7 +1503,10 @@ function clientForm(k={},voice=false,title='Novi klijent'){
   openSheet(k.id?'Izmeni klijenta':title,`<form class="form" data-form="client" data-id="${k.id||''}">${voice?voiceNote():''}
   ${kindSeg(k.kind)}
   <label class="fld"><span id="k-name-l">${k.kind==='pravno'?'Naziv firme':'Ime i prezime'}</span><input id="k-name" name="name" required value="${esc(k.name)}"><small>Obavezno.</small></label>
-  ${pravnoFields(k)}${contactFields(k)}
+  ${pravnoFields(k)}
+  <div class="fld"><span>Saradnik</span><label class="check-row"><input type="checkbox" id="k-sup" name="supplier" ${k.supplier?'checked':''}>Ovo je saradnik</label>
+  <input name="service" id="k-service" value="${esc(k.service)}" placeholder="Šta radi ili prodaje, npr. Iskop bagerom" ${k.supplier?'':'hidden'}><small>Od njega kupujemo materijal ili radi uslugu za nas (npr. bagerista, prevoznik, prodavnica).</small></div>
+  ${contactFields(k)}
   <label class="fld"><span>Napomena o klijentu</span><textarea id="k-note" name="note" rows="2">${esc(k.note??k.description)}</textarea></label>
   <div class="form-actions"><button type="button" class="btn" data-act="closeSheet">Otkaži</button><button class="btn primary" type="submit">Sačuvaj klijenta</button></div></form>`);
   clientSaveState($('[data-form=client]'));
@@ -1517,7 +1522,7 @@ function supplierForm(k={}){
   <p class="small muted" style="margin:0">Slike se dodaju i uklanjaju na kartici saradnika.</p>
   <div class="form-actions"><button type="button" class="btn" data-act="closeSheet">Otkaži</button><button class="btn primary" type="submit">Sačuvaj saradnika</button></div></form>`);
 }
-const SUP_F=[['kind','Vrsta',v=>KIND[v||'fizicko']],['name','Ime'],['service','Šta radi'],['pib','PIB'],['mb','Matični broj'],['city','Mesto'],['address','Adresa'],['phone','Mobilni'],['email','Email'],['note','Napomena']];
+const SUP_F=[['kind','Vrsta',v=>KIND[v||'fizicko']],['name','Ime'],['service','Šta radi'],['pib','PIB'],['mb','Matični broj'],['city','Mesto'],['address','Adresa'],['phone','Mobilni'],['email','Email'],['note','Napomena'],['supplier','Saradnik',v=>v?'da':'ne'],['service','Šta radi']];
 /* Posao: klijent se bira pretragom (postojeći, polja zaključana) ili se upisuje novi */
 function posaoForm(p={},pre={}){
   const k=client(p.clientId||pre.clientId)||{};
@@ -1879,7 +1884,7 @@ const F={
     if(!d.name)return toast(kind==='pravno'?'Unesi naziv firme.':'Unesi ime saradnika.');
     if(id){const k=supplier(id);const ch=diff(k,d,SUP_F);if(ch.length){log('saradnik','izmenjeno',d.name,ch);Object.assign(k,d);save();}closeSheet();go('saradnik',id);toast(ch.length?'Saradnik je sačuvan.':'Nema izmena.');}
     else{const k={id:uid(),...d,photos:[],createdAt:Date.now()};(S.suppliers=S.suppliers||[]).push(k);log('saradnik','kreirano',k.name,[d.service&&{field:'Šta radi',from:'',to:d.service},d.phone&&{field:'Mobilni',from:'',to:d.phone}].filter(Boolean));save();closeSheet();go('saradnik',k.id);toast('Saradnik je dodat.');}},
-  client:f=>{const e=f.elements,id=f.dataset.id,kind=e.kind.value||'fizicko';const d={kind,pib:kind==='pravno'?e.pib.value.trim():'',mb:kind==='pravno'?e.mb.value.trim():'',name:e.name.value.trim(),city:e.city.value.trim(),address:e.address.value.trim(),phone:e.phone.value.trim(),email:e.email.value.trim(),note:e.note.value.trim()};
+  client:f=>{const e=f.elements,id=f.dataset.id,kind=e.kind.value||'fizicko';const d={kind,pib:kind==='pravno'?e.pib.value.trim():'',mb:kind==='pravno'?e.mb.value.trim():'',name:e.name.value.trim(),city:e.city.value.trim(),address:e.address.value.trim(),phone:e.phone.value.trim(),email:e.email.value.trim(),note:e.note.value.trim(),supplier:!!e.supplier?.checked,service:e.supplier?.checked?e.service.value.trim():''};
     if(!d.name)return toast(kind==='pravno'?'Unesi naziv firme.':'Unesi ime klijenta.');
     if(id){const k=client(id);const ch=diff(k,d,CLIENT_F);if(ch.length){log('klijent','izmenjeno',d.name,ch);Object.assign(k,d);save();}closeSheet();go('klijent',id);toast(ch.length?'Klijent je sačuvan.':'Nema izmena.');}
     else{const k=newClient(d);const tx=f.dataset.tx&&S.tx.find(x=>x.id===f.dataset.tx);
@@ -2315,9 +2320,11 @@ document.addEventListener('change',async e=>{
   if(t.name==='email'&&t.form?.dataset.form==='notif'){$('#notifEmailWrap').hidden=!t.checked;if(t.checked)$('#n-email').focus();return;}
   if(t.name==='pay'&&t.form?.dataset.form==='payJob'){payLinesRender(t.form);return;}
   if((t.id==='c-phase'||t.id==='c-form')&&t.dataset.orig){const ph=$('#c-phase'),fm=$('#c-form');$('#phaseDateWrap').hidden=ph.value===ph.dataset.orig&&fm.value===fm.dataset.orig;return;}
+  if(t.id==='k-sup'){$('#k-service').hidden=!t.checked;if(t.checked)$('#k-service').focus();return;}
   if(t.id==='p-other'){$('#otherAddr').hidden=!t.checked;if(t.checked)$('#p-waddr').focus();return;}
   if(t.name==='kind'&&(t.form?.dataset.form==='client'||t.form?.dataset.form==='supplier'||t.form?.dataset.form==='posao')){const p=t.value==='pravno';$('#pravnoWrap').hidden=!p;$('#k-name-l').textContent=p?'Naziv firme':'Ime i prezime';if(t.form.dataset.form==='posao')acUpdate(t.form.elements.name);return;}
   const k=t.dataset.change;if(!k)return;
+  if(k==='kSup'){ui.kSup=t.checked;render();return;}
   if(k==='voiceBtn'){(S.prefs[S.session]=S.prefs[S.session]||{}).voiceBtn=t.checked;save();render();return;}
   if(k==='logo'){const f=t.form,file=t.files[0];if(!file)return;try{f.elements.logo.value=await readImage(file,256,'image/png');updLogoPrev(f);}catch(err){toast('Logo nije mogao da se učita.');}t.value='';return;}
   if(k==='check'){const c=company(t.dataset.id),key=t.dataset.k;c.checklist={...(c.checklist||{}),[key]:t.checked};log('firma','izmenjeno',c.name,[{field:CHECK.find(x=>x[0]===key)[1],from:t.checked?'ne':'da',to:t.checked?'da':'ne'}]);save();render();}

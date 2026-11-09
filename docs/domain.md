@@ -88,9 +88,12 @@ Tri kartice, tim redom:
   - ukupno naplaćeno, od toga keš, naplata po firmi;
   - **Poslovi** klijenta sa dugmetom **Novi posao** (klijent je već izabran);
   - **Obriši klijenta** (briše i njegove poslove; transakcije i zadaci ostaju bez veze).
-- **Saradnici** (treći tab na stranici Klijenti): od koga kupujemo materijal ili tražimo uslugu. Podaci kao kod klijenta (vrsta, ime ili naziv, PIB/MB, kontakt osoba, mesto, adresa, telefon, email, napomena) plus **Šta radi** (npr. „PVC cevi“, „Iskop bagerom“). Nezavisni od klijenata i firmi.
-  - Forma troška **nema polje Saradnik** (zahtev vlasnika 9. nov 2026.); u formi ostaje Klijent. Trošak koji već ima saradnika ga zadržava i pri izmeni. Prihod nema saradnika.
-  - Kartica saradnika: kontakt sa dugmićima kao kod klijenta, ukupno plaćeno saradniku i lista troškova kod njega.
+- **Saradnik je klijent sa oznakom** (zahtev vlasnika 9. nov 2026.): od njega kupujemo materijal ili radi uslugu za nas (bagerista, prevoznik, prodavnica). Može biti fizičko ili pravno lice.
+  - Stranica Klijenti ima dva taba, **Fizička** i **Pravna**, a ispod kvačicu **„Samo saradnici“** koja važi za izabrani tab. Saradnik u listi ima oznaku „saradnik“ i šta radi; ako mu još ništa nije naplaćeno, desno piše koliko mu je plaćeno.
+  - U formi klijenta: kvačica **„Ovo je saradnik“** i polje **Šta radi** (npr. „PVC cevi“, „Iskop bagerom“). Promena ide u logove.
+  - Kartica saradnika je kartica klijenta, sa dodatkom: **Plaćeno saradniku**, broj troškova i lista troškova kod njega (trošak gde je on klijent).
+  - Forma troška nema posebno polje Saradnik: saradnik se bira u polju Klijent.
+  - Baza: `clients.supplier` i `clients.service`. Stari saradnici (tabela `suppliers`) prebačeni su u klijente sa istim id-jem (migracija `20261109000100`), sa slikama, a troškovi kod njih dobili su ih kao klijenta. Glasovna komanda prepoznaje „novi saradnik …“ i otvara formu klijenta sa označenim saradnikom.
 - **Slike**: klijent, saradnik, posao i zadatak mogu imati jednu ili više slika (do 20). Dodaju se u formi (galerija ili kamera) i na kartici; u izmeni se slika uklanja (×). Slike su privatne (samo vlasnici), a dodavanje i uklanjanje ide u logove.
 
 ## 7. Poslovi

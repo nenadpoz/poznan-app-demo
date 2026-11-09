@@ -51,7 +51,7 @@ Sve tabele: `id uuid`, `created_at`, `updated_at`, `updated_by`, i `deleted_at` 
 | `jobs` (poslovi, prikazuju se i u kalendaru) | `client_id, label_id, assignee`, `start_date, start_time, end_time, status` (`cekanje`/`proces`/`uplata`/`zavrseno`), `end_date, description, work_address, work_city` |
 | `job_pending_items` | očekivane stavke: `job_id, company_id` (null = keš), `amount, description, invoice_no` |
 | `job_reminders` | `job_id, remind_at, audience` (`me`/`both`), `created_by, note, fired_at` |
-| `suppliers` | saradnici: `kind, name, service, pib, mb, contact_person, city, address, phone, email, note`; `transactions.supplier_id` (samo trošak) |
+| `suppliers` | više se ne koristi (od 9. nov 2026.): saradnik je klijent sa `clients.supplier = true` i `clients.service`; `transactions.supplier_id` ostaje samo za stare unose |
 | `photos` | `target_type` (`client`/`supplier`/`job`/`task`), `target_id, storage_path, created_by`; fajl u privatnom Storage bucketu `photos` (`<vrsta>/<id>/<uuid>.jpg`) |
 | `job_photos` | ne koristi se (zamenjena tabelom `photos`) |
 | `tasks` | `title, assignee, due, status, done_at, done_by, job_id, notes, reminders, due_time` (bez klijenta; `task_alerts` beleži poslate podsetnike, pg_cron `fire_task_alerts` svakog minuta) |
