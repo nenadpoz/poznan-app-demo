@@ -52,6 +52,10 @@ export const clientSchema = z
     mb: optText(8),
     contactPerson: optText(120),
     note: optText(1000),
+    /** Saradnik: od njega kupujemo ili radi uslugu za nas (fizičko ili pravno lice). */
+    supplier: z.boolean().default(false),
+    /** Šta radi ili prodaje (za saradnika), npr. „PVC cevi“, „Iskop bagerom“. */
+    service: optText(120),
   })
   .refine(c => c.kind === 'pravno' || (!c.pib && !c.mb), { message: 'PIB i MB su samo za pravna lica', path: ['pib'] });
 export type ClientInput = z.infer<typeof clientSchema>;

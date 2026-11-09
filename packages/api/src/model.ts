@@ -21,6 +21,8 @@ export interface CompanyHistoryItem extends Base {
 export interface Client extends Base {
   kind: ClientKind; name: string; pib: string | null; mb: string | null; contactPerson: string | null;
   city: string | null; address: string | null; phone: string | null; email: string | null; note: string | null;
+  /** Saradnik (od njega kupujemo ili radi uslugu); `service` je šta radi ili prodaje. */
+  supplier: boolean; service: string | null;
 }
 /** Saradnik (dobavljač, majstor, prevoznik…); `service` je šta radi ili prodaje. */
 export interface Supplier extends Base {

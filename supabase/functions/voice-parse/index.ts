@@ -32,6 +32,7 @@ const SCHEMA = {
     client: obj({
       kind: oneOf(['fizicko', 'pravno']),
       name: str, phone: str, email: str, address: str, city: str, pib: str, mb: str, contactPerson: str, note: str,
+      supplier: { type: ['boolean', 'null'] }, service: str,
     }),
     job: obj({
       clientName: str, description: str, label: str, date: str, startTime: str, endTime: str, address: str, city: str, assignee: who,
@@ -54,7 +55,7 @@ function system(ctx: Ctx): string {
 Tekst je izdiktiran na srpskom (latinica ili ćirilica) i može imati greške prepoznavanja govora. Odredi šta korisnik želi i izvuci polja.
 
 Namere:
-- "klijent": novi klijent (popuni "client").
+- "klijent": novi klijent ili saradnik (popuni "client").
 - "posao": novi posao kod klijenta, npr. ugradnja, popravka, bušenje (popuni "job").
 - "zadatak": nešto što treba uraditi ili ne zaboraviti (popuni "task").
 - "promet": prihod (naplata, uplata) ili trošak (gorivo, materijal, plaćanje) (popuni "tx").
@@ -66,6 +67,7 @@ Pravila:
 - Adresa je ulica i broj u nominativu: "na adresi Petra Preradovića broj 13" → "Petra Preradovića 13". Mesto ide u "city", ne u adresu.
 - Telefon samo ciframa, kako je izgovoren ("064 543 4334" → "0645434334").
 - client.kind: "pravno" za firmu (DOO, AD, preduzetnik, "pravno lice"), inače "fizicko".
+- client.supplier: true kad je to saradnik (dobavljač, majstor, prevoznik, "saradnik", od njega kupujemo), inače false; client.service je šta radi ili prodaje ("Iskop bagerom", "PVC cevi").
 - Datumi u formatu YYYY-MM-DD, vreme HH:MM. Danas je ${ctx.today} (${day}). "sutra", "prekosutra", "u petak", "15. novembra" pretvori u datum (dan u nedelji znači prvi sledeći takav dan).
 - Iznosi kao broj: "12 hiljada" → 12000, "milion i po" → 1500000, "35.000" → 35000. Valuta RSD ako se ne kaže drugačije ("evra" → EUR, "dolara" → USD).
 - tx.cash = true kad se kaže keš, gotovina ili bez računa; tada je companyId null.

@@ -20,6 +20,8 @@ export const voiceResultSchema = z.object({
   client: z.object({
     kind: z.enum(['fizicko', 'pravno']).nullable().optional().catch(null).transform(v => v ?? null),
     name: s, phone: s, email: s, address: s, city: s, pib: s, mb: s, contactPerson: s, note: s,
+    /** Saradnik (dobavljač, majstor) i šta radi. */
+    supplier: z.boolean().nullable().optional().catch(null).transform(v => v ?? null), service: s,
   }).nullable().optional().transform(v => v ?? null),
   job: z.object({
     clientName: s, description: s, label: s, date, startTime: time, endTime: time, address: s, city: s, assignee: who,

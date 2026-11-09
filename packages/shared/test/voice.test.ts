@@ -45,3 +45,11 @@ describe('glasovna komanda', () => {
     expect(bad.tx).toMatchObject({ type: null, amount: null, currency: null, date: null });
   });
 });
+
+describe('saradnik je klijent sa oznakom', () => {
+  it('podrazumevano nije saradnik; saradnik ima šta radi', async () => {
+    const { clientSchema } = await import('../src');
+    expect(clientSchema.parse({ kind: 'fizicko', name: 'Marko Ilić' })).toMatchObject({ supplier: false, service: null });
+    expect(clientSchema.parse({ kind: 'pravno', name: 'Bager DOO', supplier: true, service: 'Iskop bagerom' })).toMatchObject({ supplier: true, service: 'Iskop bagerom' });
+  });
+});
