@@ -88,7 +88,13 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:
 .apick-opt{border:0;background:none;border-radius:10px}.apick-opt:hover{background:var(--surface-2)}.apick-opt[aria-selected="true"]{background:var(--accent-soft)}.apick-opt svg{color:var(--accent)}
 .bal .kv{align-items:center}.bal-n{display:flex;align-items:center;gap:8px}.bal-n .co-ic{transform:scale(.8)}
 .bal .neg{color:var(--bad)}.bal-tot{border-top:1px solid var(--line);padding-top:8px;margin-top:2px;font-weight:700;font-size:16px}
-.row-amt.tr{color:var(--accent)}
+.row-amt.tr{color:var(--info)}
+/* Promet: levo ikonica odakle je novac (firma, keš, vlasnik, prenos) */
+.row .co-ic{flex-shrink:0;width:34px;height:34px;border-radius:10px}
+.row .co-ic svg{width:19px;height:19px}
+.row .who-ic{flex-shrink:0;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--accent-fg);font-weight:700;font-size:14px}
+.row .mv-ic{flex-shrink:0;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--info-soft);color:var(--info)}
+.row-main small b{color:var(--fg);font-weight:600}
 .icon-btn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--fg)}
 .icon-btn.accent{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
 .avatar{width:40px;height:40px;border-radius:50%;border:0;color:#fff;font-weight:700;display:grid;place-items:center;font-size:15px}
@@ -868,9 +874,9 @@ function balanceCard(){const a=accounts(),tot=a.reduce((s,x)=>s+balanceOf(x.id),
   return `<section class="card bal" aria-label="Stanje novca"><div class="sec-h"><h2>Stanje novca</h2><span class="small muted">${dispCur()!=='RSD'?'kurs '+dispCur()+' '+curRate(dispCur()).toFixed(4).replace('.',','):'u dinarima'}</span></div>
   ${a.map(x=>{const b=balanceOf(x.id);return `<div class="kv"><span class="bal-n">${coIcon(x.c)}${esc(x.name)}</span><b class="${b<0?'neg':''}">${rsd(b)}</b></div>`;}).join('')}
   <div class="kv bal-tot"><span>Ukupno</span><b>${rsd(tot)}</b></div></section>`;}
-function ulogRow(u){return `<button class="row" data-act="editUlog" data-id="${u.id}"><div class="row-main"><b>Ulog vlasnika · ${esc(userName(u.owner))}</b><small>${fmtDate(u.date)} ${u.to==='kes'?'<span class="tag kes">keš</span>':`<span class="tag">${esc(acctName(u.to))}</span>`} <span class="tag">ulog</span>${u.note?' · '+esc(u.note):''}</small></div>
+function ulogRow(u){return `<button class="row" data-act="editUlog" data-id="${u.id}">${whoIc(u.owner)}<div class="row-main"><b>Ulog vlasnika · ${esc(userName(u.owner))}</b><small>${fmtDate(u.date)} · <b>${esc(userName(u.owner))}</b> uložio svoj novac ${u.to==='kes'?'u <b>keš</b>':`na račun <b>${esc(acctName(u.to))}</b>`}${u.note?' · '+esc(u.note):''}</small></div>
   <div class="row-amt tr">+${amt(u.amount)}${u.currency!==dispCur()?`<small>uneto ${curAmt(u.amountOriginal,u.currency)}</small>`:'<small>nije prihod</small>'}</div></button>`;}
-function transferRow(x){return `<button class="row" data-act="transferSheet" data-id="${x.id}"><div class="row-main"><b>${esc(acctName(x.from))} → ${esc(acctName(x.to))}</b><small>${fmtDate(x.date)} <span class="tag">prenos</span>${x.note?' · '+linkify(x.note):''}</small></div>
+function transferRow(x){return `<button class="row" data-act="transferSheet" data-id="${x.id}"><span class="mv-ic" aria-hidden="true">${ic('swap',19)}</span><div class="row-main"><b>${esc(acctName(x.from))} → ${esc(acctName(x.to))}</b><small>${fmtDate(x.date)} · ${x.to==='kes'?'Podignut novac sa računa u keš':x.from==='kes'?'Položen keš na račun':'Prenos između računa'}${x.note?' · '+linkify(x.note):''}</small></div>
   <div class="row-amt tr">${amt(x.amount)}${x.currency!==dispCur()?`<small>uneto ${curAmt(x.amountOriginal,x.currency)}</small>`:'<small>prenos</small>'}</div></button>`;}
 // Stanje se prikazuje u valuti izabranoj u formi prenosa (pickCur).
 let pickCur='EUR';
@@ -957,10 +963,13 @@ function meter(label,val,max,note=''){
   <div class="bar" role="progressbar" aria-valuenow="${Math.round(p)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${Math.min(100,p).toFixed(1)}%"></i><s style="left:${S.settings.warnPct}%"></s></div>
   <div class="meter-foot"><span>${rsdFix(val)}</span><span>od ${rsdFix(max)}</span></div>${note?`<p class="meter-note">${note}</p>`:''}</div>`;
 }
+/** Rečenica o toku novca: odakle je novac došao i gde je otišao. */
+const flowTx=t=>{const c=company(t.companyId);return t.type==='prihod'?(c?`Uplaćeno na račun <b>${esc(c.name)}</b>`:'Naplaćeno u <b>keš</b>'):(c?`Plaćeno sa računa <b>${esc(c.name)}</b>`:'Plaćeno iz <b>keša</b>');};
+const whoIc=u=>`<span class="who-ic av-${u}" aria-hidden="true">${esc(initials(userName(u)))}</span>`;
 function txRow(t,{showCompany=true}={}){
   const c=company(t.companyId), k=client(t.clientId), sign=t.type==='prihod'?'+':'−';
-  return `<button class="row" data-act="editTx" data-id="${t.id}">
-    <div class="row-main"><b>${esc(t.description||(t.salaryTo?'Plata · '+userName(t.salaryTo):t.category))}</b><small>${fmtDate(t.date)}${showCompany?(c?` <span class="tag">${esc(c.name)}</span>`:' <span class="tag kes">keš</span>'):''}${k?` · ${esc(k.name)}`:t.pendingClient?' <span class="tag kes">čeka klijenta</span>':''}</small></div>
+  return `<button class="row" data-act="editTx" data-id="${t.id}">${showCompany?coIcon(c):''}
+    <div class="row-main"><b>${esc(t.description||(t.salaryTo?'Plata · '+userName(t.salaryTo):t.category))}</b><small>${fmtDate(t.date)}${showCompany?' · '+flowTx(t):''}${k?` · ${t.type==='prihod'?'od':'za'} <b>${esc(k.name)}</b>`:t.pendingClient?' <span class="tag kes">čeka klijenta</span>':''}</small></div>
     <div class="row-amt ${t.type==='prihod'?'pos':''}">${sign}${amt(t.amount)}<small>${t.currency&&t.currency!==dispCur()?`uneto ${curAmt(t.amountOriginal??t.amount,t.currency)}`:esc(t.category)}</small></div></button>`;
 }
 function chart(filterFn=()=>true){
