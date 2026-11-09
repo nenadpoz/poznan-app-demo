@@ -1104,14 +1104,15 @@ function vPlate(){const mode=ui.salMode||'mesec',ds=salDates(),first=(ds[0]||TOD
   ${salList(pf,title)}`;}
 /* Lista svih plata i uloga u periodu, sa filterom po osobi i vrsti; redovi kao u Prometu, dodir otvara detalje */
 function salList(pf,title){const who=ui.salWho||'svi',kind=ui.salKind||'sve';
-  const all=[...S.tx.filter(t=>t.salaryTo&&pf(t.date)).map(t=>({k:'plata',o:t.salaryTo,d:t.date,ts:t.ts||0,html:txRow(t)})),
-    ...(S.ulozi||[]).filter(u=>pf(u.date)).map(u=>({k:'ulog',o:u.owner,d:u.date,ts:u.ts||0,html:ulogRow(u)}))];
+  const all=[...S.tx.filter(t=>t.salaryTo&&pf(t.date)).map(t=>({k:'plata',o:t.salaryTo,d:t.date,ts:t.ts||0,amt:t.amount,html:txRow(t)})),
+    ...(S.ulozi||[]).filter(u=>pf(u.date)).map(u=>({k:'ulog',o:u.owner,d:u.date,ts:u.ts||0,amt:u.amount,html:ulogRow(u)}))];
   const byWho=all.filter(e=>who==='svi'||e.o===who),shown=byWho.filter(e=>kind==='sve'||e.k===kind).sort((a,b)=>b.d.localeCompare(a.d)||b.ts-a.ts);
   const cW=w=>all.filter(e=>(w==='svi'||e.o===w)&&(kind==='sve'||e.k===kind)).length,cK=k=>byWho.filter(e=>k==='sve'||e.k===k).length;
   const seg=(act,cur,opts,cnt)=>`<div class="seg fseg" role="group">${opts.map(([k,l])=>`<button data-act="${act}" data-v="${k}" aria-pressed="${cur===k}"><span>${l}</span><span class="cnt">${cnt(k)}</span></button>`).join('')}</div>`;
   return `<section class="settings-sec" style="gap:8px"><h2 style="margin:8px 0 0;font-size:17px">Plate i ulozi: ${title}</h2>
   <span class="label">Osoba</span>${seg('salWho',who,[['svi','Svi'],['nenad',userName('nenad')],['jovan',userName('jovan')]],cW)}
   <span class="label">Vrsta</span>${seg('salKind',kind,[['sve','Sve'],['plata','Plate'],['ulog','Ulozi']],cK)}
+  ${shown.length?`<div class="card" style="display:flex;flex-direction:column;gap:6px">${[['plata','Isplaćene plate'],['ulog','Ulozi']].filter(([k])=>shown.some(e=>e.k===k)).map(([k,l])=>{const g=shown.filter(e=>e.k===k);return `<div class="kv"><span>${l} <span class="muted">(${g.length})</span></span><b class="num" style="color:var(${k==='ulog'?'--info':'--bad'})">${k==='ulog'?'+':'−'}${rsd(g.reduce((a,e)=>a+e.amt,0))}</b></div>`;}).join('')}</div>`:''}
   ${shown.length?`<div class="list">${shown.map(e=>e.html).join('')}</div>`:'<div class="card empty">Nema stavki za izabrani filter.</div>'}</section>`;}
 function pendingClients(){const l=S.tx.filter(t=>t.pendingClient&&!t.clientId);if(!l.length)return '';
   return `<div class="alerts">${l.map(t=>`<button class="alert info" data-act="addPendingClient" data-id="${t.id}">${ic('user',20)}<div><b>Unos čeka podatke klijenta</b><span>${t.type==='prihod'?'Prihod':'Trošak'} ${rsd(t.amount)} · ${fmtDate(t.date)} · ${esc(acctName(t.companyId||'kes'))}. Dodirni da dodaš klijenta.</span></div></button>`).join('')}</div>`;}
