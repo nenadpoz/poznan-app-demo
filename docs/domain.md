@@ -202,6 +202,7 @@ Zahtev vlasnika od 2. nov 2026. Urađeno u core-u (v0.2.0), mobilnoj aplikaciji 
 - `fx_rates` (datum, srednji kurs EUR i USD), puni ga Edge Function iz pg_cron-a.
 - `profiles.currency` za izabrani prikaz.
 - Trošak može da se plati iz više izvora odjednom: račun firme, keš i novčanik vlasnika (npr. Jovan 400 €, Nenad 500 €). Svaki izvor je jedan red troška sa istim id-jem plaćanja. Deo koji plati vlasnik nema račun ni firmu (novac nije izašao ni sa firme ni iz keša) i baza mu automatski upisuje ulog istog iznosa, takođe bez računa: stanje nijednog računa se ne menja, trošak ulazi u profit, a ulog u plate i uloge. Izmena ili brisanje troška menja i taj ulog.
+- U listi Prometa takav ulog (nastao uz trošak iz novčanika vlasnika) nije poseban red: trošak je jedan red sa oznakom „platio …“, a ulog se vidi na detaljima troška i u Platama i ulozima. Ulog unet ručno (sopstveni novac na račun ili u keš) se i dalje vidi u listi.
 - Stanje računa = početno stanje + prihodi − troškovi ± prenosi + ulozi (view u bazi). Bez početnog stanja broji se sav promet, i unet unazad; uz početno stanje broji se promet od njegovog datuma.
 
 ## 16. Plate i ulozi vlasnika
