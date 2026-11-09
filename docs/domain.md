@@ -212,6 +212,7 @@ Urađeno u HTML demou, core-u (v0.3.0) i mobilnoj aplikaciji.
 - **Ulog vlasnika**: kod prihoda polje **Ulog vlasnika (sopstveni novac)**, bira se ko je uložio i na koji račun (firma ili keš). Nije prihod: ne ulazi u limite, PDV ni profit, samo povećava stanje računa. U Prometu se vidi pod **Sve** i **Prenosi**, sa oznakom „ulog“.
 - **Neto** po vlasniku = plate − ulozi. **Razlika** poredi neto iznose (ko je neto dobio više).
 - Pregled ima karticu **Vlasnici: plate i ulozi** za poslednji mesec tekuće godine (isplaćena plata, uložio, neto, razlika). Klik otvara ekran **Plate i ulozi** sa filterom **Mesec / Godina / Sve** (strelice za prethodni i sledeći period) i jednom tabelom za izabrani period, sa dugmadima **Isplati platu** i **Dodaj ulog**. Kad neto iznosi nisu jednaki, dugme **Isplati razliku [vlasniku]** otvara isplatu plate onome ko je dobio manje, sa iznosom razlike za izabrani period.
+- Ispod tabele na ekranu Plate i ulozi je **lista svih plata i uloga** u izabranom periodu, sa filterom po osobi (Svi, Nenad, Jovan) i vrsti (Sve, Plate, Ulozi, Iz džepa = trošak koji je vlasnik platio iz svog džepa). Redovi izgledaju kao u Prometu, a dodir otvara detalje unosa.
 - Iznosi se prikazuju u izabranoj valuti (EUR/USD/RSD).
 - Za bazu: `transactions.salary_to`, nova tabela `owner_contributions` (vlasnik, račun, iznos, valuta, kurs, datum, komentar, ko je uneo); stanje računa je uključuje.
 
