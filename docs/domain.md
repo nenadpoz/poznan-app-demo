@@ -209,6 +209,17 @@ Zahtev vlasnika od 2. nov 2026. Urađeno u core-u (v0.2.0), mobilnoj aplikaciji 
 - U listi Prometa takav ulog (nastao uz trošak iz novčanika vlasnika) nije poseban red: trošak je jedan red sa oznakom „platio …“, a ulog se vidi na detaljima troška i u Platama i ulozima. Ulog unet ručno (sopstveni novac na račun ili u keš) se i dalje vidi u listi.
 - Stanje računa = početno stanje + prihodi − troškovi ± prenosi + ulozi (view u bazi). Bez početnog stanja broji se sav promet, i unet unazad; uz početno stanje broji se promet od njegovog datuma.
 
+**Stanje po valutama** (zahtev vlasnika 12. nov 2026.)
+- Svaki račun i keš vode **dinare, evre i dolare odvojeno**, u iznosu kako je uneto. Primer: Poznan Drill 1.000 EUR · 300.000 RSD · 200 USD; Keš 2.000 EUR · 100.000 RSD. Valuta na nuli se ne prikazuje.
+- Ulog ili zarada u evrima ostaje u evrima: ulog od 17.400 EUR je i posle promene kursa 17.400 EUR, i na kartici stanja i u listi Prometa (iznos unet u valuti prikaza prikazuje se tačno kako je unet).
+- **Ukupno** u izabranoj valuti prikaza je zbir svih valuta po **današnjem kursu**. Ispod je zbir po valutama.
+- **Trošak i plata iz više valuta:** posle iznosa i računa, „Plaćeno iz“ ima polje za svaku valutu koju račun ima, sa tekstom koliko ima. „Ostatak“ upisuje razliku do iznosa troška po današnjem kursu (zaokruženo na cent ili dinar). Primer: prikolica 2.200 EUR, u kešu 2.000 EUR i 100.000 RSD: može 2.000 EUR + ostatak u dinarima, 100.000 RSD + ostatak u evrima, ili 23.000 RSD i ostatak u evrima (tada nedostaje 4,48 EUR, pa mora iz druge valute). Sačuvaj radi tek kad je sve raspoređeno (razlika manja od 1 dinara).
+- **Ne može se platiti više nego što ima:** polje u valuti ne sme preći stanje te valute („najviše 2.000,00 EUR“). Plata obojici skida dvostruko, pa je najviše pola stanja. Važi i za prenos. Provera je u aplikaciji (`@poznan/shared`, `overdrawn`, `transferProblem`); baza ne odbija, da sinhronizacija unosa napravljenih bez interneta ne pukne. Novčanik vlasnika („iz svog džepa“) se ne proverava.
+- Svaki deo plaćanja je jedan red troška u svojoj valuti, sa istim id-jem plaćanja (kao trošak iz više izvora). Dinarski iznos svakog reda (po kursu tog dana) ide u limite, PDV i profit.
+- **Zamena valute:** prenos može da menja valutu, i na istom računu (npr. u kešu 100.000 RSD → 845 EUR). Predlog primljenog iznosa je po srednjem kursu NBS, a upisuje se stvarno dobijen iznos. Zamena nije prihod ni trošak.
+- Početno stanje računa se unosi po valuti (dinari, evri, dolari).
+- Baza: `accounts.opening_eur`, `opening_usd`; `transfers.to_currency`, `to_amount_original`; view `account_balances` ima `rsd`, `eur`, `usd` i `balance` (sve u dinarima po današnjem kursu).
+
 ## 16. Plate i ulozi vlasnika
 Urađeno u HTML demou, core-u (v0.3.0) i mobilnoj aplikaciji.
 - **Plata**: trošak označen kao **Isplata plate**, bira se Nenad, Jovan ili **Obojica** (dva unosa sa istim iznosom, sa računa se skida dvostruko). Kategorija je uvek „Plata“, bez klijenta. Smanjuje stanje računa sa kog je isplaćena i ulazi u troškove i profit.

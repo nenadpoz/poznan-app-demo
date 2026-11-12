@@ -194,17 +194,21 @@ export const txCategorySchema = z.object({
 });
 export type TxCategoryInput = z.infer<typeof txCategorySchema>;
 
-/** Prenos između računa: podizanje keša sa računa firme ili polaganje keša na račun. */
+/** Prenos između računa (podizanje ili polaganje keša) ili zamena valute, i na istom računu. */
 export const transferSchema = z
   .object({
     fromAccountId: id,
     toAccountId: id,
     amountOriginal: z.number().positive('Iznos mora biti veći od 0'),
     currency: z.enum(CURRENCIES),
+    /** Zamena valute: primljena valuta i iznos (bez zamene isto što je dato). */
+    toCurrency: z.enum(CURRENCIES).nullish(),
+    toAmountOriginal: z.number().positive('Primljeni iznos mora biti veći od 0').nullish(),
     date: isoDate,
     note: optText(300),
   })
-  .refine(t => t.fromAccountId !== t.toAccountId, { message: 'Izaberi dva različita računa', path: ['toAccountId'] });
+  .refine(t => t.fromAccountId !== t.toAccountId || (!!t.toCurrency && t.toCurrency !== t.currency), { message: 'Izaberi dva različita računa ili drugu valutu', path: ['toAccountId'] })
+  .refine(t => !t.toCurrency || t.toCurrency === t.currency || !!t.toAmountOriginal, { message: 'Upiši koliko je primljeno', path: ['toAmountOriginal'] });
 export type TransferInput = z.infer<typeof transferSchema>;
 
 export const timeWindowSchema = z.object({ from: hhmm, to: hhmm });

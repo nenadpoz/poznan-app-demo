@@ -1913,7 +1913,7 @@ const A={
     confirmSheet('Obriši firmu?',`${c.name} će biti trajno obrisana. Ovo ne može da se poništi.`,'Obriši firmu',()=>{S.companies=S.companies.filter(x=>x.id!==c.id);log('firma','obrisano',c.name);save();go('firme');toast('Firma je obrisana.');});},
   partRest:el=>{const f=el.closest('form'),c=el.dataset.c,i=f.querySelector(`[data-part="${c}"]`);i.value='';const st=payState(f);
     if(!(st.price>0))return toast('Prvo upiši iznos troška.');if(st.leftRsd<=0)return toast('Sve je već raspoređeno.');
-    let v=st.leftRsd/curRate(c);v=c==='RSD'?Math.ceil(v):Math.ceil(v*100)/100;const max=Math.max(0,st.b[c]/st.k);if(v>max){v=r2(max);toast(`U ${c} ima samo ${curAmt(st.b[c],c)}. Ostatak dopuni iz druge valute.`);}
+    let v=st.leftRsd/curRate(c);v=c==='RSD'?Math.round(v):r2(v);const max=Math.max(0,st.b[c]/st.k);if(v>max){v=r2(max);toast(`U ${c} ima samo ${curAmt(st.b[c],c)}. Ostatak dopuni iz druge valute.`);}
     i.value=v>0?inVal(v,c):'';f.dataset.partsTouched='1';updParts(f);},
   delTx:el=>{const t=S.tx.find(x=>x.id===el.dataset.id);confirmSheet('Obriši unos?',`${t.type==='prihod'?'Prihod':'Trošak'} ${rsd(t.amount)} od ${fmtDate(t.date)} biće obrisan.`,'Obriši',()=>{S.tx=S.tx.filter(x=>x.id!==t.id);log('transakcija','obrisano',`${t.type==='prihod'?'Prihod':'Trošak'} ${rsd(t.amount)} · ${company(t.companyId)?.name||'keš bez računa'}`);save();render();toast('Unos je obrisan.');});},
 };

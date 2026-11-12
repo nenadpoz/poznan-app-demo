@@ -73,10 +73,17 @@ export interface OwnerContribution extends Base {
   /** Ulog nastao uz trošak koji je vlasnik platio (menja se kroz taj trošak). */
   transactionId: string | null;
 }
-export interface Account extends Base { kind: AccountKind; companyId: string | null; name: string; openingBalance: number; openingDate: string | null }
-export interface AccountBalance { accountId: string; kind: AccountKind; companyId: string | null; name: string; openingBalance: number; balance: number; changedAt: string | null }
+/** Početno stanje po valuti: `openingBalance` u dinarima, `openingEur` i `openingUsd`. */
+export interface Account extends Base { kind: AccountKind; companyId: string | null; name: string; openingBalance: number; openingEur: number; openingUsd: number; openingDate: string | null }
+/** Stanje po valutama (`rsd`, `eur`, `usd`, kako je uneto); `balance` je sve to u dinarima po današnjem kursu. */
+export interface AccountBalance {
+  accountId: string; kind: AccountKind; companyId: string | null; name: string; openingBalance: number; balance: number; changedAt: string | null;
+  rsd: number; eur: number; usd: number; openingEur: number; openingUsd: number;
+}
+/** Prenos ili zamena valute: dato `amountOriginal` u `currency`, primljeno `toAmountOriginal` u `toCurrency`. */
 export interface Transfer extends Base {
   fromAccountId: string; toAccountId: string; amount: number; currency: Currency; amountOriginal: number; fxRate: number;
+  toCurrency: Currency; toAmountOriginal: number;
   date: string; note: string | null; createdBy: string | null;
 }
 export interface FxRateRow { date: string; eur: number; usd: number | null }

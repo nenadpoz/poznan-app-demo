@@ -5,6 +5,7 @@
  * Svi iznosi su u dinarima (RSD); prikaz u EUR je samo preračun.
  */
 import { USERS, type SalaryTarget, type UserId } from './constants';
+import type { Currency } from './currency';
 
 export interface SalaryLike { type: 'prihod' | 'trosak'; amount: number; date: string; salaryTo?: UserId | null }
 export interface ContributionLike { owner: UserId; amount: number; date: string }
@@ -67,7 +68,8 @@ export function splitSalary<T extends object>(input: T, to: SalaryTarget): (T & 
  * Jedan red troška po izvoru; redovi istog plaćanja dobijaju isti `splitId`. Red koji je platio vlasnik
  * nema račun (novac nije izašao ni sa firme ni iz keša) i ima `paidBy`; baza mu sama pravi ulog tog vlasnika.
  */
-export interface PayLine { accountId: string | null; owner: UserId | null; amount: number }
+/** `currency`: valuta tog dela (trošak plaćen iz više valuta); bez nje važi valuta unosa. */
+export interface PayLine { accountId: string | null; owner: UserId | null; amount: number; currency?: Currency }
 export type SplitRow<T> = T & { accountId: string | null; amountOriginal: number; paidBy: UserId | null; splitId: string | null };
 
 export function splitExpense<T extends object>(base: T, lines: PayLine[], splitId: string): SplitRow<T>[] {
@@ -75,6 +77,7 @@ export function splitExpense<T extends object>(base: T, lines: PayLine[], splitI
   if (!used.length) throw new Error('Izaberi ko je platio i upiši iznos.');
   return used.map(l => ({
     ...base,
+    ...(l.currency ? { currency: l.currency } : {}),
     accountId: l.owner ? null : l.accountId,
     amountOriginal: Math.round(l.amount * 100) / 100,
     paidBy: l.owner,
