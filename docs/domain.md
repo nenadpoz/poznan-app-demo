@@ -94,7 +94,7 @@ Tri kartice, tim redom:
   - Kartica saradnika je kartica klijenta, sa dodatkom: **Plaćeno saradniku**, broj troškova i lista troškova kod njega (trošak gde je on klijent).
   - Forma troška nema posebno polje Saradnik: saradnik se bira u polju Klijent.
   - Baza: `clients.supplier` i `clients.service`. Stari saradnici (tabela `suppliers`) prebačeni su u klijente sa istim id-jem (migracija `20261109000100`), sa slikama, a troškovi kod njih dobili su ih kao klijenta. Glasovna komanda prepoznaje „novi saradnik …“ i otvara formu klijenta sa označenim saradnikom.
-- **Slike**: klijent, saradnik, posao i zadatak mogu imati jednu ili više slika (do 20). Dodaju se u formi (galerija ili kamera) i na kartici; u izmeni se slika uklanja (×). Slike su privatne (samo vlasnici), a dodavanje i uklanjanje ide u logove.
+- **Slike**: klijent, saradnik, posao, zadatak i **promet** (prihod, trošak, plata, ulog vlasnika; zahtev 17. nov 2026.) mogu imati jednu ili više slika (do 20). Kod prometa se slike dodaju pri unosu i menjaju na izmeni (dodaj ili ukloni ×), a vide se na detaljima unosa; trošak plaćen iz više izvora ili valuta ima slike uz prvi deo plaćanja. Dodaju se u formi (galerija ili kamera) i na kartici; u izmeni se slika uklanja (×). Slike su privatne (samo vlasnici), a dodavanje i uklanjanje ide u logove.
 
 ## 7. Poslovi
 ### Podaci

@@ -91,3 +91,11 @@ describe('prenos i zamena valute', () => {
     expect(transferSchema.safeParse({ ...base, toAccountId: '22222222-2222-4222-8222-222222222222' }).success).toBe(true);
   });
 });
+
+describe('slike uz promet', () => {
+  it('prihod, trošak i ulog mogu imati slike', async () => {
+    const { PHOTO_TARGETS } = await import('../src');
+    expect(PHOTO_TARGETS).toContain('transaction');
+    expect(PHOTO_TARGETS).toContain('contribution');
+  });
+});

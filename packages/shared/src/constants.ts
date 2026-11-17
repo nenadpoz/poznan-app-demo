@@ -44,8 +44,8 @@ export const CATEGORIES_OUT = ['Materijal', 'Gorivo', 'Knjigovođa', 'Porez i do
 export const COMMENT_TARGETS = ['task', 'job', 'company', 'transaction', 'transfer', 'contribution'] as const;
 export type CommentTarget = (typeof COMMENT_TARGETS)[number];
 
-/** Slike: uz klijenta, saradnika, posao i zadatak. */
-export const PHOTO_TARGETS = ['client', 'supplier', 'job', 'task'] as const;
+/** Slike: uz klijenta, saradnika, posao, zadatak, promet (prihod, trošak, plata) i ulog vlasnika. */
+export const PHOTO_TARGETS = ['client', 'supplier', 'job', 'task', 'transaction', 'contribution'] as const;
 export type PhotoTarget = (typeof PHOTO_TARGETS)[number];
 /** Najviše slika po stavci i najveća veličina jedne slike (posle smanjenja na telefonu). */
 export const MAX_PHOTOS = 20;
