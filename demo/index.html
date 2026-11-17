@@ -367,6 +367,7 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:
 .photos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .photos button{padding:0;border:0;border-radius:10px;overflow:hidden;aspect-ratio:1;background:var(--surface-2);max-width:100%}
 .photos img{width:100%;height:100%;object-fit:cover;display:block}
+.ph-thumb{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:1;background:var(--surface-2)}.photos .ph-x{position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:13px;aspect-ratio:auto;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);color:var(--bad)}
 .ini-sup{background:var(--accent-soft);color:var(--accent)}
 .tag.sup{background:var(--accent-soft);color:var(--accent);border-color:transparent;font-weight:600;vertical-align:middle}
 .add-photo{display:grid;place-items:center;gap:4px;color:var(--muted);font-size:12px;border:1.5px dashed var(--line) !important;background:none !important;cursor:pointer;aspect-ratio:1;border-radius:10px;text-align:center}
@@ -1657,8 +1658,10 @@ function txForm(t={},voice=false){
   <div class="fld" id="clientWrap"><span>Klijent</span><div id="clientPick">${combo('clientId',clientItems(),t.clientId,'Pretraži po imenu, mestu ili telefonu')}</div>
     <label class="check-row"><input type="checkbox" name="newClient">Dodaj novog klijenta u sledećem koraku</label><small id="clientHint">Nije obavezno.</small></div>
   <label class="fld"><span>Komentar</span><textarea id="t-desc" name="description" rows="2" placeholder="Nije obavezno">${esc(t.description)}</textarea></label>
+  <div class="fld"><span>Slike</span><div class="photos" id="txPhotos"></div><small>Nije obavezno. Npr. račun ili faktura.</small></div>
   ${t.invoiceNo?`<p class="small muted" style="margin:0">Faktura: ${esc(t.invoiceNo)}</p>`:''}
   <div class="form-actions">${t._ulog?`<button type="button" class="btn danger" data-act="delUlog" data-id="${t._ulog}">Obriši</button>`:t.id?`<button type="button" class="btn danger" data-act="delTx" data-id="${t.id}">Obriši</button>`:`<button type="button" class="btn" data-act="closeSheet">Otkaži</button>`}<button class="btn primary" type="submit">Sačuvaj</button></div></form>${(()=>{const o=t._ulog?CMT.ulog.get(t._ulog):t.id?CMT.tx.get(t.id):null;return o?`<div class="form tx-cmts">${commentSection(o,t._ulog?'ulog':'tx')}</div>`:'';})()}`);
+  txPh=[...((t._ulog?(S.ulozi||[]).find(u=>u.id===t._ulog):t.id?S.tx.find(x=>x.id===t.id):null)?.photos||[])];txPhRender();
   updTxForm(true);if(t.parts){$('#txForm').dataset.partsTouched='1';renderParts($('#txForm'),t.parts);}
 }
 function updTxForm(init){
@@ -1678,6 +1681,11 @@ function updTxForm(init){
   const nc=el.namedItem('newClient').checked;$('#clientPick').hidden=nc;$('#clientHint').textContent=nc?'Posle čuvanja otvara se forma za klijenta.':'Nije obavezno.';
   fxHint(f);if(!init||!f.querySelector('[data-part]'))renderParts(f);
 }
+/* Slike uz promet (zahtev 17. nov 2026.): biraju se u formi, čuvaju se sa unosom; × uklanja sliku */
+let txPh=[];
+function txPhRender(){const w=$('#txPhotos');if(!w)return;
+  w.innerHTML=txPh.map((src,i)=>`<span class="ph-thumb"><img src="${src}" alt="Slika ${i+1}"><button type="button" class="ph-x" data-act="txPhDel" data-i="${i}" aria-label="Ukloni sliku ${i+1}">${ic('x',14)}</button></span>`).join('')
+    +`<label class="add-photo">${ic('camera',22)}${txPh.length?'Dodaj još':'Dodaj slike'}<input type="file" accept="image/*" multiple hidden data-change="txPhotos"></label>`;}
 function voiceSheet(){
   openSheet('Glasovna komanda',`<div class="voice-form"><textarea id="voiceText" aria-label="Tekst komande" placeholder="Ovde se pojavljuje tekst dok pričaš. Možeš i da kucaš."></textarea>
   <div class="ex" id="voiceEx">${VOICE_EX.map((e,i)=>`<button data-act="voiceEx" data-i="${i}">${esc(e)}</button>`).join('')}</div>
@@ -1911,6 +1919,7 @@ const A={
     if(n){openSheet('Firma ne može da se obriše',`<div class="form"><p style="margin:0"><b>${esc(c.name)}</b> ima ${n} ${n%10===1&&n%100!==11?'unos':'unosa'} u prometu, pa ne može da se obriše. Umesto brisanja prebaci je u fazu „Zatvorena“.</p>
       <div class="form-actions">${c.phase!=='zatvorena'?`<button class="btn primary" data-act="phase" data-id="${c.id}" data-v="zatvorena">Prebaci u Zatvorena</button>`:''}<button class="btn" data-act="closeSheet">${ic('x',18)} Zatvori</button></div></div>`);return;}
     confirmSheet('Obriši firmu?',`${c.name} će biti trajno obrisana. Ovo ne može da se poništi.`,'Obriši firmu',()=>{S.companies=S.companies.filter(x=>x.id!==c.id);log('firma','obrisano',c.name);save();go('firme');toast('Firma je obrisana.');});},
+  txPhDel:el=>{txPh.splice(+el.dataset.i,1);txPhRender();},
   partRest:el=>{const f=el.closest('form'),c=el.dataset.c,i=f.querySelector(`[data-part="${c}"]`);i.value='';const st=payState(f);
     if(!(st.price>0))return toast('Prvo upiši iznos troška.');if(st.leftRsd<=0)return toast('Sve je već raspoređeno.');
     let v=st.leftRsd/curRate(c);v=c==='RSD'?Math.round(v):r2(v);const max=Math.max(0,st.b[c]/st.k);if(v>max){v=r2(max);toast(`U ${c} ima samo ${curAmt(st.b[c],c)}. Ostatak dopuni iz druge valute.`);}
@@ -1969,7 +1978,7 @@ const F={
     const cur=e.currency.value,orig=parseNum(e.amount.value),old=id?S.tx.find(x=>x.id===id):null;
     if(e.type.value==='prihod'&&e.ulog.checked){if(!(orig>0))return toast('Unesi iznos veći od nule.');if(!e.date.value)return toast('Izaberi datum.');
       const prev=f.dataset.ulog&&(S.ulozi||[]).find(u=>u.id===f.dataset.ulog),keepR=prev&&prev.currency===cur&&prev.amountOriginal===orig&&prev.date===e.date.value,r=cur!=='RSD'?(keepR?prev.fxRate:curRate(cur)):1;
-      const u={owner:e.ulogOwner.value,to:companyId||'kes',amount:Math.round(orig*r*100)/100,currency:cur,amountOriginal:orig,fxRate:r,date:e.date.value,note:e.description.value.trim()};
+      const u={owner:e.ulogOwner.value,to:companyId||'kes',amount:Math.round(orig*r*100)/100,currency:cur,amountOriginal:orig,fxRate:r,date:e.date.value,note:e.description.value.trim(),photos:[...txPh]};
       const ulb=`Ulog vlasnika · ${userName(u.owner)} ${curAmt(orig,cur)} · ${acctName(u.to)}`;
       if(prev){const ch=diff(prev,u,[['owner','Vlasnik',userName],['to','Račun',acctName],['amount','Iznos (RSD)',rsdFix],['currency','Valuta'],['date','Datum',fmtDate],['note','Komentar']]);if(ch.length){Object.assign(prev,u);log('transakcija','izmenjeno',ulb,ch);}}
       else{if(old){S.tx=S.tx.filter(x=>x.id!==old.id);log('transakcija','obrisano',`${old.type==='prihod'?'Prihod':'Trošak'} ${rsdFix(old.amount)} (pretvoren u ulog vlasnika)`);}
@@ -1982,6 +1991,7 @@ const F={
     const sal=e.type.value==='trosak'&&e.salary.checked,addClient=!sal&&e.newClient.checked;
     const d={type:e.type.value,amount:Math.round(orig*rate*100)/100,currency:cur,amountOriginal:orig,fxRate:rate,date:e.date.value,companyId,clientId:sal||addClient?null:(e.clientId.value||null),supplierId:e.type.value==='trosak'&&!sal?(e.supplierId.value||null):null,category:e.type.value==='trosak'&&e.salary.checked?'Plata':e.category.value,salaryTo:e.type.value==='trosak'&&e.salary.checked?e.salaryTo.value:null,payment:companyId?'faktura':'kes',vat:c&&c.form==='pdv'?+e.vat.value:0,description:e.description.value.trim()};
     if(!(d.amount>0))return toast('Unesi iznos veći od nule.');if(!d.date)return toast('Izaberi datum.');
+    d.photos=[...txPh];
     // trošak: delovi plaćanja po valutama, najviše koliko račun ima
     if(d.type==='trosak'){const st=payState(f);if(st.over)return toast(`${acctName(companyId||'kes')}: u ${st.over.cur} ima najviše ${curAmt(Math.max(0,r2(st.b[st.over.cur]/st.k)),st.over.cur)}${st.k>1?' po osobi':''}.`);
       if(Math.abs(st.left)>1/curRate(st.pc))return toast(st.left>0?`Rasporedi još ${curAmt(r2(st.left),st.pc)} u „Plaćeno iz“.`:`U „Plaćeno iz“ je ${curAmt(r2(-st.left),st.pc)} više od iznosa troška.`);
@@ -2376,7 +2386,7 @@ document.addEventListener('input',e=>{if(e.target.form?.id==='trForm'){if(e.targ
   if(k==='pYear'){ui.pyear=+v;render();return;}
   if(k==='clientQ')ui.clientQ=v;else if(k==='kontaktQ')ui.kq=v;else if(k==='clientCat')ui.clientCat=v;else if(k==='txCompany')ui.tx.company=v;else if(k==='logQ')ui.lf.q=v;else if(k==='lfUser')ui.lf.user=v;else if(k==='lfDays')ui.lf.days=v;render();});
 document.addEventListener('change',async e=>{
-  const t=e.target;if(t.form?.dataset.form==='task'&&(t.name==='due'||t.name==='assignee'||t.name==='dueTime')){tkRem(t.form);dirtyCheck(t.form);return;}if(t.form&&t.form.id==='txForm'){updTxForm(false);return;}
+  const t=e.target;if(t.form?.dataset.form==='task'&&(t.name==='due'||t.name==='assignee'||t.name==='dueTime')){tkRem(t.form);dirtyCheck(t.form);return;}if(t.form&&t.form.id==='txForm'&&!t.dataset.change){updTxForm(false);return;}
   if(t.form&&t.form.id==='trForm'&&(t.name==='exch'||t.name==='toCurrency')){const e=t.form.elements;if(t.name==='exch')$('#trPicks').innerHTML=trPicks(e.from.value,e.to.value,e.currency.value);trExch(t.form,t.name==='toCurrency');return;}
   if(t.name==='currency'&&t.form&&t.form.id==='trForm'){trExch(t.form,true);const e=t.form.elements;$('#trPicks').innerHTML=trPicks(e.from.value,e.to.value,t.value);fxHint(t.form);return;}
   if(t.id==='j-label'){const w=$('#newLabelWrap');w.hidden=t.value!=='__new';if(!w.hidden)$('#j-newlabel').focus();return;}
@@ -2393,6 +2403,7 @@ document.addEventListener('change',async e=>{
   if(k==='voiceBtn'){(S.prefs[S.session]=S.prefs[S.session]||{}).voiceBtn=t.checked;save();render();return;}
   if(k==='logo'){const f=t.form,file=t.files[0];if(!file)return;try{f.elements.logo.value=await readImage(file,256,'image/png');updLogoPrev(f);}catch(err){toast('Logo nije mogao da se učita.');}t.value='';return;}
   if(k==='check'){const c=company(t.dataset.id),key=t.dataset.k;c.checklist={...(c.checklist||{}),[key]:t.checked};log('firma','izmenjeno',c.name,[{field:CHECK.find(x=>x[0]===key)[1],from:t.checked?'ne':'da',to:t.checked?'da':'ne'}]);save();render();}
+  if(k==='txPhotos'){const files=[...t.files].slice(0,Math.max(0,20-txPh.length));if(!files.length)return toast('Najviše 20 slika.');Promise.all(files.map(f=>readImage(f).catch(()=>null))).then(r=>{txPh.push(...r.filter(Boolean));txPhRender();});return;}
   if(k==='photos'){const kind=t.dataset.kind||'posao',kl=PH_OWNER[kind](t.dataset.id),files=[...t.files].slice(0,Math.max(0,20-(kl.photos=kl.photos||[]).length));if(!files.length)return toast('Najviše 20 slika.');const before=kl.photos.length;toast('Obrađujem slike…');
     for(const f of files){try{kl.photos.push(await readImage(f));}catch(err){}}
     const added=kl.photos.length-before;if(added){log(kind,'dodata slika',phLabel(kind,kl),[{field:'Slike',from:String(before),to:String(kl.photos.length)}]);save();render();if(kind==='zadatak')taskDetail(kl);toast(added===1?'Slika je dodata.':`Dodato slika: ${added}.`);}else toast('Slike nisu mogle da se učitaju.');}
