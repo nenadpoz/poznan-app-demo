@@ -171,6 +171,8 @@ Tri kartice, tim redom:
 ## 13. Logovi (audit)
 - Zapis: vreme, korisnik, entitet (`posao`, `termin`, `zadatak`, `klijent`, `firma`, `transakcija`, `podesavanja`, `backup`, `nalog`), akcija, naziv, lista promena (polje, staro, novo).
 - Prikaz po danima, filteri po entitetu, korisniku, periodu i tekstu.
+- Log slike kaže uz šta je (zahtev 17. nov 2026.): „Dodata slika · Trošak 42.511 RSD · Delovi za kamion“ ili „Uklonjena slika · Klijent Marko Ilić“. Komentar takođe dobija na šta se odnosi.
+- Dodir na log otvara stavku na koju se odnosi (promet, ulog, prenos, klijent, posao, zadatak, firma; za sliku i komentar njihovu stavku), ako stavka još postoji. Takva stavka ima strelicu desno.
 - Ne beleže se lična podešavanja prikaza na nalogu (valuta prikaza EUR/USD/RSD, tema, boje traka limita, obaveštenja): menjaju samo izgled za tog korisnika. Izmena imena i emaila se beleži.
 
 ## 14. Backup
