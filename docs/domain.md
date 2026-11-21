@@ -1,6 +1,6 @@
 # Kako aplikacija radi (domen)
 
-Ovo je dogovoreni opis aplikacije, izveden iz demoa (`demo/index.html`). Kad se demo i ovaj dokument razlikuju, važi ovaj dokument.
+Ovo je dogovoreni opis aplikacije, izveden iz demoa (HTML prototip, uklonjen 21. nov 2026.; ostaje u git istoriji). Važi ovaj dokument.
 
 Opšta pravila:
 - UI na srpskom, latinica. Iznosi `1.234.567 RSD`, datumi `21. okt 2026.`, vreme `08:00`.

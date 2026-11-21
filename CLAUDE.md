@@ -4,7 +4,7 @@ Interna aplikacija za dva vlasnika (Nenad i Jovan) za upravljanje sa više firmi
 Oba korisnika su admini sa istim pravima. Svaka izmena se beleži u logove (ko, šta, kada, stara i nova vrednost).
 
 ## Faze
-1. **Demo** (`demo/index.html`): klikabilan HTML prototip, bez build alata. Završeno.
+1. **Demo**: klikabilan HTML prototip. Završen i uklonjen iz repoa 21. nov 2026. (ostaje u git istoriji); više se ne ažurira.
 2. **Core** (ovaj repo): `packages/shared`, `packages/api`, `supabase/`. Trenutna faza.
 3. **Mobile** ([poznan-app-mobile](https://github.com/nenadpoz/poznan-app-mobile)): Expo (React Native) + TypeScript, pun offline, prvo Android, zatim iOS.
 4. **Web** ([poznan-app-web](https://github.com/nenadpoz/poznan-app-web)): Next.js App Router.
@@ -23,7 +23,6 @@ Detalji: [docs/roadmap.md](docs/roadmap.md), [docs/domain.md](docs/domain.md), [
 
 ## Repo (core)
 ```
-demo/             HTML demo (faza 1)
 packages/shared/  @poznan/shared: tipovi, zod, poslovna pravila, tema (+ testovi)
 packages/api/     @poznan/api: interfejs, Supabase adapter, TanStack Query hookovi
 supabase/         migracije, RLS, audit trigger, RPC, seed
@@ -32,6 +31,3 @@ docs/
 Mobile i web su posebni repoi i koriste pakete kao git zavisnost (vidi docs/architecture.md).
 pnpm workspaces, TypeScript strict. pnpm nije globalno instaliran: `corepack pnpm@9.12.3 install`, `corepack pnpm@9.12.3 -r test`, `corepack pnpm@9.12.3 -r typecheck`.
 Izmene šeme idu kao nova migracija u `supabase/migrations`, nikad izmenom postojeće posle objave.
-
-## Demo
-Otvori `demo/index.html` u Chrome-u. Stanje se čuva u `localStorage` (ključ `poznan-demo-v7`). Za povratak primera obriši taj ključ u alatima pregledača. Demo prikazuje samo tokove ekrana (lozinke se ne proveravaju). Podešavanja imaju Firme, Logove, Kategorije poslova, Kategorije prometa, Boje traka limita, Obaveštenja, Lozinku, Glasovnu komandu (prikaz dugmeta) i Temu (boje, obaveštenja, dugme glasovne komande i tema lično po nalogu), kao u mobilnoj aplikaciji. Limiti i backup su opisani u docs/domain.md, ali se u demou ne prikazuju.

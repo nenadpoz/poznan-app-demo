@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Faza 1: Klikabilan demo ✅
-- [x] `demo/index.html` sa svim tokovima (vidi `docs/domain.md`), objavljen kao deljeni link.
+- [x] `demo/index.html` sa svim tokovima (vidi `docs/domain.md`), objavljen kao deljeni link. Uklonjen 21. nov 2026. (u git istoriji); više se ne ažurira.
 
 ## Faza 2: Core (ovaj repo)
 - [x] Dokumentacija domena i arhitekture.
