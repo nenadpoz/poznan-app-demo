@@ -83,3 +83,28 @@ export interface Reminder {
 
 /** Podsetnici za uplatu koji su dospeli, a nisu poslati. */
 export const dueReminders = <R extends Reminder>(list: R[], nowIso: string) => list.filter(r => !r.firedAt && r.at <= nowIso);
+
+/**
+ * Novac posla (zahtev 21. nov 2026.): dogovorena cena po metru × metri = ukupna cena; uplaćeno su prihodi vezani
+ * za posao (kapara i ostale uplate), preračunati u valutu cene (unos u toj valuti tačno kako je unet, ostalo po kursu);
+ * dug = ukupna cena − uplaćeno. Bez cene ili metara ukupna cena i dug nisu poznati (null).
+ */
+export interface JobPrice { pricePerMeter: number | null; meters: number | null; priceCurrency: 'RSD' | 'EUR' | 'USD' }
+export function jobMoney(
+  j: JobPrice,
+  payments: { type?: string; amount: number; currency: 'RSD' | 'EUR' | 'USD'; amountOriginal: number }[],
+  rate: (c: 'RSD' | 'EUR' | 'USD') => number | undefined,
+) {
+  const r2 = (n: number) => Math.round(n * 100) / 100;
+  const cur = j.priceCurrency;
+  const rc = rate(cur) ?? (cur === 'RSD' ? 1 : undefined);
+  const paid = r2(payments.filter(p => !p.type || p.type === 'prihod')
+    .reduce((s, p) => s + (p.currency === cur ? p.amountOriginal : rc ? p.amount / rc : 0), 0));
+  const total = j.pricePerMeter != null && j.meters != null ? r2(j.pricePerMeter * j.meters) : null;
+  return { currency: cur, perMeter: j.pricePerMeter, meters: j.meters, total, paid, left: total === null ? null : r2(total - paid) };
+}
+
+/** Filter liste poslova po statusu: aktivni (sve osim završenih) ili jedan status. */
+export const JOB_FILTERS = [['aktivni', 'Aktivni'], ['cekanje', 'Na čekanju'], ['proces', 'U procesu'], ['uplata', 'Čeka uplatu'], ['zavrseno', 'Završeno']] as const;
+export type JobFilter = (typeof JOB_FILTERS)[number][0];
+export const jobInFilter = (status: string, f: JobFilter) => (f === 'aktivni' ? status !== 'zavrseno' : status === f);

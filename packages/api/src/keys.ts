@@ -11,6 +11,7 @@ export const keys = {
   jobs: ['jobs'] as const,
   job: (id: string) => ['jobs', id] as const,
   pending: (jobId: string) => ['job_pending_items', jobId] as const,
+  jobReminders: (jobId: string) => ['job_reminders', jobId] as const,
   tasks: ['tasks'] as const,
   documents: ['documents'] as const,
   transactions: (f: object = {}) => ['transactions', f] as const,
@@ -30,7 +31,7 @@ export const keys = {
 
 /** Koje tabele treba osvežiti kad se promeni data tabela (npr. završen posao upisuje promet). */
 export const RELATED: Record<string, string[]> = {
-  jobs: ['jobs', 'job_pending_items', 'transactions', 'account_balances'],
+  jobs: ['jobs', 'job_pending_items', 'job_reminders', 'transactions', 'account_balances'],
   job_pending_items: ['job_pending_items', 'jobs'],
   // Svaka promena novca osvežava brojač stanja na naslovnoj
   // Trošak vlasnika pravi i ulog; unos drugog vlasnika pravi obaveštenje

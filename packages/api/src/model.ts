@@ -40,7 +40,11 @@ export interface Job extends Base {
   endTime: string | null;
   status: JobStatus; endDate: string | null; description: string | null; workAddress: string | null; workCity: string | null;
   paymentComment: string | null;
+  /** Dogovorena cena po metru, metri (iskopano) i valuta cene; ukupna cena = cena × metri. */
+  pricePerMeter: number | null; meters: number | null; priceCurrency: Currency;
 }
+/** Podsetnik za naplatu posla (baza šalje obaveštenje u izabrano vreme; `audience` me = samo meni, both = obojici). */
+export interface JobReminder extends Base { jobId: string; remindAt: string; audience: 'me' | 'both'; note: string | null; firedAt: string | null; createdBy: string }
 export interface PendingItem extends Base { jobId: string; companyId: string | null; amount: number; description: string | null; invoiceNo: string | null }
 export interface Task extends Base {
   title: string; assignee: Assignee; dueDate: string | null; status: TaskStatus; doneAt: string | null; doneBy: string | null;

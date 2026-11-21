@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { PoznanApi, Crud, ListOpts } from './api';
 import { voiceResultSchema } from '@poznan/shared';
 import { fromRow, linesToJson, toRow } from './mapping';
-import type { DocumentItem, Account, AccountBalance, Client, Company, FxRateRow, Job, Label, Photo, Supplier, Task, Transaction, Transfer, OwnerContribution, TxCategory, Profile, Settings } from './model';
+import type { DocumentItem, JobReminder, Account, AccountBalance, Client, Company, FxRateRow, Job, Label, Photo, Supplier, Task, Transaction, Transfer, OwnerContribution, TxCategory, Profile, Settings } from './model';
 
 class ApiError extends Error {
   constructor(message: string, readonly code?: string) { super(message); }
@@ -156,6 +156,12 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
       async markPaid(jobId) { await rpc('mark_job_paid', { p_job: jobId }); },
       async addReminder(jobId, at, to, note) {
         ok(await sb.from('job_reminders').insert({ job_id: jobId, remind_at: at, audience: to, note: note ?? null, client_at: now() }));
+      },
+      async reminders(jobId) {
+        return check(await sb.from('job_reminders').select('*').eq('job_id', jobId).is('deleted_at', null).order('remind_at')).map(r => fromRow<JobReminder>('job_reminders', r));
+      },
+      async removeReminder(id) {
+        ok(await sb.from('job_reminders').update({ deleted_at: now(), client_at: now() }).eq('id', id));
       },
     },
     tasks: crud<Task, never>('tasks', 'due'),

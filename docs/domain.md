@@ -111,6 +111,13 @@ Tri kartice, tim redom:
 ### Lista i kartica
 - Poslovi imaju tabove **Lista** i **Kalendar**.
 - Lista: samo aktivni poslovi, prvo oni koji počinju danas ili kasnije (najbliži prvi), zatim započeti (najskoriji prvi); između redova razlika u danima. Red: klijent, kategorija, adresa posla, početak, status, ko radi, dugmad navigacija i poziv. Pretraga i filter kategorije. Ikonica arhive otvara završene poslove.
+- **Filter po statusu** (zahtev 21. nov 2026.): iznad liste tabovi **Aktivni** (sve osim završenih), **Na čekanju**, **U procesu**, **Čeka uplatu** i **Završeno**, sa brojem poslova. Završeno zamenjuje arhivu.
+- **Cena posla**: svaki posao ima dogovorenu **cenu po metru** (i valutu: RSD, EUR, USD) i **metre** (koliko je iskopano); ukupna cena = cena × metri. Uplaćeno su prihodi vezani za posao (kapara i ostale uplate), u valuti cene; dug = ukupno − uplaćeno (`jobMoney` u `@poznan/shared`). Polja su u formi posla; za stare poslove i poslove bez bušenja nisu obavezna.
+- Na kartici u listi, po statusu:
+  - **Na čekanju i U procesu**: cena po metru, metri, ukupno, uplaćena kapara i koliko još treba da plati.
+  - **Čeka uplatu**: kapara (uplaćeno), dug i zvonce ako postoji podsetnik za naplatu.
+  - **Završeno**: cena po metru, metri i ukupno naplaćeno.
+- Kartica posla ima blok **Cena i uplate** (isti podaci) i dugme **Upiši kaparu** (otvara prihod vezan za posao, kategorija „Kapara“). Kad posao čeka uplatu: **Podsetnik za naplatu** (datum i vreme, meni ili obojici; baza šalje obaveštenje), lista podsetnika sa brisanjem.
 - Kartica posla: status, klijent (link), telefon, adresa posla sa navigacijom (i adresa klijenta ako se razlikuje), ko radi, početak/završetak, naplata, opis, komentar, komentari, slike, **zadaci** vezani za posao (sa dugmetom + Zadatak), **Obriši posao**.
 
 ### Početak posla

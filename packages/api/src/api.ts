@@ -7,7 +7,7 @@ import type {
 } from '@poznan/shared';
 import type { PaymentLine, PhotoTarget, VoiceContext, VoiceResult } from '@poznan/shared';
 import type {
-  Account, AccountBalance, DocumentItem, FxRateRow, Transfer, AuditEntry, Client, Comment, Company, CompanyHistoryItem, Job, Label, Notification, OwnerContribution, PendingItem, TxCategory, Profile, Settings, Photo, Supplier, Task, Transaction,
+  Account, AccountBalance, DocumentItem, JobReminder, FxRateRow, Transfer, AuditEntry, Client, Comment, Company, CompanyHistoryItem, Job, Label, Notification, OwnerContribution, PendingItem, TxCategory, Profile, Settings, Photo, Supplier, Task, Transaction,
 } from './model';
 
 export interface ListOpts { includeDeleted?: boolean }
@@ -56,6 +56,9 @@ export interface PoznanApi {
     awaitPayment(jobId: string, lines: PaymentLine[], comment?: string | null): Promise<void>;
     markPaid(jobId: string): Promise<void>;
     addReminder(jobId: string, at: string, to: 'me' | 'both', note?: string | null): Promise<void>;
+    /** Podsetnici za naplatu posla (i poslati, kao istorija). */
+    reminders(jobId: string): Promise<JobReminder[]>;
+    removeReminder(id: string): Promise<void>;
   };
   tasks: Crud<Task, TaskInput>;
   /** Dokumentacija: podaci dokumenta, fajl (upload zamenjuje stari) i privremeni link za pregled ili preuzimanje. */

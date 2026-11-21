@@ -91,6 +91,10 @@ export const jobSchema = z
   endTime: hhmm.nullable().optional(),
   assignee: assignee.default('oba'),
   status: z.enum(keys(JOB_STATUSES)),
+  /** Dogovorena cena po metru i broj metara (ukupna cena = cena × metri), u valuti `priceCurrency`. */
+  pricePerMeter: z.number().nonnegative('Cena ne može biti negativna').nullable().optional(),
+  meters: z.number().nonnegative('Metri ne mogu biti negativni').nullable().optional(),
+  priceCurrency: z.enum(CURRENCIES).default('RSD'),
   })
   .refine(j => !j.endTime || !j.startTime || j.endTime > j.startTime, { message: 'Kraj mora biti posle početka', path: ['endTime'] });
 export type JobInput = z.infer<typeof jobSchema>;
