@@ -45,6 +45,8 @@ export interface PendingItem extends Base { jobId: string; companyId: string | n
 export interface Task extends Base {
   title: string; assignee: Assignee; dueDate: string | null; status: TaskStatus; doneAt: string | null; doneBy: string | null;
   jobId: string | null; note: string | null;
+  /** Dokument čiji istek zadatak prati (podsetnik iz Dokumentacije). */
+  documentId: string | null;
   /** Podsetnici (ISO); na dan roka u 06:00 stiže i podrazumevani. */
   reminders: string[];
   /** Vreme podsetnika na dan roka (HH:MM); null = po ličnom podešavanju (podrazumevano 06:00). */
@@ -96,3 +98,9 @@ export interface Notification {
 export interface Profile { userId: string; slug: UserId; name: string; theme: 'light' | 'dark' | 'system'; barColors: Record<string, number>; notif: NotificationPrefs; currency: Currency; /** Dugme glasovne komande na ekranu (lično, podrazumevano da). */ voiceButton: boolean }
 export interface Settings { pausalLimit: number; pdvThreshold: number; warnPct: number; critPct: number; backupEveryDays: number }
 export interface AuditEntry { id: number; userId: string | null; table: string; rowId: string | null; action: 'insert' | 'update' | 'delete'; old: unknown; new: unknown; at: string; clientAt: string | null }
+
+/** Dokument iz Dokumentacije: jedan fajl (PDF, PNG, JPG) u privatnom bucketu „documents“. */
+export interface DocumentItem extends Base {
+  name: string; description: string | null; expiresOn: string | null;
+  storagePath: string | null; fileName: string | null; contentType: string | null; sizeBytes: number | null; createdBy: string | null;
+}

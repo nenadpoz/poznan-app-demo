@@ -62,6 +62,7 @@ export const useLabels = () => { const a = useApi(); return useQuery({ queryKey:
 export const useJobs = () => { const a = useApi(); return useQuery({ queryKey: keys.jobs, queryFn: () => a.jobs.list() }); };
 export const useJob = (id: string) => { const a = useApi(); return useQuery({ queryKey: keys.job(id), queryFn: () => a.jobs.get(id) }); };
 export const usePending = (jobId: string) => { const a = useApi(); return useQuery({ queryKey: keys.pending(jobId), queryFn: () => a.jobs.pending(jobId) }); };
+export const useDocuments = () => { const a = useApi(); return useQuery({ queryKey: keys.documents, queryFn: () => a.documents.list() }); };
 export const useTasks = () => { const a = useApi(); return useQuery({ queryKey: keys.tasks, queryFn: () => a.tasks.list() }); };
 export const useTransactions = (f: TxFilter = {}) => { const a = useApi(); return useQuery({ queryKey: keys.transactions(f), queryFn: () => a.transactions.list(f) }); };
 export const useComments = (t: Comment['target'], id: string) => { const a = useApi(); return useQuery({ queryKey: keys.comments(t, id), queryFn: () => a.comments.list(t, id) }); };

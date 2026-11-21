@@ -3,11 +3,11 @@
  * mobile preko lokalnog adaptera nad SQLite/PowerSync (offline), sa istim potpisima.
  */
 import type {
-  ClientInput, CompanyInput, JobInput, OwnerContributionInput, SupplierInput, TaskInput, TransactionInput, TransferInput, TxCategoryInput,
+  ClientInput, CompanyInput, DocumentInput, JobInput, OwnerContributionInput, SupplierInput, TaskInput, TransactionInput, TransferInput, TxCategoryInput,
 } from '@poznan/shared';
 import type { PaymentLine, PhotoTarget, VoiceContext, VoiceResult } from '@poznan/shared';
 import type {
-  Account, AccountBalance, FxRateRow, Transfer, AuditEntry, Client, Comment, Company, CompanyHistoryItem, Job, Label, Notification, OwnerContribution, PendingItem, TxCategory, Profile, Settings, Photo, Supplier, Task, Transaction,
+  Account, AccountBalance, DocumentItem, FxRateRow, Transfer, AuditEntry, Client, Comment, Company, CompanyHistoryItem, Job, Label, Notification, OwnerContribution, PendingItem, TxCategory, Profile, Settings, Photo, Supplier, Task, Transaction,
 } from './model';
 
 export interface ListOpts { includeDeleted?: boolean }
@@ -58,6 +58,12 @@ export interface PoznanApi {
     addReminder(jobId: string, at: string, to: 'me' | 'both', note?: string | null): Promise<void>;
   };
   tasks: Crud<Task, TaskInput>;
+  /** Dokumentacija: podaci dokumenta, fajl (upload zamenjuje stari) i privremeni link za pregled ili preuzimanje. */
+  documents: Crud<DocumentItem, DocumentInput> & {
+    upload(id: string, file: { data: ArrayBuffer; contentType: string; fileName: string; size: number }): Promise<DocumentItem>;
+    /** Potpisani link (1 sat); `download` = preuzimanje pod imenom fajla. */
+    fileUrl(path: string, download?: string | null): Promise<string>;
+  };
   transactions: Omit<Crud<Transaction, TransactionInput>, 'list'> & {
     list(f?: TxFilter): Promise<Transaction[]>;
     /** Više unosa odjednom (npr. plata „Obojici“): sve ili ništa. */

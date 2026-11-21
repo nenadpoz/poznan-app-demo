@@ -129,11 +129,13 @@ export const taskSchema = z.object({
   reminders: z.array(z.string().datetime({ offset: true })).max(10, 'Najviše 10 podsetnika.').default([]),
   /** Vreme podsetnika na dan roka samo za ovaj zadatak; null = po podešavanjima. */
   dueTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Vreme upiši kao 08:00.').nullable().default(null),
+  /** Dokument čiji istek zadatak prati (podsetnik iz Dokumentacije). */
+  documentId: id.nullable().optional(),
 });
 export type TaskInput = z.infer<typeof taskSchema>;
 
 export const commentSchema = z.object({
-  target: z.enum(['task', 'job', 'company']),
+  target: z.enum(['task', 'job', 'company', 'transaction', 'transfer', 'contribution', 'document']),
   targetId: id,
   parentId: id.nullable().optional(), // odgovor na komentar
   text: text(2000).min(1, 'Komentar je prazan'),
@@ -241,3 +243,11 @@ export const newPasswordSchema = z
   .refine(v => v.password === v.repeat, { message: 'Lozinke se ne poklapaju.', path: ['repeat'] });
 /** Kod iz emaila za reset lozinke (6 do 8 cifara). */
 export const resetCodeSchema = z.string().trim().regex(/^\d{6,8}$/, 'Kod iz emaila ima 6 do 8 cifara.');
+
+/** Dokument iz Dokumentacije (Podešavanja): naziv, opis i datum isteka; fajl se šalje posebno. */
+export const documentSchema = z.object({
+  name: text(200).min(1, 'Unesi naziv dokumenta'),
+  description: optText(2000),
+  expiresOn: isoDate.nullable().default(null),
+});
+export type DocumentInput = z.infer<typeof documentSchema>;

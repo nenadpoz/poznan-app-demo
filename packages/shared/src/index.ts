@@ -15,3 +15,4 @@ export * from './session';
 export * from './address';
 export * from './voice';
 export * from './wallet';
+export * from './documents';

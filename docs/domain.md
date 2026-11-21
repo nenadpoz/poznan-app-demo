@@ -244,3 +244,13 @@ Zahtev vlasnika od 6. nov 2026.
 - AI dobija samo tekst, današnji datum i nazive firmi i kategorija. **Imena klijenata se ne šalju.**
 - Bez interneta obrada ne radi („Obrada komande nije uspela…“), a tekst ostaje. Kad AI ne prepozna nameru, piše šta može da se kaže.
 - Cena: besplatno (besplatan nivo Gemini API-ja, sa dnevnim ograničenjem broja zahteva). Na besplatnom nivou Google može da koristi poslate tekstove za poboljšanje svojih modela, a razgovor se kod Google-a ne čuva (`store: false`). Model se menja samo u funkciji `voice-parse` (npr. Claude Haiku ili lokalni model preko Ollama), aplikacija ostaje ista.
+
+## 18. Dokumentacija
+Zahtev vlasnika od 21. nov 2026. Podešavanja → **Dokumentacija**: lista dokumenata (ugovori, dozvole, polise…) i dugme za nov dokument.
+- **Dokument**: naziv (obavezan), fajl (**PDF, PNG ili JPG**, do 20 MB; jedan fajl po dokumentu, na izmeni se može zameniti), datum isteka, opis i komentari (kao na zadatku).
+- **Lista**: naziv, vrsta fajla i istek. Istekao je crven, „ističe za N dana“ (do 30 dana) narandžast; prvo idu oni koji uskoro ističu.
+- **Detalji**: pregled slike (dodir je otvara preko celog ekrana) ili PDF-a (otvara se u pregledaču telefona), **Preuzmi** (čuvanje ili deljenje fajla), svi podaci, zadatak za istek (link), komentari i istorija. Izmena je na ikonici olovke; brisanje je na izmeni.
+- **Podsetnik za istek**: pri unosu (i izmeni) dokumenta sa datumom isteka uključeno je „Napravi zadatak za istek“. Aplikacija odmah pravi **zadatak** „Ističe dokument: <naziv>“ sa rokom na dan isteka i biraš ko je zadužen (Nenad, Jovan, Obojica). Podrazumevani podsetnik je **mesec dana pre isteka u 08:00** (ako je taj dan već prošao, ostaje podsetnik na dan roka), a mogu se dodati i drugi podsetnici (datum i vreme). Zadatak se vidi u Zadacima i ima link na dokument; promena datuma isteka menja rok zadatka. Brisanje dokumenta briše i njegov nezavršen zadatak.
+- Fajlovi su privatni (samo vlasnici), link za pregled važi sat vremena. Dodavanje, izmena i brisanje idu u logove.
+- Baza: tabela `documents`, bucket `documents`, `tasks.document_id`; komentari i obaveštenja i na dokumentu (`document`).
+

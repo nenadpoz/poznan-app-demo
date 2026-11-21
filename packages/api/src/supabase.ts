@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { PoznanApi, Crud, ListOpts } from './api';
 import { voiceResultSchema } from '@poznan/shared';
 import { fromRow, linesToJson, toRow } from './mapping';
-import type { Account, AccountBalance, Client, Company, FxRateRow, Job, Label, Photo, Supplier, Task, Transaction, Transfer, OwnerContribution, TxCategory, Profile, Settings } from './model';
+import type { DocumentItem, Account, AccountBalance, Client, Company, FxRateRow, Job, Label, Photo, Supplier, Task, Transaction, Transfer, OwnerContribution, TxCategory, Profile, Settings } from './model';
 
 class ApiError extends Error {
   constructor(message: string, readonly code?: string) { super(message); }
@@ -159,6 +159,27 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
       },
     },
     tasks: crud<Task, never>('tasks', 'due'),
+    documents: {
+      ...crud<DocumentItem, never>('documents', 'name'),
+      async upload(id, file) {
+        const ext = file.contentType === 'application/pdf' ? 'pdf' : file.contentType === 'image/png' ? 'png' : 'jpg';
+        const path = `${id}/${newId()}.${ext}`;
+        const old = await sb.from('documents').select('storage_path').eq('id', id).maybeSingle();
+        ok(old);
+        ok(await sb.storage.from('documents').upload(path, file.data, { contentType: file.contentType }));
+        const res = await sb.from('documents').update({ storage_path: path, file_name: file.fileName, content_type: file.contentType, size_bytes: file.size, client_at: now() })
+          .eq('id', id).select().single();
+        if (res.error) { await sb.storage.from('documents').remove([path]); ok(res); }
+        // Stari fajl se briše tek kad je novi upisan
+        const prev = (old.data as { storage_path: string | null } | null)?.storage_path;
+        if (prev && prev !== path) await sb.storage.from('documents').remove([prev]);
+        return fromRow<DocumentItem>('documents', check(res));
+      },
+      async fileUrl(path, download) {
+        const r = check(await sb.storage.from('documents').createSignedUrl(path, 3600, download ? { download } : undefined));
+        return r.signedUrl;
+      },
+    },
     transactions: {
       ...crud<Transaction, never>('transactions', 'date', false),
       async list(f = {}) {
