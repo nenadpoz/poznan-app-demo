@@ -14,7 +14,7 @@ describe('mapping', () => {
     expect(linesToJson([{ companyId: null, amount: 5, description: 'Bunar' }])).toEqual([{ company_id: null, amount: 5, description: 'Bunar' }]);
   });
   it('završen posao osvežava i promet', () => {
-    expect(tablesToRefresh('jobs')).toEqual(['jobs', 'job_pending_items', 'transactions', 'account_balances', 'audit_log']);
+    expect(tablesToRefresh('jobs')).toEqual(['jobs', 'job_pending_items', 'job_reminders', 'transactions', 'account_balances', 'audit_log']);
   });
 });
 

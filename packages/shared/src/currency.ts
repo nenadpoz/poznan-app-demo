@@ -45,8 +45,8 @@ export function money2(n: number): string {
   return neg ? `−${s}` : s;
 }
 
-/** Format iznosa: dinari bez decimala `1.234.567 RSD`, evri i dolari sa dve `1.234,56 EUR`, `1.234,56 USD`. */
-export const fmtCurrency = (amount: number, currency: Currency) => (currency === 'RSD' ? `${money(amount)} RSD` : `${money2(amount)} ${currency}`);
+/** Format iznosa bez decimala (zahtev 22. nov 2026.): `1.234.567 RSD`, `1.235 EUR`, `1.235 USD`. Unos i dalje prima decimale. */
+export const fmtCurrency = (amount: number, currency: Currency) => `${money(amount)} ${currency}`;
 
 /** Iznos u dinarima, prikazan u izabranoj valuti (`rate` = kurs te valute). Bez kursa ostaju dinari. */
 export function fmtDisplay(rsd: number, display: Currency, rate: number | undefined): string {
