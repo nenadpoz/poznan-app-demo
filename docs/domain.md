@@ -164,6 +164,7 @@ Tri kartice, tim redom:
 - Svaki komentar i odgovor šalje obaveštenje drugom korisniku.
 
 ## 11. Obaveštenja
+- **Produži iz liste** (zahtev 22. nov 2026.): obaveštenje o zadatku (rok, podsetnik, kasni, dodeljen) ima „Produži rok“, podsetnik za naplatu posla „Podseti ponovo“, a početak posla „Pomeri početak“: +1 dan, +3 dana, +7 dana (od roka, ili od danas ako je rok prošao) ili „Drugi datum“ (otvara izmenu). Posle toga obaveštenje je pročitano.
 - **Zvonce** (u aplikaciji): dva taba. **Nove** (otvoren pri ulasku) je lista nepročitanih, „Označi sve kao pročitano“ i kvačica na svakom obaveštenju (označi samo to kao pročitano, bez otvaranja), „Nema novih obaveštenja.“ kad je prazno. Vrste: komentar, odgovor, podsetnik za uplatu (kasnije i početak posla, rok zadatka, limit firme). Klik otvara zadatak/posao/firmu i skroluje do komentara (kratko istakne). Otvaranje zadatka ili posla označava njegova obaveštenja kao pročitana. **Viđene** je lista već pročitanih (poslednjih 100, najnovije prvo): dodir ponovo otvara promenu na koju se odnosi (obrisani unos nema link).
 - **Push i email** (Podešavanja → Obaveštenja, lično po nalogu): uključeno/isključeno po kanalu, email adresa za profil, vreme slanja od–do po kanalu (podrazumevano push 07:00–21:00, email 08:00–20:00; van tog vremena čeka početak), vrste: Početak posla, Zadaci (novi dodeljen meni, podsetnici, rok danas, rok prošao), Limit firme (80% i 95%), Promet. Sve što stiže u zvonce stiže i kao push na telefon (Android preko Firebase-a, iOS kasnije). Izmene ne idu u logove (lično podešavanje).
 - **Nov prihod ili trošak**: kad jedan vlasnik unese prihod ili trošak (i platu, i naplatu posla), drugi dobija obaveštenje „Jovan je uneo trošak“ sa iznosom u valuti unosa i kategorijom ili komentarom. Trošak iz više izvora daje jedno obaveštenje sa ukupnim iznosom. Dodir otvara detalje unosa.
@@ -208,6 +209,7 @@ Zahtev vlasnika od 2. nov 2026. Urađeno u core-u (v0.2.0), mobilnoj aplikaciji 
 - Prikaz je podrazumevano u **evrima**. Dugme valute u zaglavlju otvara meni: **RSD, EUR, USD**, uz današnji kurs za EUR i USD; izbor preračunava ceo prikaz (stanja, zbirove, listu prometa). Izbor se pamti po nalogu.
 - Kurs je **srednji kurs NBS za taj dan** (preuzima se automatski jednom dnevno; ako za danas još nema kursa, koristi se poslednji objavljeni).
 - Pri unosu prihoda ili troška bira se valuta iznosa (dinari, evri ili dolari); isto važi za prenos i ulog vlasnika. Čuva se originalni iznos i valuta, plus kurs tog dana, da se stari iznosi ne menjaju kad se kurs promeni.
+- **Iznosi se prikazuju bez decimala** i u evrima i dolarima (zahtev 22. nov 2026.): `1.235 EUR`, `1.234.567 RSD`. Unos i dalje prima decimale, a u bazi ostaju tačni iznosi.
 - **Paušal limit i PDV prag se uvek računaju u dinarima** (zakonski su u RSD), bez obzira na izabrani prikaz. Format: `1.234.567 RSD` (bez decimala) i `1.234,56 EUR` / `1.234,56 USD` (dve decimale). Izvor kursa: kurs.resenje.org (prenosi kursnu listu NBS). Za vikend i praznike važi poslednja lista pre tog dana. Devizni unos (EUR ili USD) za dan za koji još nema nijedne liste sa tom valutom se odbija.
 
 **Uticaj na model (za implementaciju)**
