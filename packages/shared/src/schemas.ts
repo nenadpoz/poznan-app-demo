@@ -255,3 +255,10 @@ export const documentSchema = z.object({
   expiresOn: isoDate.nullable().default(null),
 });
 export type DocumentInput = z.infer<typeof documentSchema>;
+
+/** Kolekcija (folder) u Podešavanjima: naziv i opis; fajlovi (PDF, PNG, JPG) se dodaju posebno. */
+export const collectionSchema = z.object({
+  name: text(100).min(1, 'Unesi naziv kolekcije'),
+  description: optText(1000),
+});
+export type CollectionInput = z.infer<typeof collectionSchema>;

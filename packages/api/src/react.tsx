@@ -63,6 +63,8 @@ export const useJobs = () => { const a = useApi(); return useQuery({ queryKey: k
 export const useJob = (id: string) => { const a = useApi(); return useQuery({ queryKey: keys.job(id), queryFn: () => a.jobs.get(id) }); };
 export const useJobReminders = (jobId: string) => { const a = useApi(); return useQuery({ queryKey: keys.jobReminders(jobId), queryFn: () => a.jobs.reminders(jobId) }); };
 export const usePending = (jobId: string) => { const a = useApi(); return useQuery({ queryKey: keys.pending(jobId), queryFn: () => a.jobs.pending(jobId) }); };
+export const useCollections = () => { const a = useApi(); return useQuery({ queryKey: keys.collections, queryFn: () => a.collections.list() }); };
+export const useCollectionFiles = (collectionId?: string) => { const a = useApi(); return useQuery({ queryKey: keys.collectionFiles(collectionId), queryFn: () => a.collections.files(collectionId) }); };
 export const useDocuments = () => { const a = useApi(); return useQuery({ queryKey: keys.documents, queryFn: () => a.documents.list() }); };
 export const useTasks = () => { const a = useApi(); return useQuery({ queryKey: keys.tasks, queryFn: () => a.tasks.list() }); };
 export const useTransactions = (f: TxFilter = {}) => { const a = useApi(); return useQuery({ queryKey: keys.transactions(f), queryFn: () => a.transactions.list(f) }); };

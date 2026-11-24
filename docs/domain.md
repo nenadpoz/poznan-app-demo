@@ -263,3 +263,11 @@ Zahtev vlasnika od 21. nov 2026. Podešavanja → **Dokumentacija**: lista dokum
 - Fajlovi su privatni (samo vlasnici), link za pregled važi sat vremena. Dodavanje, izmena i brisanje idu u logove.
 - Baza: tabela `documents`, bucket `documents`, `tasks.document_id`; komentari i obaveštenja i na dokumentu (`document`).
 
+## 19. Kolekcije
+Zahtev vlasnika od 24. nov 2026. Podešavanja → **Kolekcije**: folderi sa nazivom (npr. „Osnove geologije“) i opisom.
+- U kolekciji su **PDF-ovi, slike (PNG, JPG) i linkovi**. Fajlovi se dodaju više odjednom (do 30), do 20 MB po fajlu; link ima naziv i adresu (https:// se dodaje sam).
+- Lista u kolekciji: po nazivu (brojevi kao brojevi: „Deo 2“ pre „Deo 10“), sa vrstom i veličinom; slike imaju sličicu.
+- **Pregled**: slika preko celog ekrana (strelice za sledeću i prethodnu sliku), PDF u ugrađenom PDF pregledaču telefona (Android: sistemski pregledač; iOS: pregled u aplikaciji), link se otvara u pregledaču. Uz fajl su **Preuzmi** (čuvanje ili deljenje), **Preimenuj** i **Obriši**.
+- Kolekcija se može preimenovati i obrisati (briše i sve stavke). Sve izmene idu u logove.
+- Baza: `collections`, `collection_files` (fajl: `storage_path`, `content_type`; link: `url`), fajlovi u bucketu `documents` pod `kolekcije/<id>/`.
+

@@ -37,3 +37,28 @@ describe('dokumentacija', () => {
     expect(fmtBytes(2.4 * 1024 * 1024)).toBe('2,4 MB');
   });
 });
+
+describe('kolekcije', () => {
+  it('naziv obavezan, opis opciono', async () => {
+    const { collectionSchema } = await import('../src');
+    expect(collectionSchema.safeParse({ name: ' ' }).success).toBe(false);
+    expect(collectionSchema.parse({ name: 'Osnove geologije' })).toMatchObject({ name: 'Osnove geologije', description: null });
+  });
+  it('naziv fajla i redosled po broju', async () => {
+    const { fileTitle, sortByName } = await import('../src');
+    expect(fileTitle('Osnove geologije 1.PDF')).toBe('Osnove geologije 1');
+    expect(fileTitle('karta.jpeg')).toBe('karta');
+    expect(sortByName([{ name: 'Deo 10' }, { name: 'deo 2' }, { name: 'Deo 1' }]).map(x => x.name)).toEqual(['Deo 1', 'deo 2', 'Deo 10']);
+  });
+});
+
+describe('linkovi u kolekciji', () => {
+  it('adresa i naziv', async () => {
+    const { normalizeUrl, linkTitle } = await import('../src');
+    expect(normalizeUrl('www.geologija.rs/kurs')).toBe('https://www.geologija.rs/kurs');
+    expect(normalizeUrl('http://a.com')).toBe('http://a.com');
+    expect(normalizeUrl('nije link')).toBeNull();
+    expect(normalizeUrl('abc')).toBeNull();
+    expect(linkTitle('https://www.youtube.com/watch?v=1')).toBe('youtube.com');
+  });
+});

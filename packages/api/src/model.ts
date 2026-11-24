@@ -108,3 +108,8 @@ export interface DocumentItem extends Base {
   name: string; description: string | null; expiresOn: string | null;
   storagePath: string | null; fileName: string | null; contentType: string | null; sizeBytes: number | null; createdBy: string | null;
 }
+
+/** Kolekcija (folder) u Podešavanjima. */
+export interface Collection extends Base { name: string; description: string | null; createdBy: string | null }
+/** Stavka kolekcije: fajl (PDF, PNG, JPG u bucketu „documents“) ili link (`url`). */
+export interface CollectionFile extends Base { collectionId: string; name: string; storagePath: string | null; contentType: string | null; url: string | null; sizeBytes: number | null; createdBy: string | null }

@@ -3,11 +3,11 @@
  * mobile preko lokalnog adaptera nad SQLite/PowerSync (offline), sa istim potpisima.
  */
 import type {
-  ClientInput, CompanyInput, DocumentInput, JobInput, OwnerContributionInput, SupplierInput, TaskInput, TransactionInput, TransferInput, TxCategoryInput,
+  ClientInput, CollectionInput, CompanyInput, DocumentInput, JobInput, OwnerContributionInput, SupplierInput, TaskInput, TransactionInput, TransferInput, TxCategoryInput,
 } from '@poznan/shared';
 import type { PaymentLine, PhotoTarget, VoiceContext, VoiceResult } from '@poznan/shared';
 import type {
-  Account, AccountBalance, DocumentItem, JobReminder, FxRateRow, Transfer, AuditEntry, Client, Comment, Company, CompanyHistoryItem, Job, Label, Notification, OwnerContribution, PendingItem, TxCategory, Profile, Settings, Photo, Supplier, Task, Transaction,
+  Account, AccountBalance, Collection, CollectionFile, DocumentItem, JobReminder, FxRateRow, Transfer, AuditEntry, Client, Comment, Company, CompanyHistoryItem, Job, Label, Notification, OwnerContribution, PendingItem, TxCategory, Profile, Settings, Photo, Supplier, Task, Transaction,
 } from './model';
 
 export interface ListOpts { includeDeleted?: boolean }
@@ -61,6 +61,15 @@ export interface PoznanApi {
     removeReminder(id: string): Promise<void>;
   };
   tasks: Crud<Task, TaskInput>;
+  /** Kolekcije: folderi sa više PDF-ova i slika. `files()` bez id-ja vraća sve fajlove (za broj po kolekciji). */
+  collections: Crud<Collection, CollectionInput> & {
+    files(collectionId?: string): Promise<CollectionFile[]>;
+    addFile(collectionId: string, file: { data: ArrayBuffer; contentType: string; fileName: string; size: number }): Promise<CollectionFile>;
+    addLink(collectionId: string, name: string, url: string): Promise<CollectionFile>;
+    renameFile(id: string, name: string): Promise<void>;
+    /** Meko brisanje reda i brisanje fajla iz bucketa. */
+    removeFile(id: string): Promise<void>;
+  };
   /** Dokumentacija: podaci dokumenta, fajl (upload zamenjuje stari) i privremeni link za pregled ili preuzimanje. */
   documents: Crud<DocumentItem, DocumentInput> & {
     upload(id: string, file: { data: ArrayBuffer; contentType: string; fileName: string; size: number }): Promise<DocumentItem>;

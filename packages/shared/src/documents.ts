@@ -60,3 +60,24 @@ export function fmtBytes(n: number | null | undefined): string {
   if (n < 1024 * 1024) return `${Math.max(1, Math.round(n / 1024))} KB`;
   return `${(n / 1024 / 1024).toFixed(1).replace('.', ',')} MB`;
 }
+
+/** Najviše fajlova odjednom pri dodavanju u kolekciju. */
+export const MAX_COLLECTION_BATCH = 30;
+
+/** Naziv fajla bez ekstenzije za prikaz („Osnove geologije 1.pdf“ → „Osnove geologije 1“). */
+export const fileTitle = (fileName: string) => fileName.replace(/\.(pdf|png|jpe?g)$/i, '').trim() || fileName;
+
+/** Redosled u kolekciji: po nazivu, sa brojevima kao brojevima („Deo 2“ pre „Deo 10“). */
+export const sortByName = <T extends { name: string }>(list: T[]) =>
+  [...list].sort((a, b) => a.name.localeCompare(b.name, 'sr', { numeric: true, sensitivity: 'base' }));
+
+/** Link u kolekciji: dodaje https:// ako nedostaje; null ako nije ispravna adresa. */
+export function normalizeUrl(input: string | null | undefined): string | null {
+  const t = (input ?? '').trim();
+  if (!t || /\s/.test(t)) return null;
+  const u = /^https?:\/\//i.test(t) ? t : `https://${t}`;
+  return /^https?:\/\/[^/\s]+\.[^/\s]+/i.test(u) ? u : null;
+}
+
+/** Naziv linka za prikaz kad nije upisan: domen („youtube.com“). */
+export const linkTitle = (url: string) => url.replace(/^https?:\/\//i, '').replace(/^www\./i, '').split(/[/?#]/)[0] || url;

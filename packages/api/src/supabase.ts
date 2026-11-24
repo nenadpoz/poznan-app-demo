@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { PoznanApi, Crud, ListOpts } from './api';
 import { voiceResultSchema } from '@poznan/shared';
 import { fromRow, linesToJson, toRow } from './mapping';
-import type { DocumentItem, JobReminder, Account, AccountBalance, Client, Company, FxRateRow, Job, Label, Photo, Supplier, Task, Transaction, Transfer, OwnerContribution, TxCategory, Profile, Settings } from './model';
+import type { Collection, CollectionFile, DocumentItem, JobReminder, Account, AccountBalance, Client, Company, FxRateRow, Job, Label, Photo, Supplier, Task, Transaction, Transfer, OwnerContribution, TxCategory, Profile, Settings } from './model';
 
 class ApiError extends Error {
   constructor(message: string, readonly code?: string) { super(message); }
@@ -165,6 +165,34 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
       },
     },
     tasks: crud<Task, never>('tasks', 'due'),
+    collections: {
+      ...crud<Collection, never>('collections', 'name'),
+      async files(collectionId) {
+        let q = sb.from('collection_files').select('*').is('deleted_at', null).order('name');
+        if (collectionId) q = q.eq('collection_id', collectionId);
+        return check(await q).map(r => fromRow<CollectionFile>('collection_files', r));
+      },
+      async addFile(collectionId, file) {
+        const ext = file.contentType === 'application/pdf' ? 'pdf' : file.contentType === 'image/png' ? 'png' : 'jpg';
+        const path = `kolekcije/${collectionId}/${newId()}.${ext}`;
+        ok(await sb.storage.from('documents').upload(path, file.data, { contentType: file.contentType }));
+        const res = await sb.from('collection_files').insert({
+          collection_id: collectionId, name: file.fileName, storage_path: path, content_type: file.contentType, size_bytes: file.size, client_at: now(),
+        }).select().single();
+        if (res.error) { await sb.storage.from('documents').remove([path]); ok(res); }
+        return fromRow<CollectionFile>('collection_files', check(res));
+      },
+      async addLink(collectionId, name, url) {
+        return fromRow<CollectionFile>('collection_files', check(await sb.from('collection_files').insert({ collection_id: collectionId, name, url, client_at: now() }).select().single()));
+      },
+      async renameFile(id, name) {
+        ok(await sb.from('collection_files').update({ name, client_at: now() }).eq('id', id));
+      },
+      async removeFile(id) {
+        const r = check(await sb.from('collection_files').update({ deleted_at: now(), client_at: now() }).eq('id', id).select('storage_path').single()) as { storage_path: string | null };
+        if (r.storage_path) await sb.storage.from('documents').remove([r.storage_path]);
+      },
+    },
     documents: {
       ...crud<DocumentItem, never>('documents', 'name'),
       async upload(id, file) {

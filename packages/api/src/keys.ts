@@ -14,6 +14,8 @@ export const keys = {
   jobReminders: (jobId: string) => ['job_reminders', jobId] as const,
   tasks: ['tasks'] as const,
   documents: ['documents'] as const,
+  collections: ['collections'] as const,
+  collectionFiles: (id = '') => ['collection_files', id] as const,
   transactions: (f: object = {}) => ['transactions', f] as const,
   comments: (target: string, id: string) => ['comments', target, id] as const,
   notifications: ['notifications'] as const,
@@ -43,6 +45,7 @@ export const RELATED: Record<string, string[]> = {
   comments: ['comments', 'notifications'],
   // Dokument ima zadatak (podsetnik za istek); brisanje dokumenta briše i zadatak
   documents: ['documents', 'tasks'],
+  collections: ['collections', 'collection_files'],
 };
 
 export const tablesToRefresh = (table: string) => [...new Set([table, ...(RELATED[table] ?? []), 'audit_log'])];
