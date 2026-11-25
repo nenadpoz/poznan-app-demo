@@ -71,6 +71,7 @@ export const useTransactions = (f: TxFilter = {}) => { const a = useApi(); retur
 export const useComments = (t: Comment['target'], id: string) => { const a = useApi(); return useQuery({ queryKey: keys.comments(t, id), queryFn: () => a.comments.list(t, id) }); };
 export const useUnreadNotifications = () => { const a = useApi(); return useQuery({ queryKey: keys.notifications, queryFn: () => a.notifications.unread() }); };
 export const useSeenNotifications = () => { const a = useApi(); return useQuery({ queryKey: keys.notificationsSeen, queryFn: () => a.notifications.seen() }); };
+export const useStorageUsage = () => { const a = useApi(); return useQuery({ queryKey: ['storage_usage'], queryFn: () => a.settings.usage(), staleTime: 5 * 60_000 }); };
 export const useSettings = () => { const a = useApi(); return useQuery({ queryKey: keys.settings, queryFn: () => a.settings.get() }); };
 export const useProfile = () => { const a = useApi(); return useQuery({ queryKey: keys.profile, queryFn: () => a.profile.me() }); };
 

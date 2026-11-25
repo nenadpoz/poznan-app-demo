@@ -7,7 +7,7 @@ import type {
 } from '@poznan/shared';
 import type { PaymentLine, PhotoTarget, VoiceContext, VoiceResult } from '@poznan/shared';
 import type {
-  Account, AccountBalance, Collection, CollectionFile, DocumentItem, JobReminder, FxRateRow, Transfer, AuditEntry, Client, Comment, Company, CompanyHistoryItem, Job, Label, Notification, OwnerContribution, PendingItem, TxCategory, Profile, Settings, Photo, Supplier, Task, Transaction,
+  Account, AccountBalance, StorageUsage, Collection, CollectionFile, DocumentItem, JobReminder, FxRateRow, Transfer, AuditEntry, Client, Comment, Company, CompanyHistoryItem, Job, Label, Notification, OwnerContribution, PendingItem, TxCategory, Profile, Settings, Photo, Supplier, Task, Transaction,
 } from './model';
 
 export interface ListOpts { includeDeleted?: boolean }
@@ -37,7 +37,7 @@ export interface PoznanApi {
     onChange(cb: (session: { userId: string; email: string | null } | null) => void): () => void;
   };
   profile: { me(): Promise<Profile>; all(): Promise<Profile[]>; update(patch: Partial<Omit<Profile, 'userId' | 'slug'>>): Promise<void> };
-  settings: { get(): Promise<Settings>; update(patch: Partial<Settings>): Promise<void> };
+  settings: { get(): Promise<Settings>; update(patch: Partial<Settings>): Promise<void>; /** Zauzeće baze i fajlova. */ usage(): Promise<StorageUsage> };
 
   companies: Crud<Company, CompanyInput> & {
     history(companyId: string): Promise<CompanyHistoryItem[]>;

@@ -172,6 +172,7 @@ Tri kartice, tim redom:
 - **Baner u aplikaciji**: novo obaveštenje dok je aplikacija otvorena pojavi se na vrhu ekrana (uživo preko Realtime-a, i bez push-a); dodir otvara stavku, sklanja se posle 6 s ili na ×.
 
 ## 12. Podešavanja
+- **Prostor** (zahtev 25. nov 2026.): na vrhu Podešavanja dve trake, **Baza** (npr. 35 MB od 500 MB) i **Fajlovi** (slike, dokumenti, kolekcije; npr. 8 MB od 1 GB), granice Supabase besplatnog plana. Do 70% zeleno, od 70% narandžasto, od 85% crveno sa porukom da je vreme za veći plan (Pro: 25 USD mesečno, baza 8 GB, fajlovi 100 GB). Granice su u `settings.db_limit_mb` i `storage_limit_mb` (menjaju se posle prelaska na veći plan); zauzeće vraća funkcija `storage_usage()` (samo čita, samo za vlasnike).
 - Firme, Logovi, Kategorije poslova, Kategorije prometa, Boje traka limita (lično), Obaveštenja (lično), Odjava, **Glasovna komanda** (lično: prekidač „Prikaži dugme sa mikrofonom“, podrazumevano uključen).
 - U pravoj aplikaciji i: tema, lozinka, limiti i upozorenja, backup.
 - **Kategorije prometa**: dve liste, prihodi i troškovi; dodaju se i brišu u Podešavanjima. U formi prometa kategorija se bira iz padajuće liste. Unos čuva naziv, pa brisanje kategorije ne menja postojeće unose. „Plata“ nije u listi (postavlja je isplata plate). Tabela `tx_categories`.

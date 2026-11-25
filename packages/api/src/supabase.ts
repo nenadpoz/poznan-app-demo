@@ -106,6 +106,10 @@ export function createSupabaseApi(sb: SupabaseClient): PoznanApi {
     settings: {
       async get() { return fromRow<Settings>('settings', check(await sb.from('settings').select('*').single())); },
       async update(patch) { ok(await sb.from('settings').update(toRow('settings', patch)).eq('id', true)); },
+      async usage() {
+        const r = check(await sb.rpc('storage_usage')) as { db_bytes: number; storage_bytes: number; files: number };
+        return { dbBytes: Number(r.db_bytes), storageBytes: Number(r.storage_bytes), files: Number(r.files) };
+      },
     },
 
     companies: {

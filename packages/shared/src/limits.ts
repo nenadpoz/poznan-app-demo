@@ -66,3 +66,19 @@ export function vatForMonth(txs: (TxLike & { vat?: number })[], companyId: strin
   return { out, in: inn, diff: out - inn, invoices: inMonth.filter(t => t.type === 'prihod').length };
 }
 
+
+/**
+ * Zauzeće prostora (zahtev 25. nov 2026.): koliko je popunjeno od granice plana (baza, fajlovi).
+ * Do 70% je u redu, od 70% upozorenje, od 85% vreme je za veći plan.
+ */
+export const USAGE_WARN_PCT = 70;
+export const USAGE_CRIT_PCT = 85;
+export function usageLevel(usedBytes: number, limitMb: number): { pct: number; level: 'good' | 'warn' | 'bad'; usedMb: number; leftMb: number } {
+  const limit = Math.max(1, limitMb) * 1024 * 1024;
+  const pct = Math.round((usedBytes / limit) * 1000) / 10;
+  const usedMb = Math.round((usedBytes / 1024 / 1024) * 10) / 10;
+  return { pct, level: pct >= USAGE_CRIT_PCT ? 'bad' : pct >= USAGE_WARN_PCT ? 'warn' : 'good', usedMb, leftMb: Math.max(0, Math.round((limitMb - usedMb) * 10) / 10) };
+}
+
+/** Megabajti za prikaz: „35 MB“, „1,2 GB“ (od 1024 MB). */
+export const fmtMb = (mb: number) => (mb >= 1024 ? `${(mb / 1024).toFixed(1).replace('.', ',')} GB` : `${mb < 10 ? mb.toFixed(1).replace('.', ',').replace(',0', '') : Math.round(mb)} MB`);

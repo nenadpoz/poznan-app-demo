@@ -100,7 +100,9 @@ export interface Notification {
   commentId: string | null; text: string | null; readAt: string | null;
 }
 export interface Profile { userId: string; slug: UserId; name: string; theme: 'light' | 'dark' | 'system'; barColors: Record<string, number>; notif: NotificationPrefs; currency: Currency; /** Dugme glasovne komande na ekranu (lično, podrazumevano da). */ voiceButton: boolean }
-export interface Settings { pausalLimit: number; pdvThreshold: number; warnPct: number; critPct: number; backupEveryDays: number }
+export interface Settings { pausalLimit: number; pdvThreshold: number; warnPct: number; critPct: number; backupEveryDays: number; /** Granice plana (MB) za traku zauzeća. */ dbLimitMb: number; storageLimitMb: number }
+/** Trenutno zauzeće: veličina baze i zbir fajlova u skladištu (bajtovi). */
+export interface StorageUsage { dbBytes: number; storageBytes: number; files: number }
 export interface AuditEntry { id: number; userId: string | null; table: string; rowId: string | null; action: 'insert' | 'update' | 'delete'; old: unknown; new: unknown; at: string; clientAt: string | null }
 
 /** Dokument iz Dokumentacije: jedan fajl (PDF, PNG, JPG) u privatnom bucketu „documents“. */
